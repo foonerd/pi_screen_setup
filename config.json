@@ -1,0 +1,79 @@
+{
+  "version": "0.6.1",
+  "wizard_step": 0,
+  "wizard_complete": false,
+  "applied_date": "",
+  "kernel_version": "",
+  "migration_state": "none",
+  "migration_raw_lines": [],
+  "migration_parsed": {},
+  "migration_validation": [],
+  "hardware": {
+    "model": "",
+    "soc": "",
+    "ram_mb": 0,
+    "detected": false
+  },
+  "primary_output": "hdmi0",
+  "hdmi0": {
+    "enabled": true,
+    "mode": "screen_audio",
+    "display_preset": "auto",
+    "custom_timings": "",
+    "custom_params": "",
+    "rotation": 0,
+    "force_hotplug": false,
+    "ignore_edid": false,
+    "boost": 0
+  },
+  "hdmi1": {
+    "enabled": false,
+    "mode": "none",
+    "display_preset": "auto",
+    "custom_timings": "",
+    "custom_params": "",
+    "rotation": 0,
+    "force_hotplug": false,
+    "ignore_edid": false,
+    "boost": 0
+  },
+  "dsi0": {
+    "enabled": false,
+    "overlay": "vc4-kms-dsi-7inch",
+    "rotation": 0,
+    "custom_params": ""
+  },
+  "dsi1": {
+    "enabled": false,
+    "overlay": "vc4-kms-dsi-7inch",
+    "rotation": 0,
+    "custom_params": ""
+  },
+  "dpi": {
+    "enabled": false,
+    "overlay": "",
+    "custom_timing": "",
+    "rotation": 0
+  },
+  "composite": {
+    "enabled": false,
+    "mode": "pal",
+    "aspect": "4:3"
+  },
+  "custom_overlay": {
+    "enabled": false,
+    "line": ""
+  },
+  "kms": {
+    "enabled": true,
+    "cma_option": "default",
+    "cma_custom_mb": 256
+  },
+  "plymouth": {
+    "rotation": 0
+  },
+  "fbcon": {
+    "rotation": 0
+  },
+  "ota_behavior": "notify"
+}

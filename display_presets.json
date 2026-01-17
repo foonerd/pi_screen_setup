@@ -1,0 +1,585 @@
+{
+  "version": "1.1.0",
+  "last_updated": "2026-01-17",
+  "presets": {
+    "auto": {
+      "name": "Auto Detect (EDID)",
+      "type": "hdmi",
+      "description": "Let the display report its capabilities",
+      "config": {}
+    },
+
+    "_comment_hdmi": "=== HDMI DISPLAYS ===",
+
+    "waveshare-11.9-hdmi": {
+      "name": "Waveshare 11.9\" HDMI LCD (320x1480)",
+      "type": "hdmi",
+      "description": "Portrait native, requires rotation for landscape use",
+      "native_resolution": "320x1480",
+      "rotated_resolution": "1480x320",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3",
+        "max_framebuffer_height": 1480
+      },
+      "video_mode": "320x1480M@60",
+      "recommended_rotation": 90,
+      "notes": "Requires volumio-adaptive plymouth theme for proper boot splash"
+    },
+    "waveshare-7.9-hdmi": {
+      "name": "Waveshare 7.9\" HDMI LCD (400x1280)",
+      "type": "hdmi",
+      "description": "Portrait native, requires rotation for landscape use",
+      "native_resolution": "400x1280",
+      "rotated_resolution": "1280x400",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "400 0 220 32 110 1280 0 10 10 10 0 0 0 60 0 59400000 3"
+      },
+      "video_mode": "400x1280M@60",
+      "recommended_rotation": 90,
+      "notes": "Requires volumio-adaptive plymouth theme for proper boot splash"
+    },
+    "waveshare-5-hdmi": {
+      "name": "Waveshare 5\" HDMI LCD (800x480)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-7-hdmi": {
+      "name": "Waveshare 7\" HDMI LCD (1024x600)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-10.1-hdmi": {
+      "name": "Waveshare 10.1\" HDMI LCD (1024x600)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "elecrow-5-hdmi": {
+      "name": "Elecrow 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "generic-800x480": {
+      "name": "Generic 800x480 HDMI",
+      "type": "hdmi",
+      "description": "Common small HDMI displays",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "generic-1024x600": {
+      "name": "Generic 1024x600 HDMI",
+      "type": "hdmi",
+      "description": "Common 7-10 inch HDMI displays",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0
+    },
+    "generic-720p": {
+      "name": "720p (1280x720)",
+      "type": "hdmi",
+      "description": "Standard HD resolution",
+      "native_resolution": "1280x720",
+      "config": {
+        "hdmi_group": 1,
+        "hdmi_mode": 4
+      },
+      "recommended_rotation": 0
+    },
+    "generic-1080p": {
+      "name": "1080p (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD resolution",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 1,
+        "hdmi_mode": 16
+      },
+      "recommended_rotation": 0
+    },
+    "generic-4k30": {
+      "name": "4K 30Hz (3840x2160)",
+      "type": "hdmi",
+      "description": "4K UHD at 30Hz",
+      "native_resolution": "3840x2160",
+      "config": {
+        "hdmi_group": 1,
+        "hdmi_mode": 95
+      },
+      "recommended_rotation": 0
+    },
+    "generic-4k60": {
+      "name": "4K 60Hz (3840x2160)",
+      "type": "hdmi",
+      "description": "4K UHD at 60Hz - Pi 4/5 only",
+      "native_resolution": "3840x2160",
+      "config": {
+        "hdmi_group": 1,
+        "hdmi_mode": 97,
+        "hdmi_enable_4kp60": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires adequate cooling"
+    },
+    "custom-hdmi": {
+      "name": "Custom HDMI Timings",
+      "type": "hdmi",
+      "description": "Enter manual hdmi_timings or hdmi_cvt",
+      "config": {}
+    },
+
+    "_comment_dsi_official": "=== OFFICIAL RASPBERRY PI DSI DISPLAYS ===",
+
+    "rpi-touch-7inch": {
+      "name": "Raspberry Pi Touch Display 7\" (Original)",
+      "type": "dsi",
+      "description": "Official 7-inch DSI touchscreen (800x480)",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Original 7-inch display with FT5406 touch controller"
+    },
+    "rpi-touch2-7inch": {
+      "name": "Raspberry Pi Touch Display 2 - 7\"",
+      "type": "dsi",
+      "description": "Official Touch Display 2 - 7-inch (720x1280)",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-ili9881-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "ILI9881 based panel, portrait native"
+    },
+    "rpi-touch2-5inch": {
+      "name": "Raspberry Pi Touch Display 2 - 5\"",
+      "type": "dsi",
+      "description": "Official Touch Display 2 - 5-inch (720x1280)",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-ili9881-5inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "ILI9881 based panel, portrait native"
+    },
+
+    "_comment_dsi_waveshare": "=== WAVESHARE DSI DISPLAYS (vc4-kms-dsi-waveshare-panel) ===",
+
+    "waveshare-dsi-2.8": {
+      "name": "Waveshare 2.8\" DSI (480x640)",
+      "type": "dsi",
+      "description": "Waveshare 2.8-inch DSI touchscreen",
+      "native_resolution": "480x640",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,2_8_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-3.4-round": {
+      "name": "Waveshare 3.4\" DSI Round (800x800)",
+      "type": "dsi",
+      "description": "Waveshare 3.4-inch round DSI touchscreen",
+      "native_resolution": "800x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,3_4_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-4.0": {
+      "name": "Waveshare 4.0\" DSI (480x800)",
+      "type": "dsi",
+      "description": "Waveshare 4.0-inch DSI touchscreen",
+      "native_resolution": "480x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,4_0_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-4.0c": {
+      "name": "Waveshare 4.0\" DSI-C (720x720)",
+      "type": "dsi",
+      "description": "Waveshare 4.0-inch C model DSI touchscreen",
+      "native_resolution": "720x720",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,4_0_inchC"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-4.3-800x480": {
+      "name": "Waveshare 4.3\" DSI (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 4.3-inch 800x480 DSI touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses separate overlay, similar to official 7-inch"
+    },
+    "waveshare-dsi-5.0": {
+      "name": "Waveshare 5.0\" DSI (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare 5.0-inch DSI touchscreen",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,5_0_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-6.25": {
+      "name": "Waveshare 6.25\" DSI (720x1560)",
+      "type": "dsi",
+      "description": "Waveshare 6.25-inch DSI touchscreen",
+      "native_resolution": "720x1560",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,6_25_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-7.0c": {
+      "name": "Waveshare 7.0\" DSI-C (1024x600)",
+      "type": "dsi",
+      "description": "Waveshare 7.0-inch C model DSI touchscreen",
+      "native_resolution": "1024x600",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchC"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-7.0h": {
+      "name": "Waveshare 7.0\" DSI-H (1280x720)",
+      "type": "dsi",
+      "description": "Waveshare 7.0-inch H model DSI touchscreen",
+      "native_resolution": "1280x720",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchH"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-7.9": {
+      "name": "Waveshare 7.9\" DSI (400x1280)",
+      "type": "dsi",
+      "description": "Waveshare 7.9-inch DSI touchscreen, portrait native",
+      "native_resolution": "400x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_9_inch"
+      },
+      "recommended_rotation": 90
+    },
+    "waveshare-dsi-8.0": {
+      "name": "Waveshare 8.0\" DSI (1280x800)",
+      "type": "dsi",
+      "description": "Waveshare 8.0-inch DSI touchscreen",
+      "native_resolution": "1280x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_0_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-8.8": {
+      "name": "Waveshare 8.8\" DSI (480x1920)",
+      "type": "dsi",
+      "description": "Waveshare 8.8-inch DSI touchscreen, portrait native",
+      "native_resolution": "480x1920",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_8_inch"
+      },
+      "recommended_rotation": 90
+    },
+    "waveshare-dsi-10.1": {
+      "name": "Waveshare 10.1\" DSI (1280x800)",
+      "type": "dsi",
+      "description": "Waveshare 10.1-inch DSI touchscreen",
+      "native_resolution": "1280x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,10_1_inch"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-11.9": {
+      "name": "Waveshare 11.9\" DSI (320x1480)",
+      "type": "dsi",
+      "description": "Waveshare 11.9-inch DSI touchscreen, portrait native",
+      "native_resolution": "320x1480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,11_9_inch"
+      },
+      "recommended_rotation": 90
+    },
+    "waveshare-dsi-13.3-4lane": {
+      "name": "Waveshare 13.3\" DSI 4-lane (1920x1080)",
+      "type": "dsi",
+      "description": "Waveshare 13.3-inch DSI touchscreen, 4-lane, CM/Pi5 only",
+      "native_resolution": "1920x1080",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,13_3_inch_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+    "waveshare-dsi-13.3-2lane": {
+      "name": "Waveshare 13.3\" DSI 2-lane (1920x1080)",
+      "type": "dsi",
+      "description": "Waveshare 13.3-inch DSI touchscreen, 2-lane",
+      "native_resolution": "1920x1080",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,13_3_inch_2lane"
+      },
+      "recommended_rotation": 0
+    },
+
+    "_comment_dsi_waveshare_v2": "=== WAVESHARE DSI-TOUCH V2 SERIES ===",
+
+    "waveshare-dsi-v2-3.4c": {
+      "name": "Waveshare 3.4\" DSI-TOUCH V2 (800x800)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "800x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,3_4_inch_c"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-4.0c": {
+      "name": "Waveshare 4.0\" DSI-TOUCH V2 (720x720)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x720",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,4_0_inch_c"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-5.0a": {
+      "name": "Waveshare 5.0\" DSI-TOUCH V2-A (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,5_0_inch_a"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-5.5a": {
+      "name": "Waveshare 5.5\" DSI-TOUCH V2-A (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,5_5_inch_a"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-7.0a": {
+      "name": "Waveshare 7.0\" DSI-TOUCH V2-A (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_a"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-7.0b": {
+      "name": "Waveshare 7.0\" DSI-TOUCH V2-B (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_b"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-7.0c": {
+      "name": "Waveshare 7.0\" DSI-TOUCH V2-C (1024x600)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "1024x600",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_c"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-8.0a": {
+      "name": "Waveshare 8.0\" DSI-TOUCH V2-A 2-lane (800x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "800x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_0_inch_a"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-8.0a-4lane": {
+      "name": "Waveshare 8.0\" DSI-TOUCH V2-A 4-lane (800x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 4-lane, CM/Pi5 only",
+      "native_resolution": "800x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_0_inch_a_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+    "waveshare-dsi-v2-8.8a": {
+      "name": "Waveshare 8.8\" DSI-TOUCH V2-A (480x1920)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane, portrait native",
+      "native_resolution": "480x1920",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_8_inch_a"
+      },
+      "recommended_rotation": 90
+    },
+    "waveshare-dsi-v2-9.0b": {
+      "name": "Waveshare 9.0\" DSI-TOUCH V2-B 2-lane (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,9_0_inch_b"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-9.0b-4lane": {
+      "name": "Waveshare 9.0\" DSI-TOUCH V2-B 4-lane (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 4-lane, CM/Pi5 only",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,9_0_inch_b_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+    "waveshare-dsi-v2-10.1a": {
+      "name": "Waveshare 10.1\" DSI-TOUCH V2-A 2-lane (800x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "800x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_a"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-10.1a-4lane": {
+      "name": "Waveshare 10.1\" DSI-TOUCH V2-A 4-lane (800x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 4-lane, CM/Pi5 only",
+      "native_resolution": "800x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_a_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+    "waveshare-dsi-v2-10.1b": {
+      "name": "Waveshare 10.1\" DSI-TOUCH V2-B 2-lane (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 2-lane",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_b"
+      },
+      "recommended_rotation": 0
+    },
+    "waveshare-dsi-v2-10.1b-4lane": {
+      "name": "Waveshare 10.1\" DSI-TOUCH V2-B 4-lane (720x1280)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 4-lane, CM/Pi5 only",
+      "native_resolution": "720x1280",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_b_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+    "waveshare-dsi-v2-12.3a-4lane": {
+      "name": "Waveshare 12.3\" DSI-TOUCH V2-A 4-lane (720x1920)",
+      "type": "dsi",
+      "description": "Waveshare DSI-TOUCH V2 series, 4-lane, CM/Pi5 only",
+      "native_resolution": "720x1920",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,12_3_inch_a_4lane"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+    },
+
+    "_comment_dsi_other": "=== OTHER DSI DISPLAYS ===",
+
+    "jdi-lt070me05000": {
+      "name": "JDI LT070ME05000 DSI (1920x1200)",
+      "type": "dsi",
+      "description": "JDI 7-inch WUXGA panel, 4-lane, Compute Module only",
+      "native_resolution": "1920x1200",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-lt070me05000"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module (4-lane DSI)"
+    },
+    "jdi-lt070me05000-v2": {
+      "name": "JDI LT070ME05000 V2 DSI (1920x1200)",
+      "type": "dsi",
+      "description": "JDI panel with Harlab V2 interface, 4-lane, CM only",
+      "native_resolution": "1920x1200",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-lt070me05000-v2"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Compute Module (4-lane DSI)"
+    },
+    "custom-dsi": {
+      "name": "Custom/Generic DSI Panel",
+      "type": "dsi",
+      "description": "Generic DSI panel with custom timings",
+      "native_resolution": "custom",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-generic"
+      },
+      "recommended_rotation": 0,
+      "notes": "Use overlay parameters to configure timings"
+    }
+  }
+}
