@@ -1009,38 +1009,70 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
 
   // DSI configuration
   if (primaryOutput === 'dsi0' || self.getConfigValue('dsi0.enabled', false)) {
-    var dsi0Overlay = self.getConfigValue('dsi0.overlay', '');
-    if (dsi0Overlay) {
+    var dsi0PresetId = self.getConfigValue('dsi0.overlay', '');
+    if (dsi0PresetId && dsi0PresetId !== 'custom') {
       lines.push('# DSI0 Configuration');
+      var dsi0Preset = self.getDisplayPreset(dsi0PresetId);
+      var dsi0Overlay = '';
+      if (dsi0Preset && dsi0Preset.config && dsi0Preset.config.dtoverlay) {
+        dsi0Overlay = dsi0Preset.config.dtoverlay;
+      } else {
+        // Fallback: assume preset ID is the overlay name (backward compat)
+        dsi0Overlay = dsi0PresetId;
+      }
       var dsi0Params = self.getConfigValue('dsi0.custom_params', '');
       var dsi0Rotation = self.getConfigValue('dsi0.rotation', 0);
       var dsi0Line = 'dtoverlay=' + dsi0Overlay;
       if (dsi0Rotation !== 0) {
-        dsi0Line += ',rotate=' + dsi0Rotation;
+        dsi0Line += ',rotation=' + dsi0Rotation;
       }
       if (dsi0Params) {
         dsi0Line += ',' + dsi0Params;
       }
       lines.push(dsi0Line);
       lines.push('');
+    } else if (dsi0PresetId === 'custom') {
+      // Custom overlay - use custom_params as the full overlay line
+      var customLine = self.getConfigValue('dsi0.custom_params', '');
+      if (customLine) {
+        lines.push('# DSI0 Custom Configuration');
+        lines.push('dtoverlay=' + customLine);
+        lines.push('');
+      }
     }
   }
 
   if (primaryOutput === 'dsi1' || self.getConfigValue('dsi1.enabled', false)) {
-    var dsi1Overlay = self.getConfigValue('dsi1.overlay', '');
-    if (dsi1Overlay) {
+    var dsi1PresetId = self.getConfigValue('dsi1.overlay', '');
+    if (dsi1PresetId && dsi1PresetId !== 'custom') {
       lines.push('# DSI1 Configuration');
+      var dsi1Preset = self.getDisplayPreset(dsi1PresetId);
+      var dsi1Overlay = '';
+      if (dsi1Preset && dsi1Preset.config && dsi1Preset.config.dtoverlay) {
+        dsi1Overlay = dsi1Preset.config.dtoverlay;
+      } else {
+        // Fallback: assume preset ID is the overlay name (backward compat)
+        dsi1Overlay = dsi1PresetId;
+      }
       var dsi1Params = self.getConfigValue('dsi1.custom_params', '');
       var dsi1Rotation = self.getConfigValue('dsi1.rotation', 0);
       var dsi1Line = 'dtoverlay=' + dsi1Overlay;
       if (dsi1Rotation !== 0) {
-        dsi1Line += ',rotate=' + dsi1Rotation;
+        dsi1Line += ',rotation=' + dsi1Rotation;
       }
       if (dsi1Params) {
         dsi1Line += ',' + dsi1Params;
       }
       lines.push(dsi1Line);
       lines.push('');
+    } else if (dsi1PresetId === 'custom') {
+      // Custom overlay - use custom_params as the full overlay line
+      var customLine1 = self.getConfigValue('dsi1.custom_params', '');
+      if (customLine1) {
+        lines.push('# DSI1 Custom Configuration');
+        lines.push('dtoverlay=' + customLine1);
+        lines.push('');
+      }
     }
   }
 
@@ -1232,8 +1264,9 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     }
     parts.push('HDMI' + (primaryOutput === 'hdmi1' ? '1' : '0') + ': ' + presetLabel);
   } else if (primaryOutput === 'dsi0' || primaryOutput === 'dsi1') {
-    var dsiOverlay = self.getConfigValue(primaryOutput + '.overlay', '');
-    var dsiLabel = DSI_OVERLAYS[dsiOverlay] ? DSI_OVERLAYS[dsiOverlay].label : dsiOverlay;
+    var dsiPresetId = self.getConfigValue(primaryOutput + '.overlay', '');
+    var dsiPreset = self.getDisplayPreset(dsiPresetId);
+    var dsiLabel = dsiPreset && dsiPreset.name ? dsiPreset.name : dsiPresetId;
     parts.push('DSI: ' + dsiLabel);
   } else if (primaryOutput === 'dpi') {
     var dpiOverlay = self.getConfigValue('dpi.overlay', '');
@@ -2994,15 +3027,21 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
           modeSelect.value = modeOptions.find(function(o) { return o.value === currentMode; }) || modeOptions[0];
         }
 
-        // Display preset selector
+        // Display preset selector - filter by type === 'hdmi'
         var presetSelect = self.findContentItem(step2Section, 'hdmi_display_preset');
         if (presetSelect) {
           var presetOptions = [];
           if (self.displayPresets) {
             for (var presetKey in self.displayPresets) {
-              presetOptions.push({ value: presetKey, label: self.displayPresets[presetKey].name });
+              var preset = self.displayPresets[presetKey];
+              // Skip comment entries and non-HDMI presets
+              if (presetKey.startsWith('_comment') || preset.type !== 'hdmi') {
+                continue;
+              }
+              presetOptions.push({ value: presetKey, label: preset.name });
             }
-          } else {
+          }
+          if (presetOptions.length === 0) {
             presetOptions.push({ value: 'auto', label: 'Auto Detect (EDID)' });
           }
           presetSelect.options = presetOptions;
@@ -3129,16 +3168,29 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
       if (showDsi) {
         var dsiPrefix = primaryOutput;
 
-        // DSI overlay
+        // DSI overlay - read from display_presets.json filtered by type === 'dsi'
         var overlaySelect = self.findContentItem(step3Section, 'dsi_overlay');
         if (overlaySelect) {
           var dsiOptions = [];
-          for (var dsiKey in DSI_OVERLAYS) {
-            dsiOptions.push({ value: dsiKey, label: DSI_OVERLAYS[dsiKey].label });
+          if (self.displayPresets) {
+            for (var presetKey in self.displayPresets) {
+              var preset = self.displayPresets[presetKey];
+              // Skip comment entries and non-DSI presets
+              if (presetKey.startsWith('_comment') || preset.type !== 'dsi') {
+                continue;
+              }
+              dsiOptions.push({ value: presetKey, label: preset.name });
+            }
+          }
+          // Fallback to hardcoded if no presets loaded
+          if (dsiOptions.length === 0) {
+            for (var dsiKey in DSI_OVERLAYS) {
+              dsiOptions.push({ value: dsiKey, label: DSI_OVERLAYS[dsiKey].label });
+            }
           }
           dsiOptions.push({ value: 'custom', label: self.getI18n('CUSTOM_OVERLAY') });
           overlaySelect.options = dsiOptions;
-          var currentOverlay = self.getConfigValue(dsiPrefix + '.overlay', 'vc4-kms-dsi-7inch');
+          var currentOverlay = self.getConfigValue(dsiPrefix + '.overlay', 'rpi-touch-7inch');
           overlaySelect.value = dsiOptions.find(function(o) { return o.value === currentOverlay; }) || dsiOptions[0];
         }
 
