@@ -1110,7 +1110,8 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       var dsi0Params = self.getConfigValue('dsi0.custom_params', '');
       var dsi0Rotation = self.getConfigValue('dsi0.rotation', 0);
       var dsi0Line = 'dtoverlay=' + dsi0Overlay;
-      if (dsi0Rotation !== 0) {
+      // Only add rotation to overlay if it supports the rotation parameter
+      if (dsi0Rotation !== 0 && dsi0Preset && dsi0Preset.overlay_rotation_param === true) {
         dsi0Line += ',rotation=' + dsi0Rotation;
       }
       if (dsi0Params) {
@@ -1144,7 +1145,8 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       var dsi1Params = self.getConfigValue('dsi1.custom_params', '');
       var dsi1Rotation = self.getConfigValue('dsi1.rotation', 0);
       var dsi1Line = 'dtoverlay=' + dsi1Overlay;
-      if (dsi1Rotation !== 0) {
+      // Only add rotation to overlay if it supports the rotation parameter
+      if (dsi1Rotation !== 0 && dsi1Preset && dsi1Preset.overlay_rotation_param === true) {
         dsi1Line += ',rotation=' + dsi1Rotation;
       }
       if (dsi1Params) {
@@ -1661,8 +1663,21 @@ PiScreenSetup.prototype.updateCmdline = function() {
     }
     self.logger.info('pi_screen_setup: updateCmdline - rotation=' + rotation + ', displayPreset=' + displayPreset);
 
-    var plymouthRotation = self.getConfigValue('plymouth.rotation', rotation);
-    var fbconRotation = self.getConfigValue('fbcon.rotation', rotation);
+    // Get cmdline rotation options (default all true)
+    var applyCmdlineVideo = self.getConfigValue('cmdline_rotation.video', true);
+    var applyCmdlineFbcon = self.getConfigValue('cmdline_rotation.fbcon', true);
+    var applyCmdlinePlymouth = self.getConfigValue('cmdline_rotation.plymouth', true);
+
+    // Check if DSI overlay handles rotation internally
+    var overlayHandlesRotation = false;
+    if (primaryOutput.startsWith('dsi')) {
+      var dsiPresetId = self.getConfigValue(primaryOutput + '.overlay', '');
+      var dsiPreset = self.getDisplayPreset(dsiPresetId);
+      if (dsiPreset && dsiPreset.overlay_rotation_param === true) {
+        overlayHandlesRotation = true;
+        self.logger.info('pi_screen_setup: DSI overlay handles rotation internally');
+      }
+    }
 
     // Get video_mode from display preset if available
     var videoMode = null;
@@ -1673,47 +1688,67 @@ PiScreenSetup.prototype.updateCmdline = function() {
       }
     }
 
-    // Remove existing video, plymouth, and fbcon parameters
+    // Remove existing video, plymouth rotation, and fbcon parameters
+    // NOTE: Do NOT remove plymouth.ignore-serial-consoles - it's needed for graphical boot splash
     content = content.replace(/\s*video=[^\s]*/g, '');
-    content = content.replace(/\s*plymouth\.ignore-serial-consoles/g, '');
     content = content.replace(/\s*plymouth=[0-9]+/g, '');
     content = content.replace(/\s*fbcon=rotate:[0-3]/g, '');
+
+    // Ensure plymouth.ignore-serial-consoles is present (needed for boot splash on screen)
+    if (content.indexOf('plymouth.ignore-serial-consoles') === -1) {
+      content += ' plymouth.ignore-serial-consoles';
+    }
 
     // Map degrees to fbcon/video values: 0=0, 90=1, 180=2, 270=3
     var rotateMap = { 0: 0, 90: 1, 180: 2, 270: 3 };
     var rotateValue = rotateMap[rotation] || 0;
 
-    // Determine DRM connector name based on primary output
+    // Determine DRM connector name based on primary output and Pi model
+    // Pi 0-4: DSI1 (standard DISPLAY port) -> DSI-1
+    // Pi 5: DSI0 (DISP0/left) -> DSI-1, DSI1 (DISP1/right) -> DSI-2
     var connectorName = 'HDMI-A-1';
     if (primaryOutput === 'hdmi1') {
       connectorName = 'HDMI-A-2';
-    } else if (primaryOutput === 'dsi0' || primaryOutput === 'dsi1') {
-      connectorName = 'DSI-1';
+    } else if (primaryOutput === 'dsi0') {
+      connectorName = 'DSI-1';  // DSI0 always maps to DSI-1
+    } else if (primaryOutput === 'dsi1') {
+      // Check if Pi 5 (has dual DSI exposed)
+      var isPi5 = self.hardwareInfo && self.hardwareInfo.soc === 'BCM2712';
+      connectorName = isPi5 ? 'DSI-2' : 'DSI-1';
+    } else if (primaryOutput === 'dpi') {
+      connectorName = 'DPI-1';
     }
 
-    // Build video parameter
-    // Format: video=CONNECTOR:WIDTHxHEIGHTM@REFRESH,rotate=DEGREES
-    // Or: video=CONNECTOR:rotate=DEGREES (if no video_mode)
-    if (videoMode || rotation !== 0) {
-      var videoParam = 'video=' + connectorName + ':';
-      if (videoMode) {
-        videoParam += videoMode;
-        if (rotation !== 0) {
-          videoParam += ',rotate=' + rotation;
+    // Only add cmdline rotation params if overlay doesn't handle it
+    if (!overlayHandlesRotation) {
+      // Build video parameter
+      // Format: video=CONNECTOR:WIDTHxHEIGHTM@REFRESH,rotate=DEGREES
+      // Or: video=CONNECTOR:rotate=DEGREES (if no video_mode)
+      if (applyCmdlineVideo && (videoMode || rotation !== 0)) {
+        var videoParam = 'video=' + connectorName + ':';
+        if (videoMode) {
+          videoParam += videoMode;
+          if (rotation !== 0) {
+            videoParam += ',rotate=' + rotation;
+          }
+        } else if (rotation !== 0) {
+          videoParam += 'rotate=' + rotation;
         }
-      } else if (rotation !== 0) {
-        videoParam += 'rotate=' + rotation;
+        content += ' ' + videoParam;
       }
-      content += ' ' + videoParam;
-    }
 
-    // Add plymouth parameter for boot splash rotation (used by volumio-adaptive theme)
-    if (plymouthRotation !== 0) {
-      content += ' plymouth=' + plymouthRotation;
-    }
+      // Add plymouth parameter for boot splash rotation (used by volumio-adaptive theme)
+      if (applyCmdlinePlymouth && rotation !== 0) {
+        content += ' plymouth=' + rotation;
+      }
 
-    // Always add fbcon rotation
-    content += ' fbcon=rotate:' + rotateValue;
+      // Add fbcon rotation
+      if (applyCmdlineFbcon) {
+        content += ' fbcon=rotate:' + rotateValue;
+      }
+    } else {
+      self.logger.info('pi_screen_setup: Skipping cmdline rotation - overlay handles it');
+    }
 
     // Clean up multiple spaces
     content = content.replace(/\s+/g, ' ').trim();
@@ -3478,6 +3513,53 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
           var currentRot = self.getConfigValue(rotPrefix + '.rotation', 0);
           rotationSelect.value = rotOptions.find(function(o) { return o.value === currentRot; }) || rotOptions[0];
         }
+
+        // Determine if cmdline rotation options should be shown
+        // Show for: HDMI (always), DSI (when overlay doesn't handle rotation), DPI, custom
+        var showCmdlineOptions = false;
+        var cmdlineHeaderItem = self.findContentItem(step7Section, 'cmdline_rotation_header');
+        var cmdlineVideoSwitch = self.findContentItem(step7Section, 'cmdline_video');
+        var cmdlineFbconSwitch = self.findContentItem(step7Section, 'cmdline_fbcon');
+        var cmdlinePlymouthSwitch = self.findContentItem(step7Section, 'cmdline_plymouth');
+
+        if (primaryOutput.startsWith('hdmi') || primaryOutput === 'dpi' || primaryOutput === 'composite' || primaryOutput === 'custom') {
+          // HDMI, DPI, composite, custom always need cmdline rotation
+          showCmdlineOptions = true;
+        } else if (primaryOutput.startsWith('dsi')) {
+          // DSI - check if overlay handles rotation
+          var dsiPrefix = primaryOutput;
+          var dsiPresetId = self.getConfigValue(dsiPrefix + '.overlay', '');
+          var dsiPreset = self.getDisplayPreset(dsiPresetId);
+          
+          if (dsiPreset && dsiPreset.overlay_rotation_param === true) {
+            // Overlay handles rotation - no cmdline needed
+            showCmdlineOptions = false;
+          } else {
+            // Overlay doesn't handle rotation or unknown - show cmdline options
+            showCmdlineOptions = true;
+          }
+        }
+
+        // Show/hide cmdline rotation options
+        if (cmdlineHeaderItem) cmdlineHeaderItem.hidden = !showCmdlineOptions;
+        if (cmdlineVideoSwitch) {
+          cmdlineVideoSwitch.hidden = !showCmdlineOptions;
+          if (showCmdlineOptions) {
+            cmdlineVideoSwitch.value = self.getConfigValue('cmdline_rotation.video', true);
+          }
+        }
+        if (cmdlineFbconSwitch) {
+          cmdlineFbconSwitch.hidden = !showCmdlineOptions;
+          if (showCmdlineOptions) {
+            cmdlineFbconSwitch.value = self.getConfigValue('cmdline_rotation.fbcon', true);
+          }
+        }
+        if (cmdlinePlymouthSwitch) {
+          cmdlinePlymouthSwitch.hidden = !showCmdlineOptions;
+          if (showCmdlineOptions) {
+            cmdlinePlymouthSwitch.value = self.getConfigValue('cmdline_rotation.plymouth', true);
+          }
+        }
       }
     }
 
@@ -4050,9 +4132,16 @@ PiScreenSetup.prototype.saveStep3 = function(data) {
     self.setConfigValue('dpi.rotation', rotation);
   }
 
-  // Also set fbcon and plymouth rotation
-  self.setConfigValue('fbcon.rotation', rotation);
-  self.setConfigValue('plymouth.rotation', rotation);
+  // Save cmdline rotation options (if present in data)
+  if (data.cmdline_video !== undefined) {
+    self.setConfigValue('cmdline_rotation.video', data.cmdline_video);
+  }
+  if (data.cmdline_fbcon !== undefined) {
+    self.setConfigValue('cmdline_rotation.fbcon', data.cmdline_fbcon);
+  }
+  if (data.cmdline_plymouth !== undefined) {
+    self.setConfigValue('cmdline_rotation.plymouth', data.cmdline_plymouth);
+  }
 
   // Advance wizard - skip step 4 (KMS) if not supported
   var nextStep = 4;

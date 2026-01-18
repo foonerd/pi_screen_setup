@@ -1,5 +1,5 @@
 {
-  "version": "0.6.1",
+  "version": "0.6.2",
   "wizard_step": 0,
   "wizard_complete": false,
   "applied_date": "",
@@ -39,15 +39,21 @@
   },
   "dsi0": {
     "enabled": false,
-    "overlay": "vc4-kms-dsi-7inch",
+    "overlay": "rpi-touch-7inch",
     "rotation": 0,
-    "custom_params": ""
+    "custom_params": "",
+    "cmdline_video": true,
+    "cmdline_fbcon": true,
+    "cmdline_plymouth": true
   },
   "dsi1": {
     "enabled": false,
-    "overlay": "vc4-kms-dsi-7inch",
+    "overlay": "rpi-touch-7inch",
     "rotation": 0,
-    "custom_params": ""
+    "custom_params": "",
+    "cmdline_video": true,
+    "cmdline_fbcon": true,
+    "cmdline_plymouth": true
   },
   "dpi": {
     "enabled": false,
@@ -69,11 +75,10 @@
     "cma_option": "default",
     "cma_custom_mb": 256
   },
-  "plymouth": {
-    "rotation": 0
-  },
-  "fbcon": {
-    "rotation": 0
+  "cmdline_rotation": {
+    "video": true,
+    "fbcon": true,
+    "plymouth": true
   },
   "ota_behavior": "notify"
 }

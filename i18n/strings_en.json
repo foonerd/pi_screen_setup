@@ -88,6 +88,13 @@
     "ROTATION": "Rotation",
     "ROTATION_DOC": "Rotate the display output",
     "DEGREES": " degrees",
+    "CMDLINE_ROTATION_HEADER": "Kernel Rotation Parameters",
+    "CMDLINE_VIDEO": "Apply video= rotation",
+    "CMDLINE_VIDEO_DOC": "Add rotation to video= parameter in cmdline.txt (DRM/KMS rotation)",
+    "CMDLINE_FBCON": "Apply fbcon rotation",
+    "CMDLINE_FBCON_DOC": "Add fbcon=rotate: parameter in cmdline.txt (console text rotation)",
+    "CMDLINE_PLYMOUTH": "Apply plymouth rotation",
+    "CMDLINE_PLYMOUTH_DOC": "Add plymouth= parameter in cmdline.txt (boot splash rotation)",
 
     "STEP4_TITLE": "Step 4 of 7: Graphics Memory",
     "STEP4_DESC": "Configure KMS/CMA memory allocation. The UI will reload after saving.",

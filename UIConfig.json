@@ -616,7 +616,7 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["rotation"]
+        "data": ["rotation", "cmdline_video", "cmdline_fbcon", "cmdline_plymouth"]
       },
       "content": [
         {
@@ -626,6 +626,36 @@
           "doc": "TRANSLATE.PI_SCREEN_SETUP.ROTATION_DOC",
           "value": { "value": 0, "label": "0" },
           "options": []
+        },
+        {
+          "id": "cmdline_rotation_header",
+          "element": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_ROTATION_HEADER",
+          "hidden": true
+        },
+        {
+          "id": "cmdline_video",
+          "element": "switch",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_VIDEO",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_VIDEO_DOC",
+          "value": true,
+          "hidden": true
+        },
+        {
+          "id": "cmdline_fbcon",
+          "element": "switch",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_FBCON",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_FBCON_DOC",
+          "value": true,
+          "hidden": true
+        },
+        {
+          "id": "cmdline_plymouth",
+          "element": "switch",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_PLYMOUTH",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.CMDLINE_PLYMOUTH_DOC",
+          "value": true,
+          "hidden": true
         },
         {
           "id": "step3_back",

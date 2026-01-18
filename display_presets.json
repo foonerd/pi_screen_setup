@@ -8,9 +8,7 @@
       "description": "Let the display report its capabilities",
       "config": {}
     },
-
     "_comment_hdmi": "=== HDMI DISPLAYS ===",
-
     "waveshare-11.9-hdmi": {
       "name": "Waveshare 11.9\" HDMI LCD (320x1480)",
       "type": "hdmi",
@@ -166,9 +164,7 @@
       "description": "Enter manual hdmi_timings or hdmi_cvt",
       "config": {}
     },
-
     "_comment_dsi_official": "=== OFFICIAL RASPBERRY PI DSI DISPLAYS ===",
-
     "rpi-touch-7inch": {
       "name": "Raspberry Pi Touch Display 7\" (Original)",
       "type": "dsi",
@@ -178,7 +174,8 @@
         "dtoverlay": "vc4-kms-dsi-7inch"
       },
       "recommended_rotation": 0,
-      "notes": "Original 7-inch display with FT5406 touch controller"
+      "notes": "Original 7-inch display with FT5406 touch controller",
+      "overlay_rotation_param": false
     },
     "rpi-touch2-7inch": {
       "name": "Raspberry Pi Touch Display 2 - 7\"",
@@ -189,7 +186,8 @@
         "dtoverlay": "vc4-kms-dsi-ili9881-7inch"
       },
       "recommended_rotation": 0,
-      "notes": "ILI9881 based panel, portrait native"
+      "notes": "ILI9881 based panel, portrait native",
+      "overlay_rotation_param": true
     },
     "rpi-touch2-5inch": {
       "name": "Raspberry Pi Touch Display 2 - 5\"",
@@ -200,11 +198,10 @@
         "dtoverlay": "vc4-kms-dsi-ili9881-5inch"
       },
       "recommended_rotation": 0,
-      "notes": "ILI9881 based panel, portrait native"
+      "notes": "ILI9881 based panel, portrait native",
+      "overlay_rotation_param": true
     },
-
     "_comment_dsi_waveshare": "=== WAVESHARE DSI DISPLAYS (vc4-kms-dsi-waveshare-panel) ===",
-
     "waveshare-dsi-2.8": {
       "name": "Waveshare 2.8\" DSI (480x640)",
       "type": "dsi",
@@ -213,7 +210,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,2_8_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-3.4-round": {
       "name": "Waveshare 3.4\" DSI Round (800x800)",
@@ -223,7 +221,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,3_4_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-4.0": {
       "name": "Waveshare 4.0\" DSI (480x800)",
@@ -233,7 +232,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,4_0_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-4.0c": {
       "name": "Waveshare 4.0\" DSI-C (720x720)",
@@ -243,7 +243,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,4_0_inchC"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-4.3-800x480": {
       "name": "Waveshare 4.3\" DSI (800x480)",
@@ -254,7 +255,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
       },
       "recommended_rotation": 0,
-      "notes": "Uses separate overlay, similar to official 7-inch"
+      "notes": "Uses separate overlay, similar to official 7-inch",
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-5.0": {
       "name": "Waveshare 5.0\" DSI (720x1280)",
@@ -264,7 +266,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,5_0_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-6.25": {
       "name": "Waveshare 6.25\" DSI (720x1560)",
@@ -274,7 +277,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,6_25_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-7.0c": {
       "name": "Waveshare 7.0\" DSI-C (1024x600)",
@@ -284,7 +288,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchC"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-7.0h": {
       "name": "Waveshare 7.0\" DSI-H (1280x720)",
@@ -294,7 +299,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchH"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-7.9": {
       "name": "Waveshare 7.9\" DSI (400x1280)",
@@ -304,7 +310,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_9_inch"
       },
-      "recommended_rotation": 90
+      "recommended_rotation": 90,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-8.0": {
       "name": "Waveshare 8.0\" DSI (1280x800)",
@@ -314,7 +321,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_0_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-8.8": {
       "name": "Waveshare 8.8\" DSI (480x1920)",
@@ -324,7 +332,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_8_inch"
       },
-      "recommended_rotation": 90
+      "recommended_rotation": 90,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-10.1": {
       "name": "Waveshare 10.1\" DSI (1280x800)",
@@ -334,7 +343,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,10_1_inch"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-11.9": {
       "name": "Waveshare 11.9\" DSI (320x1480)",
@@ -344,7 +354,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,11_9_inch"
       },
-      "recommended_rotation": 90
+      "recommended_rotation": 90,
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-13.3-4lane": {
       "name": "Waveshare 13.3\" DSI 4-lane (1920x1080)",
@@ -355,7 +366,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,13_3_inch_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-13.3-2lane": {
       "name": "Waveshare 13.3\" DSI 2-lane (1920x1080)",
@@ -365,11 +377,10 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,13_3_inch_2lane"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true
     },
-
     "_comment_dsi_waveshare_v2": "=== WAVESHARE DSI-TOUCH V2 SERIES ===",
-
     "waveshare-dsi-v2-3.4c": {
       "name": "Waveshare 3.4\" DSI-TOUCH V2 (800x800)",
       "type": "dsi",
@@ -378,7 +389,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,3_4_inch_c"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-4.0c": {
       "name": "Waveshare 4.0\" DSI-TOUCH V2 (720x720)",
@@ -388,7 +400,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,4_0_inch_c"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-5.0a": {
       "name": "Waveshare 5.0\" DSI-TOUCH V2-A (720x1280)",
@@ -398,7 +411,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,5_0_inch_a"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-5.5a": {
       "name": "Waveshare 5.5\" DSI-TOUCH V2-A (720x1280)",
@@ -408,7 +422,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,5_5_inch_a"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-7.0a": {
       "name": "Waveshare 7.0\" DSI-TOUCH V2-A (720x1280)",
@@ -418,7 +433,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_a"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-7.0b": {
       "name": "Waveshare 7.0\" DSI-TOUCH V2-B (720x1280)",
@@ -428,7 +444,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_b"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-7.0c": {
       "name": "Waveshare 7.0\" DSI-TOUCH V2-C (1024x600)",
@@ -438,7 +455,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,7_0_inch_c"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-8.0a": {
       "name": "Waveshare 8.0\" DSI-TOUCH V2-A 2-lane (800x1280)",
@@ -448,7 +466,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_0_inch_a"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-8.0a-4lane": {
       "name": "Waveshare 8.0\" DSI-TOUCH V2-A 4-lane (800x1280)",
@@ -459,7 +478,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_0_inch_a_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-8.8a": {
       "name": "Waveshare 8.8\" DSI-TOUCH V2-A (480x1920)",
@@ -469,7 +489,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,8_8_inch_a"
       },
-      "recommended_rotation": 90
+      "recommended_rotation": 90,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-9.0b": {
       "name": "Waveshare 9.0\" DSI-TOUCH V2-B 2-lane (720x1280)",
@@ -479,7 +500,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,9_0_inch_b"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-9.0b-4lane": {
       "name": "Waveshare 9.0\" DSI-TOUCH V2-B 4-lane (720x1280)",
@@ -490,7 +512,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,9_0_inch_b_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-10.1a": {
       "name": "Waveshare 10.1\" DSI-TOUCH V2-A 2-lane (800x1280)",
@@ -500,7 +523,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_a"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-10.1a-4lane": {
       "name": "Waveshare 10.1\" DSI-TOUCH V2-A 4-lane (800x1280)",
@@ -511,7 +535,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_a_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-10.1b": {
       "name": "Waveshare 10.1\" DSI-TOUCH V2-B 2-lane (720x1280)",
@@ -521,7 +546,8 @@
       "config": {
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_b"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-10.1b-4lane": {
       "name": "Waveshare 10.1\" DSI-TOUCH V2-B 4-lane (720x1280)",
@@ -532,7 +558,8 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,10_1_inch_b_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "waveshare-dsi-v2-12.3a-4lane": {
       "name": "Waveshare 12.3\" DSI-TOUCH V2-A 4-lane (720x1920)",
@@ -543,11 +570,10 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel-v2,12_3_inch_a_4lane"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)"
+      "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
     },
-
     "_comment_dsi_other": "=== OTHER DSI DISPLAYS ===",
-
     "jdi-lt070me05000": {
       "name": "JDI LT070ME05000 DSI (1920x1200)",
       "type": "dsi",
@@ -557,7 +583,8 @@
         "dtoverlay": "vc4-kms-dsi-lt070me05000"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module (4-lane DSI)"
+      "notes": "Requires Compute Module (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "jdi-lt070me05000-v2": {
       "name": "JDI LT070ME05000 V2 DSI (1920x1200)",
@@ -568,7 +595,8 @@
         "dtoverlay": "vc4-kms-dsi-lt070me05000-v2"
       },
       "recommended_rotation": 0,
-      "notes": "Requires Compute Module (4-lane DSI)"
+      "notes": "Requires Compute Module (4-lane DSI)",
+      "overlay_rotation_param": false
     },
     "custom-dsi": {
       "name": "Custom/Generic DSI Panel",
@@ -579,11 +607,10 @@
         "dtoverlay": "vc4-kms-dsi-generic"
       },
       "recommended_rotation": 0,
-      "notes": "Use overlay parameters to configure timings"
+      "notes": "Use overlay parameters to configure timings",
+      "overlay_rotation_param": false
     },
-
     "_comment_dpi": "=== DPI DISPLAYS ===",
-
     "hyperpixel4": {
       "name": "Pimoroni HyperPixel 4.0",
       "type": "dpi",

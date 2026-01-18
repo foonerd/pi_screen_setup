@@ -71,6 +71,13 @@
     "ROTATION": "Rotacion",
     "ROTATION_DOC": "Rotar la salida de pantalla",
     "DEGREES": " grados",
+    "CMDLINE_ROTATION_HEADER": "Parametros de Rotacion del Kernel",
+    "CMDLINE_VIDEO": "Aplicar rotacion video=",
+    "CMDLINE_VIDEO_DOC": "Agregar rotacion al parametro video= en cmdline.txt (rotacion DRM/KMS)",
+    "CMDLINE_FBCON": "Aplicar rotacion fbcon",
+    "CMDLINE_FBCON_DOC": "Agregar parametro fbcon=rotate: en cmdline.txt (rotacion de texto de consola)",
+    "CMDLINE_PLYMOUTH": "Aplicar rotacion plymouth",
+    "CMDLINE_PLYMOUTH_DOC": "Agregar parametro plymouth= en cmdline.txt (rotacion de splash de arranque)",
 
     "STEP4_TITLE": "Paso 4 de 7: Memoria Grafica",
     "STEP4_DESC": "Configurar asignacion de memoria KMS/CMA. La interfaz se recargara despues de guardar.",

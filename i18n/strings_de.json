@@ -71,6 +71,13 @@
     "ROTATION": "Rotation",
     "ROTATION_DOC": "Bildschirmausgabe drehen",
     "DEGREES": " Grad",
+    "CMDLINE_ROTATION_HEADER": "Kernel-Rotationsparameter",
+    "CMDLINE_VIDEO": "video= Rotation anwenden",
+    "CMDLINE_VIDEO_DOC": "Rotation zum video= Parameter in cmdline.txt hinzufuegen (DRM/KMS Rotation)",
+    "CMDLINE_FBCON": "fbcon Rotation anwenden",
+    "CMDLINE_FBCON_DOC": "fbcon=rotate: Parameter in cmdline.txt hinzufuegen (Konsolentext-Rotation)",
+    "CMDLINE_PLYMOUTH": "plymouth Rotation anwenden",
+    "CMDLINE_PLYMOUTH_DOC": "plymouth= Parameter in cmdline.txt hinzufuegen (Boot-Splash-Rotation)",
 
     "STEP4_TITLE": "Schritt 4 von 7: Grafikspeicher",
     "STEP4_DESC": "KMS/CMA-Speicherzuweisung konfigurieren. Die Oberflaeche wird nach dem Speichern neu geladen.",

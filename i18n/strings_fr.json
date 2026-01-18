@@ -71,6 +71,13 @@
     "ROTATION": "Rotation",
     "ROTATION_DOC": "Faire pivoter la sortie d'affichage",
     "DEGREES": " degres",
+    "CMDLINE_ROTATION_HEADER": "Parametres de Rotation du Noyau",
+    "CMDLINE_VIDEO": "Appliquer rotation video=",
+    "CMDLINE_VIDEO_DOC": "Ajouter la rotation au parametre video= dans cmdline.txt (rotation DRM/KMS)",
+    "CMDLINE_FBCON": "Appliquer rotation fbcon",
+    "CMDLINE_FBCON_DOC": "Ajouter le parametre fbcon=rotate: dans cmdline.txt (rotation du texte de console)",
+    "CMDLINE_PLYMOUTH": "Appliquer rotation plymouth",
+    "CMDLINE_PLYMOUTH_DOC": "Ajouter le parametre plymouth= dans cmdline.txt (rotation du splash de demarrage)",
 
     "STEP4_TITLE": "Etape 4 sur 7: Memoire Graphique",
     "STEP4_DESC": "Configurer l'allocation memoire KMS/CMA. L'interface sera rechargee apres la sauvegarde.",

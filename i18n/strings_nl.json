@@ -71,6 +71,13 @@
     "ROTATION": "Rotatie",
     "ROTATION_DOC": "Roteer de beeldschermuitgang",
     "DEGREES": " graden",
+    "CMDLINE_ROTATION_HEADER": "Kernel Rotatieparameters",
+    "CMDLINE_VIDEO": "Pas video= rotatie toe",
+    "CMDLINE_VIDEO_DOC": "Voeg rotatie toe aan video= parameter in cmdline.txt (DRM/KMS rotatie)",
+    "CMDLINE_FBCON": "Pas fbcon rotatie toe",
+    "CMDLINE_FBCON_DOC": "Voeg fbcon=rotate: parameter toe in cmdline.txt (consoletekst rotatie)",
+    "CMDLINE_PLYMOUTH": "Pas plymouth rotatie toe",
+    "CMDLINE_PLYMOUTH_DOC": "Voeg plymouth= parameter toe in cmdline.txt (boot splash rotatie)",
 
     "STEP4_TITLE": "Stap 4 van 7: Grafisch Geheugen",
     "STEP4_DESC": "Configureer KMS/CMA geheugentoewijzing. De interface wordt herladen na opslaan.",
