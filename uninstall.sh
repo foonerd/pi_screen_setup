@@ -72,6 +72,13 @@ if [ -f "/boot/videoconfig.txt" ]; then
     sudo rm -f /boot/videoconfig.txt
 fi
 
+# Remove sudoers configuration
+SUDOERS_FILE="/etc/sudoers.d/volumio-user-pi_screen_setup"
+if [ -f "${SUDOERS_FILE}" ]; then
+    echo "Removing sudo permissions..."
+    sudo rm -f "${SUDOERS_FILE}"
+fi
+
 # Remove data directory (backups and config)
 if [ -d "${DATA_DIR}" ]; then
     echo "Removing plugin data directory..."

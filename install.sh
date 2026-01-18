@@ -33,6 +33,35 @@ if [[ ! "${MODEL}" =~ "Raspberry Pi" ]]; then
     echo "The plugin may not function correctly."
 fi
 
+# Setup sudoers for volumio user to write to specific /boot files
+# Note: File must be named volumio-user-* to come AFTER volumio-user alphabetically
+SUDOERS_FILE="/etc/sudoers.d/volumio-user-pi_screen_setup"
+echo "Creating sudoers entry for pi_screen_setup..."
+cat > "${SUDOERS_FILE}" << 'EOF'
+# pi_screen_setup plugin - allow volumio user to manage specific boot config files
+volumio ALL=(ALL) NOPASSWD: /bin/cp * /boot/videoconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/cp * /boot/config.txt
+volumio ALL=(ALL) NOPASSWD: /bin/cp * /boot/cmdline.txt
+volumio ALL=(ALL) NOPASSWD: /bin/cp * /boot/volumioconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/cp * /boot/userconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/chmod 644 /boot/videoconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/chmod 644 /boot/config.txt
+volumio ALL=(ALL) NOPASSWD: /bin/chmod 644 /boot/cmdline.txt
+volumio ALL=(ALL) NOPASSWD: /bin/chmod 644 /boot/volumioconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/chmod 644 /boot/userconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/rm /boot/videoconfig.txt
+volumio ALL=(ALL) NOPASSWD: /bin/rm -f /boot/videoconfig.txt
+EOF
+chmod 0440 "${SUDOERS_FILE}"
+# Validate sudoers syntax
+visudo -c -f "${SUDOERS_FILE}"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Invalid sudoers syntax"
+    rm -f "${SUDOERS_FILE}"
+    exit 1
+fi
+echo "Sudoers configuration complete."
+
 # Create data directory for backups
 DATA_DIR="/data/plugins/${PLUGIN_TYPE}/${PLUGIN_NAME}"
 BACKUP_DIR="${DATA_DIR}/backups"
