@@ -5,7 +5,7 @@ A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Pr
 ## Features
 
 - **Guided Setup Wizard**: 7-step wizard walks through complete display configuration
-- **Display Presets Database**: Pre-configured settings for popular displays (Waveshare, Elecrow, etc.)
+- **Display Presets Database**: 92 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman)
 - **Multiple Output Types**: HDMI, DSI (ribbon), DPI (GPIO), Composite, Custom overlays
 - **Dual HDMI Support**: Full configuration for Pi 4/5 dual HDMI ports
 - **Rotation Support**: 0/90/180/270 degree rotation with proper KMS, fbcon, and plymouth integration
@@ -24,11 +24,17 @@ A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Pr
 ## Supported Display Types
 
 ### HDMI Displays (with presets)
-- Waveshare 11.9" HDMI LCD (320x1480 portrait)
-- Waveshare 7.9" HDMI LCD (400x1280 portrait)
-- Waveshare 5"/7"/10.1" HDMI LCD
-- Elecrow 5" HDMI
-- Generic 800x480, 1024x600, 720p, 1080p, 4K displays
+- Waveshare 4", 4.3", 5", 7", 7.9", 8.8", 9.3", 10.1", 11.9" HDMI LCD
+- Waveshare Round (5" 1080x1080) and Square (4" 720x720)
+- Adafruit 5", 7", 10.1" (including IPS and Backpack models)
+- Elecrow 5", 7"
+- GeeekPi/52Pi 5", 7", 11.6"
+- UCTRONICS 3.5", 5", 7"
+- LCDwiki/Goodtft 3.5", 4", 5", 7" (Miuzei/Kuman rebrands)
+- Sunfounder 7", 10.1"
+- Kuman 7"
+- Generic resolutions (480x320, 800x480, 1024x600, 1280x800, 1366x768)
+- Standard resolutions (720p, 1080p, 4K 30Hz, 4K 60Hz)
 - Custom timing support (hdmi_timings and hdmi_cvt)
 
 ### DSI Displays
@@ -63,16 +69,20 @@ A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Pr
 - 12.3" A (4-lane)
 
 **Other DSI:**
-- JDI LT070ME05000 (Compute Module only)
+- JDI LT070ME05000 / V2 (Compute Module only)
 - Generic DSI panel (custom timings)
 
 ### DPI Displays
 - Pimoroni HyperPixel 4.0
 - Pimoroni HyperPixel 4.0 Square
 - VGA666 adapter
+- Waveshare 3.5" DPI (640x480)
+- Waveshare 4" DPI-C (720x720)
+- Owootecc 4.3" DPI (480x320)
+- Custom/Generic DPI panel
 
 ### Other
-- Composite video (PAL/NTSC)
+- Composite video (PAL/NTSC/PAL-M/PAL-N)
 - Custom device tree overlays
 
 ## Installation
