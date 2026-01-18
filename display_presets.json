@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "last_updated": "2026-01-17",
+  "version": "1.3.0",
+  "last_updated": "2026-01-18",
   "presets": {
     "auto": {
       "name": "Auto Detect (EDID)",
@@ -9,10 +9,11 @@
       "config": {}
     },
     "_comment_hdmi": "=== HDMI DISPLAYS ===",
+    "_comment_hdmi_bar": "--- Bar/Ultrawide Displays ---",
     "waveshare-11.9-hdmi": {
       "name": "Waveshare 11.9\" HDMI LCD (320x1480)",
       "type": "hdmi",
-      "description": "Portrait native, requires rotation for landscape use",
+      "description": "Portrait native bar display, requires rotation for landscape use",
       "native_resolution": "320x1480",
       "rotated_resolution": "1480x320",
       "config": {
@@ -25,10 +26,40 @@
       "recommended_rotation": 90,
       "notes": "Requires volumio-adaptive plymouth theme for proper boot splash"
     },
+    "waveshare-8.8-hdmi": {
+      "name": "Waveshare 8.8\" HDMI Side Monitor (480x1920)",
+      "type": "hdmi",
+      "description": "Portrait native bar display, requires rotation for landscape use",
+      "native_resolution": "480x1920",
+      "rotated_resolution": "1920x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 30 30 30 1920 0 18 6 6 0 0 0 60 0 66280000 3",
+        "max_framebuffer_height": 1920,
+        "gpu_mem": 512
+      },
+      "video_mode": "480x1920M@60",
+      "recommended_rotation": 90,
+      "notes": "Pi Zero series should use gpu_mem=256"
+    },
+    "waveshare-9.3-hdmi": {
+      "name": "Waveshare 9.3\" HDMI LCD (1600x600)",
+      "type": "hdmi",
+      "description": "Ultra-wide bar display, landscape native",
+      "native_resolution": "1600x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1600 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Supports HDMI audio output"
+    },
     "waveshare-7.9-hdmi": {
       "name": "Waveshare 7.9\" HDMI LCD (400x1280)",
       "type": "hdmi",
-      "description": "Portrait native, requires rotation for landscape use",
+      "description": "Portrait native bar display, requires rotation for landscape use",
       "native_resolution": "400x1280",
       "rotated_resolution": "1280x400",
       "config": {
@@ -40,6 +71,63 @@
       "recommended_rotation": 90,
       "notes": "Requires volumio-adaptive plymouth theme for proper boot splash"
     },
+    "_comment_hdmi_round": "--- Round/Square Displays ---",
+    "waveshare-5-1080x1080-hdmi": {
+      "name": "Waveshare 5\" Round HDMI (1080x1080)",
+      "type": "hdmi",
+      "description": "Round IPS display with 10-point capacitive touch",
+      "native_resolution": "1080x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_pixel_freq_limit": 356000000,
+        "hdmi_timings": "1080 0 68 32 100 1080 0 12 4 16 0 0 0 60 0 85500000 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Supports HDMI audio output with 3.5mm jack"
+    },
+    "waveshare-4-720x720-hdmi": {
+      "name": "Waveshare 4\" Square HDMI (720x720)",
+      "type": "hdmi",
+      "description": "Square IPS display with capacitive touch",
+      "native_resolution": "720x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "720 0 40 40 200 720 0 24 4 12 0 0 0 78 0 59400000 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Optical bonding for better display quality"
+    },
+    "_comment_hdmi_small": "--- Small Displays (under 5 inch) ---",
+    "waveshare-4-hdmi": {
+      "name": "Waveshare 4\" HDMI LCD (480x800)",
+      "type": "hdmi",
+      "description": "Portrait native small display with resistive touch",
+      "native_resolution": "480x800",
+      "rotated_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 40 10 80 800 0 13 3 32 0 0 0 60 0 32000000 3"
+      },
+      "recommended_rotation": 90,
+      "notes": "Requires waveshare-ads7846 overlay for touch"
+    },
+    "waveshare-4.3-hdmi": {
+      "name": "Waveshare 4.3\" HDMI LCD (480x272)",
+      "type": "hdmi",
+      "description": "Small landscape display with resistive touch",
+      "native_resolution": "480x272",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 1 41 2 272 0 2 10 2 0 0 0 60 0 9009000 3"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires ads7846 overlay for touch"
+    },
+    "_comment_hdmi_standard": "--- Standard Displays ---",
     "waveshare-5-hdmi": {
       "name": "Waveshare 5\" HDMI LCD (800x480)",
       "type": "hdmi",
@@ -79,14 +167,160 @@
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
       "type": "hdmi",
-      "description": "Standard landscape HDMI display",
+      "description": "Standard landscape HDMI display with capacitive touch",
       "native_resolution": "800x480",
       "config": {
         "hdmi_group": 2,
         "hdmi_mode": 87,
         "hdmi_cvt": "800 480 60 6 0 0 0"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, uses ads7846 overlay for SPI touch variants"
+    },
+    "elecrow-7-hdmi": {
+      "name": "Elecrow 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display with capacitive touch",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, config_hdmi_boost=7 may help stability"
+    },
+    "geeekpi-5-hdmi": {
+      "name": "GeeekPi/52Pi 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "52Pi EP-0081/EP-0072/Z-0053 capacitive touch display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, driver-free plug and play"
+    },
+    "geeekpi-7-hdmi": {
+      "name": "GeeekPi/52Pi 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "52Pi EP-0085 capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0",
+        "config_hdmi_boost": 4
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, 10-point multitouch support"
+    },
+    "geeekpi-11.6-hdmi": {
+      "name": "GeeekPi/52Pi 11.6\" HDMI (1366x768)",
+      "type": "hdmi",
+      "description": "52Pi Z-0114 large display with OSD controls",
+      "native_resolution": "1366x768",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1360 768 60 3 0 0 0",
+        "config_hdmi_boost": 4
+      },
+      "recommended_rotation": 0,
+      "notes": "Use 1360 instead of 1366 for Pi4 compatibility (even pixel requirement)"
+    },
+    "uctronics-3.5-hdmi": {
+      "name": "UCTRONICS 3.5\" HDMI (480x320)",
+      "type": "hdmi",
+      "description": "UCTRONICS B0106 small HDMI display with SPI touch",
+      "native_resolution": "480x320",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 320 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch requires SPI interface and UCTRONICS driver"
+    },
+    "uctronics-5-hdmi": {
+      "name": "UCTRONICS 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "UCTRONICS U6103 capacitive touch display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, 5-point multitouch"
+    },
+    "uctronics-7-hdmi": {
+      "name": "UCTRONICS 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "UCTRONICS U6104 capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, set hdmi_force_hotplug=1 for single-cable mode"
+    },
+    "uctronics-7-1024x768": {
+      "name": "UCTRONICS 7\" HDMI (1024x768)",
+      "type": "hdmi",
+      "description": "UCTRONICS U6104 at alternate resolution",
+      "native_resolution": "1024x768",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 16
+      },
+      "recommended_rotation": 0,
+      "notes": "Standard DMT mode 16, use for better pixel mapping on some displays"
+    },
+    "adafruit-7-1280x800": {
+      "name": "Adafruit 7\" HDMI IPS (1280x800)",
+      "type": "hdmi",
+      "description": "High resolution IPS display from Adafruit",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1280 0 48 32 80 800 0 3 6 14 0 0 0 60 0 71000000 5"
+      },
+      "recommended_rotation": 0,
+      "notes": "Also works with hdmi_mode=28"
+    },
+    "adafruit-10.1-1280x800": {
+      "name": "Adafruit 10.1\" HDMI IPS (1280x800)",
+      "type": "hdmi",
+      "description": "Large high resolution IPS display from Adafruit",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 28
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses standard DMT mode 28"
+    },
+    "_comment_hdmi_generic": "--- Generic Resolutions ---",
+    "generic-480x320": {
+      "name": "Generic 480x320 HDMI",
+      "type": "hdmi",
+      "description": "Common 3.5 inch HDMI displays",
+      "native_resolution": "480x320",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 320 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Many 3.5 inch displays use SPI instead - check your model"
     },
     "generic-800x480": {
       "name": "Generic 800x480 HDMI",
@@ -111,6 +345,31 @@
         "hdmi_cvt": "1024 600 60 3 0 0 0"
       },
       "recommended_rotation": 0
+    },
+    "generic-1280x800": {
+      "name": "Generic 1280x800 HDMI",
+      "type": "hdmi",
+      "description": "Common high-res HDMI displays (WXGA)",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 28
+      },
+      "recommended_rotation": 0,
+      "notes": "Standard DMT mode 28 for 1280x800@60Hz"
+    },
+    "generic-1366x768": {
+      "name": "Generic 1366x768 HDMI (HD Ready)",
+      "type": "hdmi",
+      "description": "Common laptop panel resolution",
+      "native_resolution": "1366x768",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1360 768 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi4 requires 1360 (not 1366) due to even-pixel requirement"
     },
     "generic-720p": {
       "name": "720p (1280x720)",
@@ -643,6 +902,45 @@
       },
       "recommended_rotation": 0,
       "notes": "Converts DPI output to VGA signal"
+    },
+    "waveshare-4dpi-c": {
+      "name": "Waveshare 4\" DPI LCD-C (720x720)",
+      "type": "dpi",
+      "description": "Waveshare square DPI display with touch",
+      "native_resolution": "720x720",
+      "config": {
+        "dtoverlay": "vc4-kms-v3d",
+        "dtoverlay_2": "vc4-kms-DPI-4inch",
+        "dtoverlay_3": "waveshare-4dpic-3b-4b",
+        "dtoverlay_4": "waveshare-4dpi",
+        "dtoverlay_5": "waveshare-touch-4dpi"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Waveshare overlay files in /boot/overlays"
+    },
+    "waveshare-3.5dpi": {
+      "name": "Waveshare 3.5\" DPI LCD (640x480)",
+      "type": "dpi",
+      "description": "Waveshare 3.5-inch DPI display",
+      "native_resolution": "640x480",
+      "config": {
+        "dtoverlay": "vc4-kms-v3d",
+        "dtoverlay_2": "waveshare-35dpi",
+        "dtoverlay_3": "waveshare-touch-35dpi"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires Waveshare overlay files in /boot/overlays"
+    },
+    "owootecc-dpi-4.3": {
+      "name": "Owootecc 4.3\" DPI Panel (480x320)",
+      "type": "dpi",
+      "description": "Owootecc/piscreen compatible DPI display",
+      "native_resolution": "480x320",
+      "config": {
+        "dtoverlay": "piscreen,speed=16000000,drm,xohms=100"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses piscreen overlay with DRM support"
     },
     "custom-dpi": {
       "name": "Custom/Generic DPI Panel",
