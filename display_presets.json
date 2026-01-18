@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.3.1",
   "last_updated": "2026-01-18",
   "presets": {
     "auto": {
@@ -307,6 +307,58 @@
       },
       "recommended_rotation": 0,
       "notes": "Uses standard DMT mode 28"
+    },
+    "adafruit-5-800x480": {
+      "name": "Adafruit 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "Adafruit HDMI 4 Pi 5 inch display (PID 1678/1928/2109/2110)",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch variants use AR1100 USB controller"
+    },
+    "adafruit-5-backpack": {
+      "name": "Adafruit 5\" Display Backpack (800x480)",
+      "type": "hdmi",
+      "description": "Adafruit panel-mountable HDMI backpack (PID 2232)",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "TFP401 decoder, no scaler - must output native resolution"
+    },
+    "adafruit-7-800x480": {
+      "name": "Adafruit 7\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "Adafruit HDMI 4 Pi 7 inch display at 800x480",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Lower resolution 7 inch variant"
+    },
+    "adafruit-7-1024x600": {
+      "name": "Adafruit 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Adafruit HDMI 4 Pi 7 inch display (PID 2299/2300/2301/2395/2397)",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch and audio variants available"
     },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
     "generic-480x320": {
