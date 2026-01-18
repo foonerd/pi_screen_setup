@@ -1167,20 +1167,54 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
 
   // DPI configuration
   if (primaryOutput === 'dpi' || self.getConfigValue('dpi.enabled', false)) {
-    var dpiOverlay = self.getConfigValue('dpi.overlay', '');
-    if (dpiOverlay) {
+    var dpiPresetId = self.getConfigValue('dpi.overlay', '');
+    if (dpiPresetId && dpiPresetId !== 'custom') {
       lines.push('# DPI Configuration');
-      var dpiTiming = self.getConfigValue('dpi.custom_timing', '');
+      var dpiPreset = self.getDisplayPreset(dpiPresetId);
       var dpiRotation = self.getConfigValue('dpi.rotation', 0);
-      var dpiLine = 'dtoverlay=' + dpiOverlay;
-      if (dpiRotation !== 0) {
-        dpiLine += ',rotate=' + dpiRotation;
+      
+      if (dpiPreset && dpiPreset.config) {
+        // Write primary dtoverlay
+        if (dpiPreset.config.dtoverlay) {
+          var dpiLine = 'dtoverlay=' + dpiPreset.config.dtoverlay;
+          if (dpiRotation !== 0) {
+            dpiLine += ',rotate=' + dpiRotation;
+          }
+          lines.push(dpiLine);
+        }
+        
+        // Write additional overlays (dtoverlay_2, dtoverlay_3, etc.)
+        for (var i = 2; i <= 10; i++) {
+          var overlayKey = 'dtoverlay_' + i;
+          if (dpiPreset.config[overlayKey]) {
+            lines.push('dtoverlay=' + dpiPreset.config[overlayKey]);
+          } else {
+            break; // Stop at first missing numbered overlay
+          }
+        }
+      } else {
+        // Fallback: assume preset ID is the overlay name (backward compat)
+        var dpiLine = 'dtoverlay=' + dpiPresetId;
+        if (dpiRotation !== 0) {
+          dpiLine += ',rotate=' + dpiRotation;
+        }
+        lines.push(dpiLine);
       }
-      lines.push(dpiLine);
+      
+      // Custom timing parameters
+      var dpiTiming = self.getConfigValue('dpi.custom_timing', '');
       if (dpiTiming) {
         lines.push(dpiTiming);
       }
       lines.push('');
+    } else if (dpiPresetId === 'custom') {
+      // Custom overlay - use custom_timing as the full overlay specification
+      var customDpiLine = self.getConfigValue('dpi.custom_timing', '');
+      if (customDpiLine) {
+        lines.push('# DPI Custom Configuration');
+        lines.push('dtoverlay=' + customDpiLine);
+        lines.push('');
+      }
     }
   }
 
@@ -1249,8 +1283,10 @@ PiScreenSetup.prototype.generateHDMIConfig = function(port) {
     lines.push('hdmi_ignore_edid' + portSuffix + '=0xa5000080');
   }
 
-  // HDMI boost
-  if (boost > 0) {
+  // HDMI boost (only if user explicitly set it AND preset doesn't override)
+  var preset = self.getDisplayPreset(displayPreset);
+  var presetHasBoost = preset && preset.config && preset.config.config_hdmi_boost !== undefined;
+  if (boost > 0 && !presetHasBoost) {
     lines.push('config_hdmi_boost' + portSuffix + '=' + boost);
   }
 
@@ -1287,6 +1323,21 @@ PiScreenSetup.prototype.generateHDMIConfig = function(port) {
       // hdmi_enable_4kp60 (for 4K 60Hz support)
       if (config.hdmi_enable_4kp60) {
         lines.push('hdmi_enable_4kp60=1');
+      }
+      
+      // config_hdmi_boost from preset (overrides user setting if present)
+      if (config.config_hdmi_boost !== undefined) {
+        lines.push('config_hdmi_boost' + portSuffix + '=' + config.config_hdmi_boost);
+      }
+      
+      // gpu_mem (global setting, no port suffix)
+      if (config.gpu_mem !== undefined) {
+        lines.push('gpu_mem=' + config.gpu_mem);
+      }
+      
+      // hdmi_pixel_freq_limit (global setting for high-res displays)
+      if (config.hdmi_pixel_freq_limit !== undefined) {
+        lines.push('hdmi_pixel_freq_limit=' + config.hdmi_pixel_freq_limit);
       }
     } else if (displayPreset === 'custom' || displayPreset === 'custom-hdmi') {
       // Custom timings entered by user
