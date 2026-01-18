@@ -580,6 +580,53 @@
       },
       "recommended_rotation": 0,
       "notes": "Use overlay parameters to configure timings"
+    },
+
+    "_comment_dpi": "=== DPI DISPLAYS ===",
+
+    "hyperpixel4": {
+      "name": "Pimoroni HyperPixel 4.0",
+      "type": "dpi",
+      "description": "4.0-inch DPI display (800x480)",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-hyperpixel4"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pimoroni HyperPixel 4.0 rectangular display"
+    },
+    "hyperpixel4sq": {
+      "name": "Pimoroni HyperPixel 4.0 Square",
+      "type": "dpi",
+      "description": "4.0-inch square DPI display (720x720)",
+      "native_resolution": "720x720",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-hyperpixel4sq"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pimoroni HyperPixel 4.0 square display"
+    },
+    "vga666": {
+      "name": "VGA666 Adapter",
+      "type": "dpi",
+      "description": "DPI to VGA adapter board",
+      "native_resolution": "various",
+      "config": {
+        "dtoverlay": "vc4-kms-vga666"
+      },
+      "recommended_rotation": 0,
+      "notes": "Converts DPI output to VGA signal"
+    },
+    "custom-dpi": {
+      "name": "Custom/Generic DPI Panel",
+      "type": "dpi",
+      "description": "Generic DPI panel with custom timings",
+      "native_resolution": "custom",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-generic"
+      },
+      "recommended_rotation": 0,
+      "notes": "Use overlay parameters to configure timings"
     }
   }
 }

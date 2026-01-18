@@ -61,22 +61,10 @@ var HDMI_RESOLUTIONS = {
   'custom': { label: 'Custom (CVT)', group: 0, mode: 0 }
 };
 
-// DSI overlay presets
-var DSI_OVERLAYS = {
-  'vc4-kms-dsi-7inch': { label: 'Official 7" Display', file: 'vc4-kms-dsi-7inch' },
-  'vc4-kms-dsi-ili9881-7inch': { label: 'ILI9881 7" (Waveshare C)', file: 'vc4-kms-dsi-ili9881-7inch' },
-  'vc4-kms-dsi-waveshare-panel': { label: 'Waveshare DSI Panel', file: 'vc4-kms-dsi-waveshare-panel' }
-};
+// NOTE: DSI and DPI presets are loaded from display_presets.json
+// No hardcoded overlays - database is the single source of truth
 
-// DPI overlay presets
-var DPI_OVERLAYS = {
-  'vc4-kms-dpi-hyperpixel4': { label: 'HyperPixel 4.0', file: 'vc4-kms-dpi-hyperpixel4' },
-  'vc4-kms-dpi-hyperpixel4sq': { label: 'HyperPixel 4.0 Square', file: 'vc4-kms-dpi-hyperpixel4sq' },
-  'vc4-kms-vga666': { label: 'VGA666 Adapter', file: 'vc4-kms-vga666' },
-  'vc4-kms-dpi-generic': { label: 'Generic DPI', file: 'vc4-kms-dpi-generic' }
-};
-
-// Composite modes
+// Composite modes (these are standard Pi values, not display-specific)
 var COMPOSITE_MODES = {
   'pal': { label: 'PAL (Europe/Australia)', mode: 2 },
   'ntsc': { label: 'NTSC (Americas/Japan)', mode: 0 },
@@ -529,6 +517,105 @@ PiScreenSetup.prototype.getDisplayPreset = function(presetId) {
     return self.displayPresets[presetId];
   }
   return null;
+};
+
+// Lookup preset by dtoverlay name (for migration - finds human-readable name from database)
+PiScreenSetup.prototype.getPresetNameByOverlay = function(overlayName) {
+  var self = this;
+  
+  if (!self.displayPresets || !overlayName) {
+    return overlayName;
+  }
+  
+  // Search through presets for matching dtoverlay
+  for (var presetId in self.displayPresets) {
+    if (presetId.startsWith('_comment')) continue;
+    var preset = self.displayPresets[presetId];
+    if (preset.config && preset.config.dtoverlay === overlayName) {
+      return preset.name;
+    }
+  }
+  
+  // Not found in database - return overlay name as-is
+  return overlayName;
+};
+
+// Match HDMI config to a preset from the database (for migration)
+// Returns { presetId: string, presetName: string } or null if no match
+PiScreenSetup.prototype.matchHdmiConfigToPreset = function(hdmiConfig) {
+  var self = this;
+  
+  if (!self.displayPresets || !hdmiConfig) {
+    return null;
+  }
+  
+  // Search through HDMI presets for matching config
+  for (var presetId in self.displayPresets) {
+    if (presetId.startsWith('_comment')) continue;
+    var preset = self.displayPresets[presetId];
+    
+    // Only check HDMI presets
+    if (preset.type !== 'hdmi') continue;
+    
+    // Skip auto preset
+    if (presetId === 'auto') continue;
+    
+    var config = preset.config;
+    if (!config) continue;
+    
+    // Match by hdmi_timings (most specific)
+    if (hdmiConfig.timings && config.hdmi_timings) {
+      // Normalize whitespace for comparison
+      var parsedTimings = hdmiConfig.timings.replace(/\s+/g, ' ').trim();
+      var presetTimings = config.hdmi_timings.replace(/\s+/g, ' ').trim();
+      if (parsedTimings === presetTimings) {
+        return { presetId: presetId, presetName: preset.name };
+      }
+    }
+    
+    // Match by hdmi_cvt (second most specific)
+    if (hdmiConfig.cvt && config.hdmi_cvt) {
+      var parsedCvt = hdmiConfig.cvt.replace(/\s+/g, ' ').trim();
+      var presetCvt = config.hdmi_cvt.replace(/\s+/g, ' ').trim();
+      if (parsedCvt === presetCvt) {
+        return { presetId: presetId, presetName: preset.name };
+      }
+    }
+    
+    // Match by hdmi_group + hdmi_mode (less specific but still valid)
+    if (hdmiConfig.group && hdmiConfig.mode && config.hdmi_group && config.hdmi_mode) {
+      if (hdmiConfig.group === config.hdmi_group && hdmiConfig.mode === config.hdmi_mode) {
+        // Only match if no custom timings involved
+        if (!hdmiConfig.timings && !hdmiConfig.cvt && !config.hdmi_timings && !config.hdmi_cvt) {
+          return { presetId: presetId, presetName: preset.name };
+        }
+      }
+    }
+  }
+  
+  return null;
+};
+
+// Find DSI preset ID by dtoverlay name (for migration)
+// Returns preset ID or the overlay name if not found
+PiScreenSetup.prototype.findDsiPresetByOverlay = function(overlayName) {
+  var self = this;
+  
+  if (!self.displayPresets || !overlayName) {
+    return overlayName;
+  }
+  
+  // Search through DSI presets for matching dtoverlay
+  for (var presetId in self.displayPresets) {
+    if (presetId.startsWith('_comment')) continue;
+    var preset = self.displayPresets[presetId];
+    if (preset.type === 'dsi' && preset.config && preset.config.dtoverlay === overlayName) {
+      return presetId;
+    }
+  }
+  
+  // Not found - return overlay name (will be treated as custom)
+  return overlayName;
 };
 
 
@@ -1269,8 +1356,9 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     var dsiLabel = dsiPreset && dsiPreset.name ? dsiPreset.name : dsiPresetId;
     parts.push('DSI: ' + dsiLabel);
   } else if (primaryOutput === 'dpi') {
-    var dpiOverlay = self.getConfigValue('dpi.overlay', '');
-    var dpiLabel = DPI_OVERLAYS[dpiOverlay] ? DPI_OVERLAYS[dpiOverlay].label : dpiOverlay;
+    var dpiPresetId = self.getConfigValue('dpi.overlay', '');
+    var dpiPreset = self.getDisplayPreset(dpiPresetId);
+    var dpiLabel = dpiPreset && dpiPreset.name ? dpiPreset.name : dpiPresetId;
     parts.push('DPI: ' + dpiLabel);
   } else if (primaryOutput === 'composite') {
     var compMode = self.getConfigValue('composite.mode', 'pal');
@@ -1889,20 +1977,8 @@ var COMPOSITE_MODE_LOOKUP = {
   66: 'PAL-N'
 };
 
-// DSI overlay lookup
-var DSI_OVERLAY_LOOKUP = {
-  'vc4-kms-dsi-7inch': 'Official Raspberry Pi 7" Touch Display',
-  'vc4-kms-dsi-ili9881-7inch': 'Waveshare 7" (C) DSI Display',
-  'vc4-kms-dsi-waveshare-panel': 'Waveshare DSI Panel'
-};
-
-// DPI overlay lookup
-var DPI_OVERLAY_LOOKUP = {
-  'vc4-kms-dpi-hyperpixel4': 'HyperPixel 4.0',
-  'vc4-kms-dpi-hyperpixel4sq': 'HyperPixel 4.0 Square',
-  'vc4-kms-vga666': 'VGA666 Adapter',
-  'vc4-kms-dpi-generic': 'Generic DPI'
-};
+// NOTE: DSI and DPI overlay names are now looked up from display_presets.json
+// using self.getPresetNameByOverlay() instead of hardcoded tables
 
 PiScreenSetup.prototype.parseExistingConfig = function(rawLines) {
   var self = this;
@@ -1916,7 +1992,8 @@ PiScreenSetup.prototype.parseExistingConfig = function(rawLines) {
       force_hotplug: false,
       ignore_edid: false,
       boost: null,
-      cvt: null
+      cvt: null,
+      timings: null
     },
     dsi: {
       overlay: null,
@@ -1966,7 +2043,7 @@ PiScreenSetup.prototype.parseExistingConfig = function(rawLines) {
       if (dsiMatch[5]) {
         parsed.dsi.params = dsiMatch[5];
       }
-      var dsiName = DSI_OVERLAY_LOOKUP[dsiMatch[1]] || dsiMatch[1];
+      var dsiName = self.getPresetNameByOverlay(dsiMatch[1]);
       recognized.push({ line: line, meaning: 'DSI Display: ' + dsiName + (dsiMatch[3] ? ', Rotation: ' + dsiMatch[3] + ' degrees' : '') });
       isRecognized = true;
     }
@@ -1980,7 +2057,7 @@ PiScreenSetup.prototype.parseExistingConfig = function(rawLines) {
         parsed.dpi.rotation = parseInt(dpiMatch[3], 10);
         parsed.rotation = parsed.dpi.rotation;
       }
-      var dpiName = DPI_OVERLAY_LOOKUP[dpiMatch[1]] || dpiMatch[1];
+      var dpiName = self.getPresetNameByOverlay(dpiMatch[1]);
       recognized.push({ line: line, meaning: 'DPI Display: ' + dpiName });
       isRecognized = true;
     }
@@ -2038,7 +2115,15 @@ PiScreenSetup.prototype.parseExistingConfig = function(rawLines) {
     var cvtMatch = line.match(/^hdmi_cvt(:(\d))?=(.+)/);
     if (cvtMatch && !isRecognized) {
       parsed.hdmi.cvt = cvtMatch[3];
-      recognized.push({ line: line, meaning: 'HDMI Custom Resolution: ' + cvtMatch[3] });
+      recognized.push({ line: line, meaning: 'HDMI Custom Resolution (CVT): ' + cvtMatch[3] });
+      isRecognized = true;
+    }
+    
+    // HDMI Timings
+    var timingsMatch = line.match(/^hdmi_timings(:(\d))?=(.+)/);
+    if (timingsMatch && !isRecognized) {
+      parsed.hdmi.timings = timingsMatch[3];
+      recognized.push({ line: line, meaning: 'HDMI Custom Timings: ' + timingsMatch[3] });
       isRecognized = true;
     }
     
@@ -2115,25 +2200,37 @@ PiScreenSetup.prototype.interpretConfigToHuman = function(parseResult) {
   
   // DSI details
   if (parsed.dsi.overlay) {
-    var dsiName = DSI_OVERLAY_LOOKUP[parsed.dsi.overlay] || parsed.dsi.overlay;
+    var dsiName = self.getPresetNameByOverlay(parsed.dsi.overlay);
     lines.push('DSI Panel: ' + dsiName);
   }
   
   // DPI details
   if (parsed.dpi.overlay) {
-    var dpiName = DPI_OVERLAY_LOOKUP[parsed.dpi.overlay] || parsed.dpi.overlay;
+    var dpiName = self.getPresetNameByOverlay(parsed.dpi.overlay);
     lines.push('DPI Panel: ' + dpiName);
   }
   
-  // HDMI details
-  if (parsed.hdmi.mode !== null) {
-    var modeName = 'Mode ' + parsed.hdmi.mode;
-    if (parsed.hdmi.group === 1 && HDMI_MODE_CEA[parsed.hdmi.mode]) {
-      modeName = HDMI_MODE_CEA[parsed.hdmi.mode];
-    } else if (parsed.hdmi.group === 2 && HDMI_MODE_DMT[parsed.hdmi.mode]) {
-      modeName = HDMI_MODE_DMT[parsed.hdmi.mode];
+  // HDMI details - try to match to a known preset first
+  if (parsed.hdmi.mode !== null || parsed.hdmi.timings || parsed.hdmi.cvt) {
+    var hdmiPresetMatch = self.matchHdmiConfigToPreset(parsed.hdmi);
+    if (hdmiPresetMatch) {
+      lines.push('HDMI Display: ' + hdmiPresetMatch.presetName);
+    } else {
+      // No preset match - show raw settings
+      var modeName = 'Mode ' + parsed.hdmi.mode;
+      if (parsed.hdmi.group === 1 && HDMI_MODE_CEA[parsed.hdmi.mode]) {
+        modeName = HDMI_MODE_CEA[parsed.hdmi.mode];
+      } else if (parsed.hdmi.group === 2 && HDMI_MODE_DMT[parsed.hdmi.mode]) {
+        modeName = HDMI_MODE_DMT[parsed.hdmi.mode];
+      }
+      lines.push('HDMI Resolution: ' + modeName);
+      if (parsed.hdmi.timings) {
+        lines.push('HDMI Custom Timings: ' + parsed.hdmi.timings);
+      }
+      if (parsed.hdmi.cvt) {
+        lines.push('HDMI Custom CVT: ' + parsed.hdmi.cvt);
+      }
     }
-    lines.push('HDMI Resolution: ' + modeName);
   }
   
   if (parsed.hdmi.force_hotplug) {
@@ -2189,14 +2286,26 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
   if (parsed.primary_output === 'hdmi0' || parsed.primary_output === 'hdmi1') {
     var hdmiPrefix = parsed.primary_output;
     self.config.set(hdmiPrefix + '.enabled', true);
+    self.config.set(hdmiPrefix + '.mode', 'screen');
     
-    if (parsed.hdmi.group !== null) {
-      self.config.set(hdmiPrefix + '.group', parsed.hdmi.group === 1 ? 'cea' : 'dmt');
-    }
-    
-    if (parsed.hdmi.mode !== null) {
-      // Try to map mode to our resolution options
-      self.config.set(hdmiPrefix + '.resolution', 'custom');
+    // Try to match HDMI config to a known preset
+    var hdmiPresetMatch = self.matchHdmiConfigToPreset(parsed.hdmi);
+    if (hdmiPresetMatch) {
+      self.config.set(hdmiPrefix + '.display_preset', hdmiPresetMatch.presetId);
+      self.logger.info('pi_screen_setup: Migration matched HDMI config to preset: ' + hdmiPresetMatch.presetName);
+    } else {
+      // No preset match - use custom settings
+      if (parsed.hdmi.timings || parsed.hdmi.cvt) {
+        self.config.set(hdmiPrefix + '.display_preset', 'custom-hdmi');
+        if (parsed.hdmi.timings) {
+          self.config.set(hdmiPrefix + '.custom_timings', parsed.hdmi.timings);
+        }
+        if (parsed.hdmi.cvt) {
+          self.config.set(hdmiPrefix + '.custom_timings', parsed.hdmi.cvt);
+        }
+      } else {
+        self.config.set(hdmiPrefix + '.display_preset', 'auto');
+      }
     }
     
     self.config.set(hdmiPrefix + '.force_hotplug', parsed.hdmi.force_hotplug);
@@ -2204,10 +2313,6 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
     
     if (parsed.hdmi.boost !== null) {
       self.config.set(hdmiPrefix + '.boost', parsed.hdmi.boost);
-    }
-    
-    if (parsed.hdmi.cvt) {
-      self.config.set(hdmiPrefix + '.custom_cvt', parsed.hdmi.cvt);
     }
     
     if (parsed.rotation !== null) {
@@ -2219,7 +2324,10 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
   if (parsed.primary_output === 'dsi0') {
     self.config.set('dsi0.enabled', true);
     if (parsed.dsi.overlay) {
-      self.config.set('dsi0.overlay', parsed.dsi.overlay);
+      // Find preset ID by overlay name
+      var dsiPresetId = self.findDsiPresetByOverlay(parsed.dsi.overlay);
+      self.config.set('dsi0.overlay', dsiPresetId);
+      self.logger.info('pi_screen_setup: Migration matched DSI overlay ' + parsed.dsi.overlay + ' to preset: ' + dsiPresetId);
     }
     if (parsed.dsi.rotation !== null) {
       self.config.set('dsi0.rotation', parsed.dsi.rotation);
@@ -2233,7 +2341,9 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
   if (parsed.primary_output === 'dpi') {
     self.config.set('dpi.enabled', true);
     if (parsed.dpi.overlay) {
-      self.config.set('dpi.overlay', parsed.dpi.overlay);
+      // Find preset ID by overlay name
+      var dpiPresetId = self.findDsiPresetByOverlay(parsed.dpi.overlay);
+      self.config.set('dpi.overlay', dpiPresetId);
     }
     if (parsed.dpi.rotation !== null) {
       self.config.set('dpi.rotation', parsed.dpi.rotation);
@@ -3182,11 +3292,9 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
               dsiOptions.push({ value: presetKey, label: preset.name });
             }
           }
-          // Fallback to hardcoded if no presets loaded
+          // Log warning if no presets loaded (database issue)
           if (dsiOptions.length === 0) {
-            for (var dsiKey in DSI_OVERLAYS) {
-              dsiOptions.push({ value: dsiKey, label: DSI_OVERLAYS[dsiKey].label });
-            }
+            self.logger.warn('pi_screen_setup: No DSI presets found in database');
           }
           dsiOptions.push({ value: 'custom', label: self.getI18n('CUSTOM_OVERLAY') });
           overlaySelect.options = dsiOptions;
@@ -3211,12 +3319,23 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
       step4Section.hidden = wizardComplete || !showDpi;
 
       if (showDpi) {
-        // DPI overlay
+        // DPI overlay - read from display_presets.json filtered by type === 'dpi'
         var dpiOverlaySelect = self.findContentItem(step4Section, 'dpi_overlay');
         if (dpiOverlaySelect) {
           var dpiOptions = [];
-          for (var dpiKey in DPI_OVERLAYS) {
-            dpiOptions.push({ value: dpiKey, label: DPI_OVERLAYS[dpiKey].label });
+          if (self.displayPresets) {
+            for (var presetKey in self.displayPresets) {
+              var preset = self.displayPresets[presetKey];
+              // Skip comment entries and non-DPI presets
+              if (presetKey.startsWith('_comment') || preset.type !== 'dpi') {
+                continue;
+              }
+              dpiOptions.push({ value: presetKey, label: preset.name });
+            }
+          }
+          // Log warning if no presets loaded (database issue)
+          if (dpiOptions.length === 0) {
+            self.logger.warn('pi_screen_setup: No DPI presets found in database');
           }
           dpiOptions.push({ value: 'custom', label: self.getI18n('CUSTOM_OVERLAY') });
           dpiOverlaySelect.options = dpiOptions;
