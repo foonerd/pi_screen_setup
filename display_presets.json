@@ -1,5 +1,5 @@
 {
-  "version": "1.3.1",
+  "version": "1.3.2",
   "last_updated": "2026-01-18",
   "presets": {
     "auto": {
@@ -359,6 +359,131 @@
       },
       "recommended_rotation": 0,
       "notes": "Touch and audio variants available"
+    },
+    "_comment_hdmi_lcdwiki": "--- LCDwiki/Goodtft Displays (Miuzei, Kuman rebrands) ---",
+    "lcdwiki-3.5-hdmi": {
+      "name": "LCDwiki 3.5\" HDMI (480x320)",
+      "type": "hdmi",
+      "description": "LCDwiki/Goodtft MPI3508 and similar 3.5 inch displays",
+      "native_resolution": "480x320",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 320 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch requires goodtft driver or SPI overlay"
+    },
+    "lcdwiki-4-hdmi-c": {
+      "name": "LCDwiki 4\" HDMI-C (480x800)",
+      "type": "hdmi",
+      "description": "LCDwiki/Goodtft MPI4008 portrait display (Miuzei MC21-4)",
+      "native_resolution": "480x800",
+      "rotated_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 90,
+      "notes": "Portrait native, use rotation for landscape"
+    },
+    "lcdwiki-5-hdmi": {
+      "name": "LCDwiki 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "LCDwiki/Goodtft MPI5008 and similar 5 inch displays",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, driver-free on most OS"
+    },
+    "lcdwiki-7-hdmi-b": {
+      "name": "LCDwiki 7\" HDMI-B (800x480)",
+      "type": "hdmi",
+      "description": "LCDwiki/Goodtft 7 inch 800x480 display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB"
+    },
+    "lcdwiki-7-hdmi-c": {
+      "name": "LCDwiki 7\" HDMI-C (1024x600)",
+      "type": "hdmi",
+      "description": "LCDwiki/Goodtft 7 inch 1024x600 display with audio",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Supports HDMI audio, touch via USB"
+    },
+    "_comment_hdmi_sunfounder": "--- Sunfounder Displays ---",
+    "sunfounder-7-1024x600": {
+      "name": "Sunfounder 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Sunfounder TS-7C and similar 7 inch touch displays",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB"
+    },
+    "sunfounder-10.1-1024x600": {
+      "name": "Sunfounder 10.1\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Sunfounder TS-10 L and similar 10.1 inch displays",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB"
+    },
+    "_comment_hdmi_kuman": "--- Kuman Displays ---",
+    "kuman-7-800x480": {
+      "name": "Kuman 7\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "Kuman 7 inch capacitive touch display",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, may need max_usb_current=1"
+    },
+    "kuman-7-1024x600": {
+      "name": "Kuman 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Kuman 7 inch 1024x600 capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB"
     },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
     "generic-480x320": {
