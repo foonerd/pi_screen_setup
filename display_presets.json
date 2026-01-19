@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -1002,6 +1002,20 @@
       "recommended_rotation": 0,
       "notes": "Touch via USB"
     },
+    "_comment_hdmi_freenove": "--- Freenove Displays ---",
+    "freenove-7-hdmi": {
+      "name": "Freenove 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Freenove FNK0055 series 7 inch IPS touchscreen",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Speaker variant available (FNK0055C)"
+    },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
     "generic-480x320": {
       "name": "Generic 480x320 HDMI",
@@ -1707,6 +1721,43 @@
       },
       "recommended_rotation": 0,
       "notes": "Requires Compute Module or Pi 5 (4-lane DSI)",
+      "overlay_rotation_param": false
+    },
+    "_comment_dsi_freenove": "=== FREENOVE DSI DISPLAYS ===",
+    "freenove-4.3-dsi": {
+      "name": "Freenove 4.3\" DSI (800x480)",
+      "type": "dsi",
+      "description": "Freenove FNK0078D 4.3 inch IPS touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
+    "freenove-5-dsi": {
+      "name": "Freenove 5\" DSI (800x480)",
+      "type": "dsi",
+      "description": "Freenove FNK0078 5 inch IPS/TN touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
+    "freenove-7-dsi": {
+      "name": "Freenove 7\" DSI (800x480)",
+      "type": "dsi",
+      "description": "Freenove FNK0078H 7 inch IPS touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, uses official 7-inch overlay, driver-free",
       "overlay_rotation_param": false
     },
     "_comment_dsi_other": "=== OTHER DSI DISPLAYS ===",
