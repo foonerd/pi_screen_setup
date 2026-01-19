@@ -597,56 +597,56 @@
 <body>
   <div class="header">
     <div class="header-content">
-      <h1>Preset Manager</h1>
-      <div class="subtitle">Pi Screen Setup - Display Presets Database</div>
+      <h1 id="page-title">Preset Manager</h1>
+      <div class="subtitle" id="page-subtitle">Pi Screen Setup - Display Presets Database</div>
     </div>
     <button id="close-window-btn" class="header-close-btn hidden">
-      <i class="fa fa-times"></i> Close
+      <i class="fa fa-times"></i> <span id="btn-close-text">Close</span>
     </button>
   </div>
   
   <div class="container">
     <div class="tabs">
       <button class="tab active" data-tab="manage">
-        <i class="fa fa-pencil"></i> Manage Presets
+        <i class="fa fa-pencil"></i> <span id="tab-manage-text">Manage Presets</span>
       </button>
       <button class="tab" data-tab="add">
-        <i class="fa fa-plus"></i> Add New
+        <i class="fa fa-plus"></i> <span id="tab-add-text">Add New</span>
       </button>
       <button class="tab" data-tab="delete">
-        <i class="fa fa-trash"></i> Delete
+        <i class="fa fa-trash"></i> <span id="tab-delete-text">Delete</span>
       </button>
       <button class="tab" data-tab="database">
-        <i class="fa fa-database"></i> Database File
+        <i class="fa fa-database"></i> <span id="tab-database-text">Database File</span>
       </button>
     </div>
     
     <!-- Tab 1: Manage Presets -->
     <div id="manage-tab" class="tab-content active">
       <div class="section">
-        <div class="section-title">Database Status</div>
+        <div class="section-title" id="section-db-status">Database Status</div>
         
         <div class="info-box">
           <div class="info-row">
-            <span class="info-label">Active Version</span>
+            <span class="info-label" id="label-active-version">Active Version</span>
             <span class="info-value" id="info-local-version">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Total Presets</span>
+            <span class="info-label" id="label-total-presets">Total Presets</span>
             <span class="info-value" id="info-preset-count">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Source</span>
+            <span class="info-label" id="label-source">Source</span>
             <span class="info-value" id="info-source">-</span>
           </div>
         </div>
       </div>
       
       <div class="section">
-        <div class="section-title">Edit Existing Preset</div>
+        <div class="section-title" id="section-edit-preset">Edit Existing Preset</div>
         
         <div class="form-group">
-          <label>Select Preset</label>
+          <label id="label-select-preset">Select Preset</label>
           <select id="manage-preset-select">
             <option value="">-- Select a preset --</option>
           </select>
@@ -654,28 +654,28 @@
         
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="loadPreset()">
-            <i class="fa fa-download"></i> Load Selected
+            <i class="fa fa-download"></i> <span id="btn-load-text">Load Selected</span>
           </button>
         </div>
       </div>
       
       <div id="manage-form" class="section" style="display: none;">
-        <div class="section-title">Edit Preset Details</div>
+        <div class="section-title" id="section-edit-details">Edit Preset Details</div>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Preset ID</label>
+            <label id="label-preset-id">Preset ID</label>
             <input type="text" id="manage-id" readonly>
           </div>
           <div class="form-group">
-            <label>Display Name</label>
+            <label id="label-display-name">Display Name</label>
             <input type="text" id="manage-name" placeholder="Display name">
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Connection Type</label>
+            <label id="label-connection-type">Connection Type</label>
             <select id="manage-type">
               <option value="hdmi">HDMI</option>
               <option value="dsi">DSI</option>
@@ -684,40 +684,40 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Description</label>
+            <label id="label-description">Description</label>
             <input type="text" id="manage-desc" placeholder="Brief description">
           </div>
         </div>
         
         <!-- Configuration Fields by Type -->
         <div class="form-group">
-          <label>Configuration</label>
+          <label id="label-configuration">Configuration</label>
           
           <!-- HDMI Configuration Fields -->
           <div id="manage-config-hdmi" class="config-fields">
-            <div class="config-section-title">HDMI Output Settings</div>
+            <div class="config-section-title" id="m-cfg-hdmi-title">HDMI Output Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>HDMI Group</label>
+                <label id="m-label-hdmi-group">HDMI Group</label>
                 <select id="manage-cfg-hdmi-group">
-                  <option value="">-- Not Set --</option>
+                  <option value="" id="m-opt-not-set">-- Not Set --</option>
                   <option value="1">1 - CEA (TV)</option>
                   <option value="2">2 - DMT (Monitor)</option>
                 </select>
-                <div class="field-help">CEA for TVs, DMT for computer monitors</div>
+                <div class="field-help" id="m-help-hdmi-group">CEA for TVs, DMT for computer monitors</div>
               </div>
               <div class="form-group">
-                <label>HDMI Mode</label>
+                <label id="m-label-hdmi-mode">HDMI Mode</label>
                 <input type="number" id="manage-cfg-hdmi-mode" placeholder="e.g., 87 for custom">
-                <div class="field-help">Mode 87 = custom timing. See RPi docs for standard modes.</div>
+                <div class="field-help" id="m-help-hdmi-mode">Mode 87 = custom timing. See RPi docs for standard modes.</div>
               </div>
             </div>
             
-            <div class="config-section-title">Timing Configuration</div>
+            <div class="config-section-title" id="m-cfg-timing-title">Timing Configuration</div>
             <div class="form-group">
-              <label>Timing Format</label>
+              <label id="m-label-timing-format">Timing Format</label>
               <select id="manage-cfg-timing-format">
-                <option value="none">-- No Custom Timing --</option>
+                <option value="none" id="m-opt-no-timing">-- No Custom Timing --</option>
                 <option value="hdmi_timings">Custom Timings (hdmi_timings)</option>
                 <option value="hdmi_cvt">CVT Mode (hdmi_cvt)</option>
               </select>
@@ -726,104 +726,104 @@
               <div class="form-group">
                 <label>hdmi_timings</label>
                 <input type="text" id="manage-cfg-hdmi-timings" placeholder="320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3">
-                <div class="field-help">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags<br><span class="example">Example: 320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3</span></div>
+                <div class="field-help" id="m-help-hdmi-timings">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags</div>
               </div>
             </div>
             <div id="manage-timing-hdmi_cvt" class="hidden">
               <div class="form-group">
                 <label>hdmi_cvt</label>
                 <input type="text" id="manage-cfg-hdmi-cvt" placeholder="800 480 60">
-                <div class="field-help">Format: width height framerate [aspect margins interlace rb]<br><span class="example">Example: 800 480 60 6 0 0 0</span></div>
+                <div class="field-help" id="m-help-hdmi-cvt">Format: width height framerate [aspect margins interlace rb]</div>
               </div>
             </div>
             
-            <div class="config-section-title">Framebuffer Settings</div>
+            <div class="config-section-title" id="m-cfg-fb-title">Framebuffer Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Max Framebuffer Height</label>
+                <label id="m-label-max-fb-height">Max Framebuffer Height</label>
                 <input type="number" id="manage-cfg-max-fb-height" placeholder="e.g., 1480">
-                <div class="field-help">For portrait displays taller than wide</div>
+                <div class="field-help" id="m-help-max-fb-height">For portrait displays taller than wide</div>
               </div>
               <div class="form-group">
-                <label>Max Framebuffer Width</label>
+                <label id="m-label-max-fb-width">Max Framebuffer Width</label>
                 <input type="number" id="manage-cfg-max-fb-width" placeholder="e.g., 1920">
-                <div class="field-help">For unusual aspect ratios</div>
+                <div class="field-help" id="m-help-max-fb-width">For unusual aspect ratios</div>
               </div>
             </div>
             
-            <div class="config-section-title">Advanced HDMI Options</div>
+            <div class="config-section-title" id="m-cfg-advanced-title">Advanced HDMI Options</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pixel Frequency Limit</label>
+                <label id="m-label-pixel-freq">Pixel Frequency Limit</label>
                 <input type="number" id="manage-cfg-hdmi-pixel-freq" placeholder="e.g., 356000000">
-                <div class="field-help">Override pixel clock limit in Hz</div>
+                <div class="field-help" id="m-help-pixel-freq">Override pixel clock limit in Hz</div>
               </div>
               <div class="form-group">
-                <label>HDMI Boost</label>
+                <label id="m-label-hdmi-boost">HDMI Boost</label>
                 <input type="number" id="manage-cfg-hdmi-boost" min="0" max="11" placeholder="0-11">
-                <div class="field-help">Signal strength boost (0-11). Try 4-7 for long cables.</div>
+                <div class="field-help" id="m-help-hdmi-boost">Signal strength boost (0-11). Try 4-7 for long cables.</div>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>GPU Memory (MB)</label>
+                <label id="m-label-gpu-mem">GPU Memory (MB)</label>
                 <input type="number" id="manage-cfg-gpu-mem" placeholder="e.g., 256 or 512">
-                <div class="field-help">Override GPU memory allocation</div>
+                <div class="field-help" id="m-help-gpu-mem">Override GPU memory allocation</div>
               </div>
             </div>
           </div>
           
           <!-- DSI Configuration Fields -->
           <div id="manage-config-dsi" class="config-fields hidden">
-            <div class="config-section-title">DSI Display Settings</div>
+            <div class="config-section-title" id="m-cfg-dsi-title">DSI Display Settings</div>
             <div class="form-group">
-              <label>Primary Overlay (dtoverlay)</label>
+              <label id="m-label-dsi-overlay">Primary Overlay (dtoverlay)</label>
               <input type="text" id="manage-cfg-dsi-dtoverlay" placeholder="e.g., vc4-kms-dsi-7inch">
-              <div class="field-help">Main DSI overlay. Can include parameters after comma.<br><span class="example">Example: vc4-kms-dsi-waveshare-panel,2_8_inch</span></div>
+              <div class="field-help" id="m-help-dsi-overlay">Main DSI overlay. Can include parameters after comma.</div>
             </div>
             <div class="form-group">
-              <label>Secondary Overlay (dtoverlay_2)</label>
+              <label id="m-label-dsi-overlay2">Secondary Overlay (dtoverlay_2)</label>
               <input type="text" id="manage-cfg-dsi-dtoverlay2" placeholder="e.g., waveshare_35DSI">
-              <div class="field-help">Optional secondary overlay for touch or special features</div>
+              <div class="field-help" id="m-help-dsi-overlay2">Optional secondary overlay for touch or special features</div>
             </div>
           </div>
           
           <!-- DPI Configuration Fields -->
           <div id="manage-config-dpi" class="config-fields hidden">
-            <div class="config-section-title">DPI Display Settings</div>
+            <div class="config-section-title" id="m-cfg-dpi-title">DPI Display Settings</div>
             <div class="form-group">
-              <label>Base Overlay (dtoverlay)</label>
+              <label id="m-label-dpi-overlay">Base Overlay (dtoverlay)</label>
               <input type="text" id="manage-cfg-dpi-dtoverlay" placeholder="e.g., vc4-kms-v3d">
-              <div class="field-help">Usually vc4-kms-v3d for DPI displays</div>
+              <div class="field-help" id="m-help-dpi-overlay">Usually vc4-kms-v3d for DPI displays</div>
             </div>
-            <div class="config-section-title">Pi Model-Specific Overlays</div>
+            <div class="config-section-title" id="m-cfg-dpi-model-title">Pi Model-Specific Overlays</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pi 2/3 Overlay (dtoverlay_2)</label>
+                <label id="m-label-dpi-overlay2">Pi 2/3 Overlay (dtoverlay_2)</label>
                 <input type="text" id="manage-cfg-dpi-dtoverlay2" placeholder="e.g., vc4-kms-dpi-2inch8">
-                <div class="field-help">Overlay for Pi 2 and Pi 3 boards</div>
+                <div class="field-help" id="m-help-dpi-overlay2">Overlay for Pi 2 and Pi 3 boards</div>
               </div>
               <div class="form-group">
-                <label>Pi 3B Overlay (dtoverlay_3)</label>
+                <label id="m-label-dpi-overlay3">Pi 3B Overlay (dtoverlay_3)</label>
                 <input type="text" id="manage-cfg-dpi-dtoverlay3" placeholder="e.g., waveshare-28dpi-3b-4b">
-                <div class="field-help">Optional: Pi 3B specific variant</div>
+                <div class="field-help" id="m-help-dpi-overlay3">Optional: Pi 3B specific variant</div>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pi 4/5 Overlay (dtoverlay_4)</label>
+                <label id="m-label-dpi-overlay4">Pi 4/5 Overlay (dtoverlay_4)</label>
                 <input type="text" id="manage-cfg-dpi-dtoverlay4" placeholder="e.g., waveshare-touch-28dpi">
-                <div class="field-help">Overlay for Pi 4 and Pi 5 boards</div>
+                <div class="field-help" id="m-help-dpi-overlay4">Overlay for Pi 4 and Pi 5 boards</div>
               </div>
             </div>
           </div>
           
           <!-- Composite Configuration Fields -->
           <div id="manage-config-composite" class="config-fields hidden">
-            <div class="config-section-title">Composite Video Settings</div>
+            <div class="config-section-title" id="m-cfg-composite-title">Composite Video Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Video Standard (sdtv_mode)</label>
+                <label id="m-label-sdtv-mode">Video Standard (sdtv_mode)</label>
                 <select id="manage-cfg-sdtv-mode">
                   <option value="">-- Not Set --</option>
                   <option value="0">0 - NTSC (US/Japan)</option>
@@ -831,48 +831,48 @@
                   <option value="2">2 - PAL (Europe/Australia)</option>
                   <option value="3">3 - PAL-M (Brazil)</option>
                 </select>
-                <div class="field-help">Select video standard for your region</div>
+                <div class="field-help" id="m-help-sdtv-mode">Select video standard for your region</div>
               </div>
               <div class="form-group">
-                <label>Aspect Ratio (sdtv_aspect)</label>
+                <label id="m-label-sdtv-aspect">Aspect Ratio (sdtv_aspect)</label>
                 <select id="manage-cfg-sdtv-aspect">
                   <option value="">-- Not Set --</option>
                   <option value="1">1 - 4:3</option>
                   <option value="2">2 - 14:9</option>
                   <option value="3">3 - 16:9</option>
                 </select>
-                <div class="field-help">Aspect ratio for composite output</div>
+                <div class="field-help" id="m-help-sdtv-aspect">Aspect ratio for composite output</div>
               </div>
             </div>
             <div class="form-group">
-              <label>Enable TV Out</label>
+              <label id="m-label-enable-tvout">Enable TV Out</label>
               <select id="manage-cfg-enable-tvout">
                 <option value="">-- Not Set --</option>
                 <option value="1">1 - Enabled</option>
                 <option value="0">0 - Disabled</option>
               </select>
-              <div class="field-help">Required for Pi 4/5 composite output</div>
+              <div class="field-help" id="m-help-enable-tvout">Required for Pi 4/5 composite output</div>
             </div>
           </div>
           
           <!-- Additional Parameters (for unknown/advanced keys) -->
-          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="config-section-title" id="m-cfg-additional-title" style="margin-top: 20px;">Additional Parameters</div>
           <div class="form-group">
-            <label>Extra Config (JSON)</label>
+            <label id="m-label-extra-config">Extra Config (JSON)</label>
             <textarea id="manage-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
-            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
+            <div class="field-help" id="m-help-extra-config">For advanced or unusual config keys not covered above. Must be valid JSON object.</div>
           </div>
         </div>
         
         <div class="version-bump">
-          <label>New Version:</label>
+          <label id="m-label-new-version">New Version:</label>
           <input type="text" id="manage-version" placeholder="1.1.5">
           <span class="suggestion" id="manage-version-suggestion"></span>
         </div>
         
         <div class="btn-row">
           <button class="btn btn-primary" onclick="savePreset()">
-            <i class="fa fa-save"></i> Save Changes
+            <i class="fa fa-save"></i> <span id="btn-save-text">Save Changes</span>
           </button>
         </div>
       </div>
@@ -881,22 +881,22 @@
     <!-- Tab 2: Add New Preset -->
     <div id="add-tab" class="tab-content">
       <div class="section">
-        <div class="section-title">Create New Preset</div>
+        <div class="section-title" id="section-create-preset">Create New Preset</div>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Preset ID (unique identifier)</label>
+            <label id="a-label-preset-id">Preset ID (unique identifier)</label>
             <input type="text" id="add-id" placeholder="e.g., my-custom-display">
           </div>
           <div class="form-group">
-            <label>Display Name</label>
+            <label id="a-label-display-name">Display Name</label>
             <input type="text" id="add-name" placeholder="e.g., My Custom Display">
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Connection Type</label>
+            <label id="a-label-connection-type">Connection Type</label>
             <select id="add-type">
               <option value="hdmi">HDMI</option>
               <option value="dsi">DSI</option>
@@ -905,38 +905,38 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Description</label>
+            <label id="a-label-description">Description</label>
             <input type="text" id="add-desc" placeholder="Brief description">
           </div>
         </div>
         
         <!-- Configuration Fields by Type -->
         <div class="form-group">
-          <label>Configuration</label>
+          <label id="a-label-configuration">Configuration</label>
           
           <!-- HDMI Configuration Fields -->
           <div id="add-config-hdmi" class="config-fields">
-            <div class="config-section-title">HDMI Output Settings</div>
+            <div class="config-section-title" id="a-cfg-hdmi-title">HDMI Output Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>HDMI Group</label>
+                <label id="a-label-hdmi-group">HDMI Group</label>
                 <select id="add-cfg-hdmi-group">
                   <option value="">-- Not Set --</option>
                   <option value="1">1 - CEA (TV)</option>
                   <option value="2">2 - DMT (Monitor)</option>
                 </select>
-                <div class="field-help">CEA for TVs, DMT for computer monitors</div>
+                <div class="field-help" id="a-help-hdmi-group">CEA for TVs, DMT for computer monitors</div>
               </div>
               <div class="form-group">
-                <label>HDMI Mode</label>
+                <label id="a-label-hdmi-mode">HDMI Mode</label>
                 <input type="number" id="add-cfg-hdmi-mode" placeholder="e.g., 87 for custom">
-                <div class="field-help">Mode 87 = custom timing. See RPi docs for standard modes.</div>
+                <div class="field-help" id="a-help-hdmi-mode">Mode 87 = custom timing. See RPi docs for standard modes.</div>
               </div>
             </div>
             
-            <div class="config-section-title">Timing Configuration</div>
+            <div class="config-section-title" id="a-cfg-timing-title">Timing Configuration</div>
             <div class="form-group">
-              <label>Timing Format</label>
+              <label id="a-label-timing-format">Timing Format</label>
               <select id="add-cfg-timing-format">
                 <option value="none">-- No Custom Timing --</option>
                 <option value="hdmi_timings">Custom Timings (hdmi_timings)</option>
@@ -945,106 +945,106 @@
             </div>
             <div id="add-timing-hdmi_timings" class="hidden">
               <div class="form-group">
-                <label>hdmi_timings</label>
+                <label id="a-label-hdmi-timings">hdmi_timings</label>
                 <input type="text" id="add-cfg-hdmi-timings" placeholder="320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3">
-                <div class="field-help">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags<br><span class="example">Example: 320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3</span></div>
+                <div class="field-help" id="a-help-hdmi-timings">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags</div>
               </div>
             </div>
             <div id="add-timing-hdmi_cvt" class="hidden">
               <div class="form-group">
-                <label>hdmi_cvt</label>
+                <label id="a-label-hdmi-cvt">hdmi_cvt</label>
                 <input type="text" id="add-cfg-hdmi-cvt" placeholder="800 480 60">
-                <div class="field-help">Format: width height framerate [aspect margins interlace rb]<br><span class="example">Example: 800 480 60 6 0 0 0</span></div>
+                <div class="field-help" id="a-help-hdmi-cvt">Format: width height framerate [aspect margins interlace rb]</div>
               </div>
             </div>
             
-            <div class="config-section-title">Framebuffer Settings</div>
+            <div class="config-section-title" id="a-cfg-fb-title">Framebuffer Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Max Framebuffer Height</label>
+                <label id="a-label-max-fb-height">Max Framebuffer Height</label>
                 <input type="number" id="add-cfg-max-fb-height" placeholder="e.g., 1480">
-                <div class="field-help">For portrait displays taller than wide</div>
+                <div class="field-help" id="a-help-max-fb-height">For portrait displays taller than wide</div>
               </div>
               <div class="form-group">
-                <label>Max Framebuffer Width</label>
+                <label id="a-label-max-fb-width">Max Framebuffer Width</label>
                 <input type="number" id="add-cfg-max-fb-width" placeholder="e.g., 1920">
-                <div class="field-help">For unusual aspect ratios</div>
+                <div class="field-help" id="a-help-max-fb-width">For unusual aspect ratios</div>
               </div>
             </div>
             
-            <div class="config-section-title">Advanced HDMI Options</div>
+            <div class="config-section-title" id="a-cfg-advanced-title">Advanced HDMI Options</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pixel Frequency Limit</label>
+                <label id="a-label-pixel-freq">Pixel Frequency Limit</label>
                 <input type="number" id="add-cfg-hdmi-pixel-freq" placeholder="e.g., 356000000">
-                <div class="field-help">Override pixel clock limit in Hz</div>
+                <div class="field-help" id="a-help-pixel-freq">Override pixel clock limit in Hz</div>
               </div>
               <div class="form-group">
-                <label>HDMI Boost</label>
+                <label id="a-label-hdmi-boost">HDMI Boost</label>
                 <input type="number" id="add-cfg-hdmi-boost" min="0" max="11" placeholder="0-11">
-                <div class="field-help">Signal strength boost (0-11). Try 4-7 for long cables.</div>
+                <div class="field-help" id="a-help-hdmi-boost">Signal strength boost (0-11). Try 4-7 for long cables.</div>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>GPU Memory (MB)</label>
+                <label id="a-label-gpu-mem">GPU Memory (MB)</label>
                 <input type="number" id="add-cfg-gpu-mem" placeholder="e.g., 256 or 512">
-                <div class="field-help">Override GPU memory allocation</div>
+                <div class="field-help" id="a-help-gpu-mem">Override GPU memory allocation</div>
               </div>
             </div>
           </div>
           
           <!-- DSI Configuration Fields -->
           <div id="add-config-dsi" class="config-fields hidden">
-            <div class="config-section-title">DSI Display Settings</div>
+            <div class="config-section-title" id="a-cfg-dsi-title">DSI Display Settings</div>
             <div class="form-group">
-              <label>Primary Overlay (dtoverlay)</label>
+              <label id="a-label-dsi-overlay">Primary Overlay (dtoverlay)</label>
               <input type="text" id="add-cfg-dsi-dtoverlay" placeholder="e.g., vc4-kms-dsi-7inch">
-              <div class="field-help">Main DSI overlay. Can include parameters after comma.<br><span class="example">Example: vc4-kms-dsi-waveshare-panel,2_8_inch</span></div>
+              <div class="field-help" id="a-help-dsi-overlay">Main DSI overlay. Can include parameters after comma.</div>
             </div>
             <div class="form-group">
-              <label>Secondary Overlay (dtoverlay_2)</label>
+              <label id="a-label-dsi-overlay2">Secondary Overlay (dtoverlay_2)</label>
               <input type="text" id="add-cfg-dsi-dtoverlay2" placeholder="e.g., waveshare_35DSI">
-              <div class="field-help">Optional secondary overlay for touch or special features</div>
+              <div class="field-help" id="a-help-dsi-overlay2">Optional secondary overlay for touch or special features</div>
             </div>
           </div>
           
           <!-- DPI Configuration Fields -->
           <div id="add-config-dpi" class="config-fields hidden">
-            <div class="config-section-title">DPI Display Settings</div>
+            <div class="config-section-title" id="a-cfg-dpi-title">DPI Display Settings</div>
             <div class="form-group">
-              <label>Base Overlay (dtoverlay)</label>
+              <label id="a-label-dpi-overlay">Base Overlay (dtoverlay)</label>
               <input type="text" id="add-cfg-dpi-dtoverlay" placeholder="e.g., vc4-kms-v3d">
-              <div class="field-help">Usually vc4-kms-v3d for DPI displays</div>
+              <div class="field-help" id="a-help-dpi-overlay">Usually vc4-kms-v3d for DPI displays</div>
             </div>
-            <div class="config-section-title">Pi Model-Specific Overlays</div>
+            <div class="config-section-title" id="a-cfg-dpi-model-title">Pi Model-Specific Overlays</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pi 2/3 Overlay (dtoverlay_2)</label>
+                <label id="a-label-dpi-overlay2">Pi 2/3 Overlay (dtoverlay_2)</label>
                 <input type="text" id="add-cfg-dpi-dtoverlay2" placeholder="e.g., vc4-kms-dpi-2inch8">
-                <div class="field-help">Overlay for Pi 2 and Pi 3 boards</div>
+                <div class="field-help" id="a-help-dpi-overlay2">Overlay for Pi 2 and Pi 3 boards</div>
               </div>
               <div class="form-group">
-                <label>Pi 3B Overlay (dtoverlay_3)</label>
+                <label id="a-label-dpi-overlay3">Pi 3B Overlay (dtoverlay_3)</label>
                 <input type="text" id="add-cfg-dpi-dtoverlay3" placeholder="e.g., waveshare-28dpi-3b-4b">
-                <div class="field-help">Optional: Pi 3B specific variant</div>
+                <div class="field-help" id="a-help-dpi-overlay3">Optional: Pi 3B specific variant</div>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Pi 4/5 Overlay (dtoverlay_4)</label>
+                <label id="a-label-dpi-overlay4">Pi 4/5 Overlay (dtoverlay_4)</label>
                 <input type="text" id="add-cfg-dpi-dtoverlay4" placeholder="e.g., waveshare-touch-28dpi">
-                <div class="field-help">Overlay for Pi 4 and Pi 5 boards</div>
+                <div class="field-help" id="a-help-dpi-overlay4">Overlay for Pi 4 and Pi 5 boards</div>
               </div>
             </div>
           </div>
           
           <!-- Composite Configuration Fields -->
           <div id="add-config-composite" class="config-fields hidden">
-            <div class="config-section-title">Composite Video Settings</div>
+            <div class="config-section-title" id="a-cfg-composite-title">Composite Video Settings</div>
             <div class="form-row">
               <div class="form-group">
-                <label>Video Standard (sdtv_mode)</label>
+                <label id="a-label-sdtv-mode">Video Standard (sdtv_mode)</label>
                 <select id="add-cfg-sdtv-mode">
                   <option value="">-- Not Set --</option>
                   <option value="0">0 - NTSC (US/Japan)</option>
@@ -1052,51 +1052,51 @@
                   <option value="2">2 - PAL (Europe/Australia)</option>
                   <option value="3">3 - PAL-M (Brazil)</option>
                 </select>
-                <div class="field-help">Select video standard for your region</div>
+                <div class="field-help" id="a-help-sdtv-mode">Select video standard for your region</div>
               </div>
               <div class="form-group">
-                <label>Aspect Ratio (sdtv_aspect)</label>
+                <label id="a-label-sdtv-aspect">Aspect Ratio (sdtv_aspect)</label>
                 <select id="add-cfg-sdtv-aspect">
                   <option value="">-- Not Set --</option>
                   <option value="1">1 - 4:3</option>
                   <option value="2">2 - 14:9</option>
                   <option value="3">3 - 16:9</option>
                 </select>
-                <div class="field-help">Aspect ratio for composite output</div>
+                <div class="field-help" id="a-help-sdtv-aspect">Aspect ratio for composite output</div>
               </div>
             </div>
             <div class="form-group">
-              <label>Enable TV Out</label>
+              <label id="a-label-enable-tvout">Enable TV Out</label>
               <select id="add-cfg-enable-tvout">
                 <option value="">-- Not Set --</option>
                 <option value="1">1 - Enabled</option>
                 <option value="0">0 - Disabled</option>
               </select>
-              <div class="field-help">Required for Pi 4/5 composite output</div>
+              <div class="field-help" id="a-help-enable-tvout">Required for Pi 4/5 composite output</div>
             </div>
           </div>
           
           <!-- Additional Parameters (for unknown/advanced keys) -->
-          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="config-section-title" id="a-cfg-additional-title" style="margin-top: 20px;">Additional Parameters</div>
           <div class="form-group">
-            <label>Extra Config (JSON)</label>
+            <label id="a-label-extra-config">Extra Config (JSON)</label>
             <textarea id="add-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
-            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
+            <div class="field-help" id="a-help-extra-config">For advanced or unusual config keys not covered above. Must be valid JSON object.</div>
           </div>
         </div>
         
         <div class="version-bump">
-          <label>New Version:</label>
+          <label id="a-label-new-version">New Version:</label>
           <input type="text" id="add-version" placeholder="1.1.5">
           <span class="suggestion" id="add-version-suggestion"></span>
         </div>
         
         <div class="btn-row">
           <button class="btn btn-primary" onclick="addPreset()">
-            <i class="fa fa-plus"></i> Add Preset
+            <i class="fa fa-plus"></i> <span id="btn-add-text">Add Preset</span>
           </button>
           <button class="btn btn-secondary" onclick="clearAddForm()">
-            <i class="fa fa-eraser"></i> Clear Form
+            <i class="fa fa-eraser"></i> <span id="btn-clear-text">Clear Form</span>
           </button>
         </div>
       </div>
@@ -1105,10 +1105,10 @@
     <!-- Tab 3: Delete Preset -->
     <div id="delete-tab" class="tab-content">
       <div class="section">
-        <div class="section-title">Remove Preset</div>
+        <div class="section-title" id="section-remove-preset">Remove Preset</div>
         
         <div class="form-group">
-          <label>Select Preset to Delete</label>
+          <label id="label-select-delete">Select Preset to Delete</label>
           <select id="delete-preset-select">
             <option value="">-- Select a preset --</option>
           </select>
@@ -1116,49 +1116,49 @@
         
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="loadDeletePreview()">
-            <i class="fa fa-eye"></i> Preview
+            <i class="fa fa-eye"></i> <span id="btn-preview-text">Preview</span>
           </button>
         </div>
       </div>
       
       <div id="delete-preview" class="section" style="display: none;">
-        <div class="section-title">Preset to be Deleted</div>
+        <div class="section-title" id="section-delete-preview">Preset to be Deleted</div>
         
         <div class="warning-box">
           <i class="fa fa-exclamation-triangle"></i>
-          This action cannot be undone. Please verify this is the correct preset.
+          <span id="warning-delete-text">This action cannot be undone. Please verify this is the correct preset.</span>
         </div>
         
         <div class="preset-details">
           <h4 id="delete-preview-name">-</h4>
           <div class="info-row">
-            <span class="info-label">ID</span>
+            <span class="info-label" id="label-delete-id">ID</span>
             <span class="info-value" id="delete-preview-id">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Type</span>
+            <span class="info-label" id="label-delete-type">Type</span>
             <span class="info-value" id="delete-preview-type">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Description</span>
+            <span class="info-label" id="label-delete-desc">Description</span>
             <span class="info-value" id="delete-preview-desc">-</span>
           </div>
-          <h4 style="margin-top: 15px;">Configuration</h4>
+          <h4 style="margin-top: 15px;" id="label-delete-config">Configuration</h4>
           <pre id="delete-preview-config">{}</pre>
         </div>
         
         <div class="version-bump">
-          <label>New Version:</label>
+          <label id="d-label-new-version">New Version:</label>
           <input type="text" id="delete-version" placeholder="1.1.5">
           <span class="suggestion" id="delete-version-suggestion"></span>
         </div>
         
         <div class="btn-row">
           <button class="btn btn-danger" onclick="confirmDelete()">
-            <i class="fa fa-trash"></i> Confirm Delete
+            <i class="fa fa-trash"></i> <span id="btn-confirm-delete-text">Confirm Delete</span>
           </button>
           <button class="btn btn-secondary" onclick="cancelDelete()">
-            <i class="fa fa-times"></i> Cancel
+            <i class="fa fa-times"></i> <span id="btn-cancel-text">Cancel</span>
           </button>
         </div>
       </div>
@@ -1167,37 +1167,37 @@
     <!-- Tab 4: Database File -->
     <div id="database-tab" class="tab-content">
       <div class="section">
-        <div class="section-title">Import Database</div>
+        <div class="section-title" id="section-import">Import Database</div>
         
-        <h3>From Remote URL</h3>
+        <h3 id="label-import-url">From Remote URL</h3>
         <div class="form-group">
           <input type="text" id="import-url" placeholder="https://raw.githubusercontent.com/...">
         </div>
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="importFromUrl()">
-            <i class="fa fa-cloud-download"></i> Fetch from URL
+            <i class="fa fa-cloud-download"></i> <span id="btn-import-url-text">Fetch from URL</span>
           </button>
         </div>
         
         <hr>
         
-        <h3>From Local Device Path</h3>
+        <h3 id="label-import-path">From Local Device Path</h3>
         <div class="form-group">
           <input type="text" id="import-path" placeholder="/data/INTERNAL/display_presets.json">
         </div>
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="importFromPath()">
-            <i class="fa fa-folder-open"></i> Load from Path
+            <i class="fa fa-folder-open"></i> <span id="btn-import-path-text">Load from Path</span>
           </button>
         </div>
         
         <hr>
         
-        <h3>Upload from Browser</h3>
+        <h3 id="label-upload-file">Upload from Browser</h3>
         <div class="btn-row">
           <div class="file-input-wrapper">
             <button class="btn btn-secondary">
-              <i class="fa fa-upload"></i> Choose File
+              <i class="fa fa-upload"></i> <span id="btn-choose-file-text">Choose File</span>
             </button>
             <input type="file" id="import-file" accept=".json" onchange="handleFileUpload(this)">
           </div>
@@ -1206,51 +1206,51 @@
       </div>
       
       <div class="section">
-        <div class="section-title">Export / Download</div>
+        <div class="section-title" id="section-export">Export / Download</div>
         
         <div class="btn-row">
           <button class="btn btn-primary" onclick="downloadDatabase()">
-            <i class="fa fa-download"></i> Download Current Database
+            <i class="fa fa-download"></i> <span id="btn-download-text">Download Current Database</span>
           </button>
           <button class="btn btn-secondary" onclick="exportForPR()">
-            <i class="fa fa-github"></i> Export for GitHub PR
+            <i class="fa fa-github"></i> <span id="btn-export-pr-text">Export for GitHub PR</span>
           </button>
         </div>
       </div>
       
       <div class="section">
-        <div class="section-title">Database Operations</div>
+        <div class="section-title" id="section-db-ops">Database Operations</div>
         
         <div class="btn-row">
           <button class="btn btn-primary" onclick="publishToCache()">
-            <i class="fa fa-save"></i> Save to Cache (Persist)
+            <i class="fa fa-save"></i> <span id="btn-save-cache-text">Save to Cache (Persist)</span>
           </button>
           <button class="btn btn-warning" onclick="revertToBundled()">
-            <i class="fa fa-undo"></i> Revert to Bundled
+            <i class="fa fa-undo"></i> <span id="btn-revert-text">Revert to Bundled</span>
           </button>
           <button class="btn btn-secondary" onclick="reloadFromCache()">
-            <i class="fa fa-refresh"></i> Reload from Cache
+            <i class="fa fa-refresh"></i> <span id="btn-reload-text">Reload from Cache</span>
           </button>
         </div>
       </div>
       
       <div class="section">
-        <div class="section-title">Backups</div>
+        <div class="section-title" id="section-backups">Backups</div>
         
         <div class="btn-row" style="margin-bottom: 15px; margin-top: 0;">
           <button class="btn btn-primary" onclick="createBackup()">
-            <i class="fa fa-plus"></i> Create Backup
+            <i class="fa fa-plus"></i> <span id="btn-create-backup-text">Create Backup</span>
           </button>
           <div class="file-input-wrapper">
             <button class="btn btn-secondary">
-              <i class="fa fa-upload"></i> Upload Backup
+              <i class="fa fa-upload"></i> <span id="btn-upload-backup-text">Upload Backup</span>
             </button>
             <input type="file" id="backup-file" accept=".json" onchange="handleBackupUpload(this)">
           </div>
         </div>
         
         <div id="backup-list" class="backup-list">
-          <p style="color: #666; text-align: center; padding: 20px;">Loading backups...</p>
+          <p style="color: #666; text-align: center; padding: 20px;" id="loading-backups-text">Loading backups...</p>
         </div>
       </div>
     </div>
@@ -1265,16 +1265,332 @@
       presetCount: 0,
       source: '-'
     };
+    var i18n = {};
+    
+    // ===== i18n FUNCTIONS =====
+    function t(key) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      var str = i18n[key] || key;
+      args.forEach(function(arg, index) {
+        str = str.replace('{' + index + '}', arg);
+      });
+      return str;
+    }
+    
+    function loadTranslations() {
+      return fetch('/api/language')
+        .then(function(res) { return res.json(); })
+        .then(function(langData) {
+          var lang = langData.language || 'en';
+          return fetch('/api/i18n/' + lang);
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          i18n = data;
+          updateUIText();
+        })
+        .catch(function(error) {
+          console.error('Failed to load translations:', error);
+          // Fallback to English
+          return fetch('/api/i18n/en')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              i18n = data;
+              updateUIText();
+            })
+            .catch(function(err) {
+              console.error('Failed to load fallback translations:', err);
+            });
+        });
+    }
+    
+    function updateUIText() {
+      // Helper to set text content safely
+      function setText(id, key) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = t(key);
+      }
+      
+      // Header and tabs
+      setText('page-title', 'PM_TITLE');
+      setText('page-subtitle', 'PM_SUBTITLE');
+      setText('btn-close-text', 'PM_BTN_CLOSE');
+      setText('tab-manage-text', 'PM_TAB_MANAGE');
+      setText('tab-add-text', 'PM_TAB_ADD');
+      setText('tab-delete-text', 'PM_TAB_DELETE');
+      setText('tab-database-text', 'PM_TAB_DATABASE');
+      
+      // Database Status section
+      setText('section-db-status', 'PM_SECTION_DB_STATUS');
+      setText('label-active-version', 'PM_LABEL_ACTIVE_VERSION');
+      setText('label-total-presets', 'PM_LABEL_TOTAL_PRESETS');
+      setText('label-source', 'PM_LABEL_SOURCE');
+      
+      // Edit Existing Preset section
+      setText('section-edit-preset', 'PM_SECTION_EDIT_PRESET');
+      setText('label-select-preset', 'PM_LABEL_SELECT_PRESET');
+      setText('btn-load-text', 'PM_BTN_LOAD');
+      
+      // Edit Preset Details section
+      setText('section-edit-details', 'PM_SECTION_EDIT_DETAILS');
+      setText('label-preset-id', 'PM_LABEL_PRESET_ID');
+      setText('label-display-name', 'PM_LABEL_DISPLAY_NAME');
+      setText('label-connection-type', 'PM_LABEL_CONNECTION_TYPE');
+      setText('label-description', 'PM_LABEL_DESCRIPTION');
+      setText('label-configuration', 'PM_LABEL_CONFIGURATION');
+      
+      // HDMI Config - Edit form
+      setText('m-cfg-hdmi-title', 'PM_CFG_HDMI_TITLE');
+      setText('m-label-hdmi-group', 'PM_LABEL_HDMI_GROUP');
+      setText('m-help-hdmi-group', 'PM_HELP_HDMI_GROUP');
+      setText('m-label-hdmi-mode', 'PM_LABEL_HDMI_MODE');
+      setText('m-help-hdmi-mode', 'PM_HELP_HDMI_MODE');
+      setText('m-cfg-timing-title', 'PM_CFG_TIMING_TITLE');
+      setText('m-label-timing-format', 'PM_LABEL_TIMING_FORMAT');
+      setText('m-label-hdmi-timings', 'PM_LABEL_HDMI_TIMINGS');
+      setText('m-help-hdmi-timings', 'PM_HELP_HDMI_TIMINGS');
+      setText('m-label-hdmi-cvt', 'PM_LABEL_HDMI_CVT');
+      setText('m-help-hdmi-cvt', 'PM_HELP_HDMI_CVT');
+      setText('m-cfg-fb-title', 'PM_CFG_FB_TITLE');
+      setText('m-label-max-fb-height', 'PM_LABEL_MAX_FB_HEIGHT');
+      setText('m-help-max-fb-height', 'PM_HELP_MAX_FB_HEIGHT');
+      setText('m-label-max-fb-width', 'PM_LABEL_MAX_FB_WIDTH');
+      setText('m-help-max-fb-width', 'PM_HELP_MAX_FB_WIDTH');
+      setText('m-cfg-advanced-title', 'PM_CFG_ADVANCED_TITLE');
+      setText('m-label-pixel-freq', 'PM_LABEL_PIXEL_FREQ');
+      setText('m-help-pixel-freq', 'PM_HELP_PIXEL_FREQ');
+      setText('m-label-hdmi-boost', 'PM_LABEL_HDMI_BOOST');
+      setText('m-help-hdmi-boost', 'PM_HELP_HDMI_BOOST');
+      setText('m-label-gpu-mem', 'PM_LABEL_GPU_MEM');
+      setText('m-help-gpu-mem', 'PM_HELP_GPU_MEM');
+      
+      // DSI Config - Edit form
+      setText('m-cfg-dsi-title', 'PM_CFG_DSI_TITLE');
+      setText('m-label-dsi-overlay', 'PM_LABEL_DSI_OVERLAY');
+      setText('m-help-dsi-overlay', 'PM_HELP_DSI_OVERLAY');
+      setText('m-label-dsi-overlay2', 'PM_LABEL_DSI_OVERLAY2');
+      setText('m-help-dsi-overlay2', 'PM_HELP_DSI_OVERLAY2');
+      
+      // DPI Config - Edit form
+      setText('m-cfg-dpi-title', 'PM_CFG_DPI_TITLE');
+      setText('m-label-dpi-overlay', 'PM_LABEL_DPI_OVERLAY');
+      setText('m-help-dpi-overlay', 'PM_HELP_DPI_OVERLAY');
+      setText('m-cfg-dpi-model-title', 'PM_CFG_DPI_MODEL_TITLE');
+      setText('m-label-dpi-overlay2', 'PM_LABEL_DPI_OVERLAY2');
+      setText('m-help-dpi-overlay2', 'PM_HELP_DPI_OVERLAY2');
+      setText('m-label-dpi-overlay3', 'PM_LABEL_DPI_OVERLAY3');
+      setText('m-help-dpi-overlay3', 'PM_HELP_DPI_OVERLAY3');
+      setText('m-label-dpi-overlay4', 'PM_LABEL_DPI_OVERLAY4');
+      setText('m-help-dpi-overlay4', 'PM_HELP_DPI_OVERLAY4');
+      
+      // Composite Config - Edit form
+      setText('m-cfg-composite-title', 'PM_CFG_COMPOSITE_TITLE');
+      setText('m-label-sdtv-mode', 'PM_LABEL_SDTV_MODE');
+      setText('m-help-sdtv-mode', 'PM_HELP_SDTV_MODE');
+      setText('m-label-sdtv-aspect', 'PM_LABEL_SDTV_ASPECT');
+      setText('m-help-sdtv-aspect', 'PM_HELP_SDTV_ASPECT');
+      setText('m-label-enable-tvout', 'PM_LABEL_ENABLE_TVOUT');
+      setText('m-help-enable-tvout', 'PM_HELP_ENABLE_TVOUT');
+      
+      // Additional Parameters - Edit form
+      setText('m-cfg-additional-title', 'PM_CFG_ADDITIONAL_TITLE');
+      setText('m-label-extra-config', 'PM_LABEL_EXTRA_CONFIG');
+      setText('m-help-extra-config', 'PM_HELP_EXTRA_CONFIG');
+      
+      // Version and Save - Edit form
+      setText('m-label-new-version', 'PM_LABEL_NEW_VERSION');
+      setText('btn-save-text', 'PM_BTN_SAVE');
+      
+      // Add New Preset tab - labels (reuse same keys as edit form where applicable)
+      setText('section-create-preset', 'PM_SECTION_CREATE_PRESET');
+      setText('a-label-preset-id', 'PM_LABEL_PRESET_ID_UNIQUE');
+      setText('a-label-display-name', 'PM_LABEL_DISPLAY_NAME');
+      setText('a-label-connection-type', 'PM_LABEL_CONNECTION_TYPE');
+      setText('a-label-description', 'PM_LABEL_DESCRIPTION');
+      setText('a-label-configuration', 'PM_LABEL_CONFIGURATION');
+      
+      // HDMI Config - Add form
+      setText('a-cfg-hdmi-title', 'PM_CFG_HDMI_TITLE');
+      setText('a-label-hdmi-group', 'PM_LABEL_HDMI_GROUP');
+      setText('a-help-hdmi-group', 'PM_HELP_HDMI_GROUP');
+      setText('a-label-hdmi-mode', 'PM_LABEL_HDMI_MODE');
+      setText('a-help-hdmi-mode', 'PM_HELP_HDMI_MODE');
+      setText('a-cfg-timing-title', 'PM_CFG_TIMING_TITLE');
+      setText('a-label-timing-format', 'PM_LABEL_TIMING_FORMAT');
+      setText('a-label-hdmi-timings', 'PM_LABEL_HDMI_TIMINGS');
+      setText('a-help-hdmi-timings', 'PM_HELP_HDMI_TIMINGS');
+      setText('a-label-hdmi-cvt', 'PM_LABEL_HDMI_CVT');
+      setText('a-help-hdmi-cvt', 'PM_HELP_HDMI_CVT');
+      setText('a-cfg-fb-title', 'PM_CFG_FB_TITLE');
+      setText('a-label-max-fb-height', 'PM_LABEL_MAX_FB_HEIGHT');
+      setText('a-help-max-fb-height', 'PM_HELP_MAX_FB_HEIGHT');
+      setText('a-label-max-fb-width', 'PM_LABEL_MAX_FB_WIDTH');
+      setText('a-help-max-fb-width', 'PM_HELP_MAX_FB_WIDTH');
+      setText('a-cfg-advanced-title', 'PM_CFG_ADVANCED_TITLE');
+      setText('a-label-pixel-freq', 'PM_LABEL_PIXEL_FREQ');
+      setText('a-help-pixel-freq', 'PM_HELP_PIXEL_FREQ');
+      setText('a-label-hdmi-boost', 'PM_LABEL_HDMI_BOOST');
+      setText('a-help-hdmi-boost', 'PM_HELP_HDMI_BOOST');
+      setText('a-label-gpu-mem', 'PM_LABEL_GPU_MEM');
+      setText('a-help-gpu-mem', 'PM_HELP_GPU_MEM');
+      
+      // DSI Config - Add form
+      setText('a-cfg-dsi-title', 'PM_CFG_DSI_TITLE');
+      setText('a-label-dsi-overlay', 'PM_LABEL_DSI_OVERLAY');
+      setText('a-help-dsi-overlay', 'PM_HELP_DSI_OVERLAY');
+      setText('a-label-dsi-overlay2', 'PM_LABEL_DSI_OVERLAY2');
+      setText('a-help-dsi-overlay2', 'PM_HELP_DSI_OVERLAY2');
+      
+      // DPI Config - Add form
+      setText('a-cfg-dpi-title', 'PM_CFG_DPI_TITLE');
+      setText('a-label-dpi-overlay', 'PM_LABEL_DPI_OVERLAY');
+      setText('a-help-dpi-overlay', 'PM_HELP_DPI_OVERLAY');
+      setText('a-cfg-dpi-model-title', 'PM_CFG_DPI_MODEL_TITLE');
+      setText('a-label-dpi-overlay2', 'PM_LABEL_DPI_OVERLAY2');
+      setText('a-help-dpi-overlay2', 'PM_HELP_DPI_OVERLAY2');
+      setText('a-label-dpi-overlay3', 'PM_LABEL_DPI_OVERLAY3');
+      setText('a-help-dpi-overlay3', 'PM_HELP_DPI_OVERLAY3');
+      setText('a-label-dpi-overlay4', 'PM_LABEL_DPI_OVERLAY4');
+      setText('a-help-dpi-overlay4', 'PM_HELP_DPI_OVERLAY4');
+      
+      // Composite Config - Add form
+      setText('a-cfg-composite-title', 'PM_CFG_COMPOSITE_TITLE');
+      setText('a-label-sdtv-mode', 'PM_LABEL_SDTV_MODE');
+      setText('a-help-sdtv-mode', 'PM_HELP_SDTV_MODE');
+      setText('a-label-sdtv-aspect', 'PM_LABEL_SDTV_ASPECT');
+      setText('a-help-sdtv-aspect', 'PM_HELP_SDTV_ASPECT');
+      setText('a-label-enable-tvout', 'PM_LABEL_ENABLE_TVOUT');
+      setText('a-help-enable-tvout', 'PM_HELP_ENABLE_TVOUT');
+      
+      // Additional Parameters - Add form
+      setText('a-cfg-additional-title', 'PM_CFG_ADDITIONAL_TITLE');
+      setText('a-label-extra-config', 'PM_LABEL_EXTRA_CONFIG');
+      setText('a-help-extra-config', 'PM_HELP_EXTRA_CONFIG');
+      
+      // Version and buttons - Add form
+      setText('a-label-new-version', 'PM_LABEL_NEW_VERSION');
+      setText('btn-add-text', 'PM_BTN_ADD');
+      setText('btn-clear-text', 'PM_BTN_CLEAR');
+      
+      // Delete tab
+      setText('section-remove-preset', 'PM_SECTION_REMOVE_PRESET');
+      setText('label-select-delete', 'PM_LABEL_SELECT_DELETE');
+      setText('btn-preview-text', 'PM_BTN_PREVIEW');
+      setText('section-delete-preview', 'PM_SECTION_DELETE_PREVIEW');
+      setText('warning-delete-text', 'PM_WARNING_DELETE');
+      setText('label-delete-id', 'PM_LABEL_ID');
+      setText('label-delete-type', 'PM_LABEL_TYPE');
+      setText('label-delete-desc', 'PM_LABEL_DESC');
+      setText('d-label-new-version', 'PM_LABEL_NEW_VERSION');
+      setText('btn-confirm-delete-text', 'PM_BTN_CONFIRM_DELETE');
+      setText('btn-cancel-text', 'PM_BTN_CANCEL');
+      
+      // Database tab - Import section
+      setText('section-import', 'PM_SECTION_IMPORT');
+      setText('label-import-url', 'PM_LABEL_IMPORT_URL');
+      setText('btn-import-url-text', 'PM_BTN_IMPORT_URL');
+      setText('label-import-path', 'PM_LABEL_IMPORT_PATH');
+      setText('btn-import-path-text', 'PM_BTN_IMPORT_PATH');
+      setText('label-upload-file', 'PM_LABEL_UPLOAD_FILE');
+      setText('btn-choose-file-text', 'PM_BTN_CHOOSE_FILE');
+      
+      // Database tab - Export section
+      setText('section-export', 'PM_SECTION_EXPORT');
+      setText('btn-download-text', 'PM_BTN_DOWNLOAD');
+      setText('btn-export-pr-text', 'PM_BTN_EXPORT_PR');
+      
+      // Database tab - Operations section
+      setText('section-db-ops', 'PM_SECTION_DB_OPS');
+      setText('btn-save-cache-text', 'PM_BTN_SAVE_CACHE');
+      setText('btn-revert-text', 'PM_BTN_REVERT');
+      setText('btn-reload-text', 'PM_BTN_RELOAD');
+      
+      // Backups section
+      setText('section-backups', 'PM_SECTION_BACKUPS');
+      setText('btn-create-backup-text', 'PM_BTN_CREATE_BACKUP');
+      setText('btn-upload-backup-text', 'PM_BTN_UPLOAD_BACKUP');
+      setText('loading-backups-text', 'PM_LOADING_BACKUPS');
+      setText('label-delete-config', 'PM_LABEL_CONFIGURATION');
+      
+      // Update select option placeholders
+      var selects = [
+        { id: 'manage-preset-select', optIdx: 0, key: 'PM_OPT_SELECT_PRESET' },
+        { id: 'delete-preset-select', optIdx: 0, key: 'PM_OPT_SELECT_PRESET' }
+      ];
+      selects.forEach(function(s) {
+        var sel = document.getElementById(s.id);
+        if (sel && sel.options[s.optIdx]) {
+          sel.options[s.optIdx].textContent = t(s.key);
+        }
+      });
+      
+      // Update HDMI group options (both forms)
+      ['manage-cfg-hdmi-group', 'add-cfg-hdmi-group'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (sel) {
+          if (sel.options[0]) sel.options[0].textContent = t('PM_OPT_NOT_SET');
+          if (sel.options[1]) sel.options[1].textContent = t('PM_OPT_CEA');
+          if (sel.options[2]) sel.options[2].textContent = t('PM_OPT_DMT');
+        }
+      });
+      
+      // Update timing format options (both forms)
+      ['manage-cfg-timing-format', 'add-cfg-timing-format'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (sel) {
+          if (sel.options[0]) sel.options[0].textContent = t('PM_OPT_NO_TIMING');
+          if (sel.options[1]) sel.options[1].textContent = t('PM_OPT_TIMING_HDMI');
+          if (sel.options[2]) sel.options[2].textContent = t('PM_OPT_TIMING_CVT');
+        }
+      });
+      
+      // Update SDTV mode options (both forms)
+      ['manage-cfg-sdtv-mode', 'add-cfg-sdtv-mode'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (sel) {
+          if (sel.options[0]) sel.options[0].textContent = t('PM_OPT_NOT_SET');
+          if (sel.options[1]) sel.options[1].textContent = t('PM_OPT_NTSC');
+          if (sel.options[2]) sel.options[2].textContent = t('PM_OPT_NTSCJ');
+          if (sel.options[3]) sel.options[3].textContent = t('PM_OPT_PAL');
+          if (sel.options[4]) sel.options[4].textContent = t('PM_OPT_PALM');
+        }
+      });
+      
+      // Update SDTV aspect options (both forms)
+      ['manage-cfg-sdtv-aspect', 'add-cfg-sdtv-aspect'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (sel) {
+          if (sel.options[0]) sel.options[0].textContent = t('PM_OPT_NOT_SET');
+          if (sel.options[1]) sel.options[1].textContent = t('PM_OPT_ASPECT_4_3');
+          if (sel.options[2]) sel.options[2].textContent = t('PM_OPT_ASPECT_14_9');
+          if (sel.options[3]) sel.options[3].textContent = t('PM_OPT_ASPECT_16_9');
+        }
+      });
+      
+      // Update enable_tvout options (both forms)
+      ['manage-cfg-enable-tvout', 'add-cfg-enable-tvout'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (sel) {
+          if (sel.options[0]) sel.options[0].textContent = t('PM_OPT_NOT_SET');
+          if (sel.options[1]) sel.options[1].textContent = t('PM_OPT_ENABLED');
+          if (sel.options[2]) sel.options[2].textContent = t('PM_OPT_DISABLED');
+        }
+      });
+    }
     
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       initTabs();
       initCloseButton();
       initConfigFieldToggles();
-      loadDatabaseInfo();
-      loadPresetList();
-      loadBackupList();
-      fetchRemoteVersion(); // Fetch remote version for accurate suggestions
+      
+      // Load translations first, then initialize data
+      loadTranslations().then(function() {
+        loadDatabaseInfo();
+        loadPresetList();
+        loadBackupList();
+        fetchRemoteVersion();
+      });
     });
     
     function initTabs() {
