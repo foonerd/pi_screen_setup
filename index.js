@@ -420,6 +420,66 @@ PiScreenSetup.prototype.startManagementServer = function() {
     });
     
     // ========================================
+    // API: Language (for i18n)
+    // ========================================
+    self.expressApp.get('/api/language', function(req, res) {
+      try {
+        // Try to get language from Volumio's system config
+        var lang = 'en';
+        try {
+          var systemConfigPath = '/data/configuration/system_controller/system/config.json';
+          if (fs.existsSync(systemConfigPath)) {
+            var systemConfig = JSON.parse(fs.readFileSync(systemConfigPath, 'utf8'));
+            if (systemConfig.language && systemConfig.language.value) {
+              // Normalize: de_DE -> de, en_US -> en
+              var rawLang = systemConfig.language.value;
+              lang = rawLang.split('_')[0].split('-')[0].toLowerCase();
+              self.logger.info('pi_screen_setup: Detected language from config: ' + rawLang + ' -> ' + lang);
+            }
+          }
+        } catch (langErr) {
+          self.logger.warn('pi_screen_setup: Could not read language config, defaulting to en');
+        }
+        res.json({ language: lang });
+      } catch (e) {
+        self.logger.error('pi_screen_setup: API error (language) - ' + e);
+        res.json({ language: 'en' });
+      }
+    });
+    
+    // ========================================
+    // API: i18n Translations
+    // ========================================
+    self.expressApp.get('/api/i18n/:lang', function(req, res) {
+      try {
+        // Normalize language code (de_DE -> de, en_US -> en)
+        var rawLang = req.params.lang || 'en';
+        var lang = rawLang.split('_')[0].split('-')[0].toLowerCase();
+        
+        var i18nPath = path.join(__dirname, 'i18n', 'strings_' + lang + '.json');
+        
+        // Fallback to English if requested language doesn't exist
+        if (!fs.existsSync(i18nPath)) {
+          self.logger.info('pi_screen_setup: i18n file not found for ' + lang + ', falling back to en');
+          i18nPath = path.join(__dirname, 'i18n', 'strings_en.json');
+        }
+        
+        var translations = JSON.parse(fs.readFileSync(i18nPath, 'utf8'));
+        
+        // Return the inner object (PI_SCREEN_SETUP key contains the actual translations)
+        var keys = Object.keys(translations);
+        if (keys.length === 1 && typeof translations[keys[0]] === 'object') {
+          res.json(translations[keys[0]]);
+        } else {
+          res.json(translations);
+        }
+      } catch (e) {
+        self.logger.error('pi_screen_setup: API error (i18n) - ' + e);
+        res.status(500).json({ error: e.message });
+      }
+    });
+    
+    // ========================================
     // API: Database Info
     // ========================================
     self.expressApp.get('/api/database/info', function(req, res) {
