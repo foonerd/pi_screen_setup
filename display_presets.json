@@ -1,5 +1,5 @@
 {
-  "version": "1.3.5",
+  "version": "1.4.0",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -100,6 +100,20 @@
       "notes": "Optical bonding for better display quality"
     },
     "_comment_hdmi_small": "--- Small Displays (under 5 inch) ---",
+    "waveshare-2.8-hdmi-h": {
+      "name": "Waveshare 2.8\" HDMI LCD (H) (480x640)",
+      "type": "hdmi",
+      "description": "Portrait small display with 5-point capacitive touch",
+      "native_resolution": "480x640",
+      "rotated_resolution": "640x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 100 16 100 640 0 100 20 100 0 0 0 60 0 42000000 6"
+      },
+      "recommended_rotation": 90,
+      "notes": "Touch via USB or I2C. Portrait native. Requires Waveshare overlay files for I2C touch."
+    },
     "waveshare-3.5-hdmi": {
       "name": "Waveshare 3.5\" HDMI LCD (480x320)",
       "type": "hdmi",
@@ -112,6 +126,19 @@
       },
       "recommended_rotation": 0,
       "notes": "Touch requires waveshare-ads7846 overlay. Can scale to 800x480 with hdmi_cvt 800 480 60 6 0 0 0"
+    },
+    "waveshare-3.5-hdmi-e": {
+      "name": "Waveshare 3.5\" HDMI LCD (E) (640x480)",
+      "type": "hdmi",
+      "description": "Small IPS display with capacitive touch",
+      "native_resolution": "640x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "640 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point capacitive touch via USB"
     },
     "waveshare-4-hdmi": {
       "name": "Waveshare 4\" HDMI LCD (480x800)",
@@ -126,6 +153,33 @@
       },
       "recommended_rotation": 90,
       "notes": "Requires waveshare-ads7846 overlay for touch"
+    },
+    "waveshare-4-hdmi-c": {
+      "name": "Waveshare 4\" HDMI LCD (C) (720x720)",
+      "type": "hdmi",
+      "description": "Square IPS display with capacitive touch",
+      "native_resolution": "720x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "720 0 40 40 200 720 0 24 4 12 0 0 0 60 0 42000000 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Square format, 5-point capacitive touch via USB"
+    },
+    "waveshare-4-hdmi-h": {
+      "name": "Waveshare 4\" HDMI LCD (H) (480x800)",
+      "type": "hdmi",
+      "description": "Portrait IPS display with resistive touch and OSD",
+      "native_resolution": "480x800",
+      "rotated_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 40 10 80 800 0 13 3 32 0 0 0 60 0 32000000 3"
+      },
+      "recommended_rotation": 90,
+      "notes": "OSD menu for brightness/contrast. Touch requires waveshare-ads7846 overlay"
     },
     "waveshare-4.3-hdmi": {
       "name": "Waveshare 4.3\" HDMI LCD (480x272)",
@@ -205,6 +259,19 @@
       },
       "recommended_rotation": 0,
       "notes": "10-point capacitive touch via USB, OSD menu, 3.5mm audio jack"
+    },
+    "waveshare-5-hdmi-h-v4": {
+      "name": "Waveshare 5\" HDMI LCD (H) V4 (800x480)",
+      "type": "hdmi",
+      "description": "Updated capacitive touch display with OSD menu",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "V4 revision, 5-point capacitive touch via USB, backlight control"
     },
     "waveshare-5-hdmi-amoled": {
       "name": "Waveshare 5\" HDMI AMOLED (960x544)",
@@ -309,6 +376,19 @@
       "recommended_rotation": 0,
       "notes": "5-point capacitive touch via USB, OSD menu, 3.5mm audio jack"
     },
+    "waveshare-7-hdmi-h-case": {
+      "name": "Waveshare 7\" HDMI LCD (H) with Case (1024x600)",
+      "type": "hdmi",
+      "description": "Capacitive touch display with OSD menu and case",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "5-point capacitive touch via USB, OSD menu, 3.5mm audio jack, tilt stand"
+    },
     "waveshare-7-fhd-hdmi": {
       "name": "Waveshare 7\" FHD HDMI Monitor (1080x1920)",
       "type": "hdmi",
@@ -352,6 +432,32 @@
       "recommended_rotation": 0,
       "notes": "10-point capacitive touch via USB, toughened glass, low power"
     },
+    "waveshare-10.1-hdmi-b-case": {
+      "name": "Waveshare 10.1\" HDMI LCD (B) with Case (1280x800)",
+      "type": "hdmi",
+      "description": "Higher resolution display with capacitive touch and case",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point capacitive touch via USB, with case and stand"
+    },
+    "waveshare-10.1-hdmi-d-case": {
+      "name": "Waveshare 10.1\" HDMI LCD (D) with Case (1024x600)",
+      "type": "hdmi",
+      "description": "Display with case and OSD controls",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB, with case, OSD for brightness/contrast"
+    },
     "waveshare-10.1-hdmi-e": {
       "name": "Waveshare 10.1\" HDMI LCD (E) (1024x600)",
       "type": "hdmi",
@@ -391,6 +497,32 @@
       "recommended_rotation": 0,
       "notes": "Capacitive touch via USB, external 12V power, VGA/AV inputs available"
     },
+    "waveshare-10.1-hdmi-g-case": {
+      "name": "Waveshare 10.1\" HDMI LCD (G) with Case (1024x600)",
+      "type": "hdmi",
+      "description": "Display with case, speaker, and tilt stand",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB, built-in speaker, 5V 3A output, wall mount holes"
+    },
+    "waveshare-10.1-hdmi-h-case": {
+      "name": "Waveshare 10.1\" HDMI LCD (H) with Case (1024x600)",
+      "type": "hdmi",
+      "description": "Display with case and external controller board",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB, external 12V power, with protective case"
+    },
     "waveshare-10.5-hdmi-amoled": {
       "name": "Waveshare 10.5\" HDMI AMOLED (2560x1600)",
       "type": "hdmi",
@@ -406,6 +538,81 @@
       },
       "recommended_rotation": 0,
       "notes": "Pi 4/5 only. AMOLED - avoid static images >1hr. CNC alloy case, speaker"
+    },
+    "waveshare-6-hdmi-amoled": {
+      "name": "Waveshare 6\" HDMI AMOLED (1080x2160)",
+      "type": "hdmi",
+      "description": "Flexible AMOLED portrait display",
+      "native_resolution": "1080x2160",
+      "rotated_resolution": "2160x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1080 0 36 4 26 2160 1 10 10 10 0 0 0 50 0 145467200 3",
+        "max_framebuffer_height": 2160
+      },
+      "recommended_rotation": 90,
+      "notes": "Pi 4/5 only. AMOLED - avoid static images >1hr. Flexible screen <1mm thick"
+    },
+    "waveshare-11.6-hdmi-h": {
+      "name": "Waveshare 11.6\" HDMI LCD (H) (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD IPS display with capacitive touch",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 82
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB. Requires 12V external power. VGA input available"
+    },
+    "waveshare-11.6-hdmi-h-case": {
+      "name": "Waveshare 11.6\" HDMI LCD (H) with Case (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD IPS display with capacitive touch and case",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 82
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB. Requires 12V power. Hi-Fi speaker, 75mm VESA mount"
+    },
+    "waveshare-13.3-hdmi-h": {
+      "name": "Waveshare 13.3\" HDMI LCD (H) (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD IPS display with capacitive touch",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 82
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB. Requires 12V external power"
+    },
+    "waveshare-15.6-hdmi": {
+      "name": "Waveshare 15.6\" HDMI LCD (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD IPS display with capacitive touch",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 82
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB. Requires 12V external power. DDC/CI backlight control"
+    },
+    "waveshare-15.6-fhd-monitor-b": {
+      "name": "Waveshare 15.6\" FHD Monitor (B) (1920x1080)",
+      "type": "hdmi",
+      "description": "Full HD IPS monitor with capacitive touch and USB-C",
+      "native_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 82
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB. USB-C display input. Requires 5V 3A external power"
     },
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
@@ -958,10 +1165,22 @@
       "description": "Waveshare 4.3-inch 800x480 DSI touchscreen",
       "native_resolution": "800x480",
       "config": {
-        "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
+        "dtoverlay": "vc4-kms-dsi-7inch"
       },
       "recommended_rotation": 0,
-      "notes": "Uses separate overlay, similar to official 7-inch",
+      "notes": "Clone of Pi 7-inch display, uses official 7-inch overlay",
+      "overlay_rotation_param": false
+    },
+    "waveshare-dsi-4.3-qled": {
+      "name": "Waveshare 4.3\" DSI QLED (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 4.3-inch QLED DSI touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "QLED panel, clone of Pi 7-inch display, uses official 7-inch overlay",
       "overlay_rotation_param": false
     },
     "waveshare-dsi-5.0-800x480": {
@@ -988,6 +1207,30 @@
       "notes": "IPS panel, uses official 7-inch overlay, driver-free",
       "overlay_rotation_param": false
     },
+    "waveshare-dsi-5.0c-800x480": {
+      "name": "Waveshare 5\" DSI-C IPS (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 5-inch C model IPS 800x480 DSI touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "C variant IPS panel, uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
+    "waveshare-dsi-5.0d-800x480": {
+      "name": "Waveshare 5\" DSI-D IPS (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 5-inch D model IPS 800x480 DSI touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "D variant IPS panel, uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
     "waveshare-dsi-7.0-800x480": {
       "name": "Waveshare 7\" DSI (800x480)",
       "type": "dsi",
@@ -998,6 +1241,30 @@
       },
       "recommended_rotation": 0,
       "notes": "Uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
+    "waveshare-dsi-7.0b-800x480": {
+      "name": "Waveshare 7\" DSI-B (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 7-inch B model 800x480 DSI touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses official 7-inch overlay, driver-free",
+      "overlay_rotation_param": false
+    },
+    "waveshare-dsi-7.0-with-cam": {
+      "name": "Waveshare 7\" DSI with Camera (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 7-inch DSI display with integrated OV5647 camera",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses official 7-inch overlay. Add dtoverlay=ov5647 for camera",
       "overlay_rotation_param": false
     },
     "waveshare-dsi-8.0-800x480": {
@@ -1056,6 +1323,18 @@
       "recommended_rotation": 0,
       "overlay_rotation_param": true
     },
+    "waveshare-dsi-7.0e": {
+      "name": "Waveshare 7.0\" DSI-E (1280x800)",
+      "type": "dsi",
+      "description": "Waveshare 7.0-inch E model DSI touchscreen",
+      "native_resolution": "1280x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_0_inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses same overlay as 8-inch DSI",
+      "overlay_rotation_param": true
+    },
     "waveshare-dsi-7.9": {
       "name": "Waveshare 7.9\" DSI (400x1280)",
       "type": "dsi",
@@ -1078,6 +1357,30 @@
       "recommended_rotation": 0,
       "overlay_rotation_param": true
     },
+    "waveshare-dsi-8.0c": {
+      "name": "Waveshare 8.0\" DSI-C (1280x800)",
+      "type": "dsi",
+      "description": "Waveshare 8.0-inch C model DSI touchscreen",
+      "native_resolution": "1280x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,8_0_inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "C variant, same configuration as base model",
+      "overlay_rotation_param": true
+    },
+    "waveshare-dsi-8.0-with-cam": {
+      "name": "Waveshare 8\" DSI with Camera (800x480)",
+      "type": "dsi",
+      "description": "Waveshare 8-inch DSI display with integrated camera",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses official 7-inch overlay. Add dtoverlay=ov5647 for camera",
+      "overlay_rotation_param": false
+    },
     "waveshare-dsi-8.8": {
       "name": "Waveshare 8.8\" DSI (480x1920)",
       "type": "dsi",
@@ -1098,6 +1401,18 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-panel,10_1_inch"
       },
       "recommended_rotation": 0,
+      "overlay_rotation_param": true
+    },
+    "waveshare-dsi-10.1c": {
+      "name": "Waveshare 10.1\" DSI-C (1280x800)",
+      "type": "dsi",
+      "description": "Waveshare 10.1-inch C model DSI touchscreen",
+      "native_resolution": "1280x800",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,10_1_inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "C variant, same configuration as base model",
       "overlay_rotation_param": true
     },
     "waveshare-dsi-11.9": {
