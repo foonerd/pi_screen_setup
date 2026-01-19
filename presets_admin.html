@@ -1278,38 +1278,25 @@
     }
     
     function loadTranslations() {
-      console.log('loadTranslations: Starting...');
       // Fetch current Volumio language setting from server
       return fetch('/api/language')
-        .then(function(res) { 
-          console.log('loadTranslations: /api/language response status:', res.status);
-          return res.json(); 
-        })
+        .then(function(res) { return res.json(); })
         .then(function(langData) {
-          console.log('loadTranslations: Language data:', langData);
           var lang = langData.language || 'en';
-          console.log('loadTranslations: Fetching translations for:', lang);
           // Fetch translations for that language
           return fetch('/api/i18n/' + lang);
         })
-        .then(function(res) { 
-          console.log('loadTranslations: /api/i18n response status:', res.status);
-          return res.json(); 
-        })
+        .then(function(res) { return res.json(); })
         .then(function(data) {
-          console.log('loadTranslations: Got translations, key count:', Object.keys(data).length);
-          console.log('loadTranslations: Sample key PM_TITLE:', data.PM_TITLE);
           i18n = data;
           updateUIText();
-          console.log('loadTranslations: updateUIText() called');
         })
         .catch(function(error) {
-          console.error('loadTranslations: Failed:', error);
+          console.error('Failed to load translations:', error);
           // Fallback to English on error
           return fetch('/api/i18n/en')
             .then(function(res) { return res.json(); })
             .then(function(data) {
-              console.log('loadTranslations: Fallback to English, keys:', Object.keys(data).length);
               i18n = data;
               updateUIText();
             });
@@ -1317,18 +1304,10 @@
     }
     
     function updateUIText() {
-      console.log('updateUIText: Starting, i18n keys:', Object.keys(i18n).length);
       // Helper to set text content safely
       function setText(id, key) {
         var el = document.getElementById(id);
-        if (el) {
-          var translated = t(key);
-          el.textContent = translated;
-          // Log first few for debugging
-          if (id === 'page-title' || id === 'tab-manage-text') {
-            console.log('updateUIText: Set', id, '=', translated, '(key:', key, ')');
-          }
-        }
+        if (el) el.textContent = t(key);
       }
       
       // Header and tabs

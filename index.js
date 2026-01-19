@@ -426,7 +426,6 @@ PiScreenSetup.prototype.startManagementServer = function() {
       try {
         // Use Volumio's shared vars - same method as rtlsdr_radio plugin
         var lang = self.commandRouter.sharedVars.get('language_code') || 'en';
-        self.logger.info('pi_screen_setup: /api/language returning: ' + lang);
         res.json({ language: lang });
       } catch (e) {
         self.logger.error('pi_screen_setup: Failed to get language setting: ' + e);
@@ -439,7 +438,6 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.get('/api/i18n/:lang', function(req, res) {
       var lang = req.params.lang || 'en';
-      self.logger.info('pi_screen_setup: /api/i18n/' + lang + ' requested');
       var stringsFile = path.join(__dirname, 'i18n', 'strings_' + lang + '.json');
       
       fs.readFile(stringsFile, 'utf8', function(err, data) {
