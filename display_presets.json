@@ -1,5 +1,5 @@
 {
-  "version": "1.5.3",
+  "version": "1.5.4",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -748,6 +748,45 @@
       "recommended_rotation": 0,
       "notes": "Use 1360 instead of 1366 for Pi4 compatibility (even pixel requirement)"
     },
+    "geeekpi-10.1-hdmi-1024": {
+      "name": "GeeekPi/52Pi 10.1\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "52Pi EP-0184, Z-0113 IPS capacitive touch display with speakers",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, built-in speakers on some models"
+    },
+    "geeekpi-10.1-hdmi-1280": {
+      "name": "GeeekPi/52Pi 10.1\" HDMI (1280x800)",
+      "type": "hdmi",
+      "description": "52Pi EP-0188 WXGA IPS capacitive touch display",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, built-in speakers, supports HDMI and USB-C input"
+    },
+    "geeekpi-7-hdmi-1280": {
+      "name": "GeeekPi/52Pi 7\" HDMI (1280x800)",
+      "type": "hdmi",
+      "description": "52Pi EP-0186 wide color gamut IPS capacitive touch display",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, OSD controls for brightness/contrast"
+    },
     "uctronics-3.5-hdmi": {
       "name": "UCTRONICS 3.5\" HDMI (480x320)",
       "type": "hdmi",
@@ -1115,6 +1154,116 @@
       },
       "recommended_rotation": 0,
       "notes": "Use 1360 instead of 1366 for Pi4 compatibility. Supports multiple inputs"
+    },
+    "_comment_hdmi_spotpear": "--- Spotpear Displays ---",
+    "spotpear-4-hdmi": {
+      "name": "Spotpear 4\" HDMI (480x800)",
+      "type": "hdmi",
+      "description": "Portrait native 4 inch display with resistive touch",
+      "native_resolution": "480x800",
+      "rotated_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 90,
+      "notes": "Portrait native. Requires ads7846 overlay for touch"
+    },
+    "spotpear-5-hdmi": {
+      "name": "Spotpear 5\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "5 inch IPS capacitive touch display, 800cd/m2 brightness",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 10
+      },
+      "recommended_rotation": 0,
+      "notes": "Models 5DP-CAPLCD-B, 5DP-CAPLCD-G, 5DP-CAPLCD-H. Touch via USB"
+    },
+    "spotpear-7-hdmi": {
+      "name": "Spotpear 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "7 inch capacitive touch display with OSD controls",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. OSD for brightness/contrast adjustment"
+    },
+    "spotpear-7-hdmi-1280": {
+      "name": "Spotpear 7\" HDMI (1280x800)",
+      "type": "hdmi",
+      "description": "7 inch wide color gamut IPS capacitive touch display",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Supports HDMI and USB-C input. Touch via USB"
+    },
+    "spotpear-10.1-hdmi": {
+      "name": "Spotpear 10.1\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "10.1 inch capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "max_usb_current": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. May require display_rotate=2 for correct orientation"
+    },
+    "spotpear-5-round-hdmi": {
+      "name": "Spotpear 5\" Round HDMI (1080x1080)",
+      "type": "hdmi",
+      "description": "5 inch round IPS capacitive touch display",
+      "native_resolution": "1080x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1080 0 68 32 100 1080 0 12 4 16 0 0 0 60 0 85500000 0",
+        "hdmi_pixel_freq_limit": 356000000
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point capacitive touch via USB. Compatible with Waveshare 5\" Round timings"
+    },
+    "_comment_hdmi_longruner": "--- Longruner Displays ---",
+    "longruner-5-hdmi": {
+      "name": "Longruner 5\" HDMI (800x480)",
+      "type": "hdmi",
+      "description": "5 inch resistive touch display with case",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses goodtft/LCD-show drivers for touch. Power via GPIO, display via HDMI"
+    },
+    "longruner-7-hdmi": {
+      "name": "Longruner 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "7 inch capacitive touch display with case",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, driver-free. Compatible with LCDwiki displays"
     },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
     "generic-480x320": {
