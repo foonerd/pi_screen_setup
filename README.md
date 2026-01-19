@@ -1,11 +1,11 @@
 # Pi Screen Setup Plugin for Volumio
 
-A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Provides a guided wizard interface for configuring HDMI, DSI, DPI, and composite video outputs with proper rotation, resolution, and audio routing.
+A comprehensive display configuration plugin for Volumio 4.x (Bookworm) on Raspberry Pi. Provides a guided wizard interface for configuring HDMI, DSI, DPI, and composite video outputs with proper rotation, resolution, and audio routing.
 
 ## Features
 
 - **Guided Setup Wizard**: 7-step wizard walks through complete display configuration
-- **Display Presets Database**: 92 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman)
+- **Display Presets Database**: 144 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman, Pimoroni, Raspberry Pi Official)
 - **Multiple Output Types**: HDMI, DSI (ribbon), DPI (GPIO), Composite, Custom overlays
 - **Dual HDMI Support**: Full configuration for Pi 4/5 dual HDMI ports
 - **Rotation Support**: 0/90/180/270 degree rotation with proper KMS, fbcon, and plymouth integration
@@ -13,6 +13,29 @@ A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Pr
 - **Migration System**: Automatically detects and migrates existing display settings
 - **Safe Configuration**: Creates backups before changes, validates settings before applying
 - **KMS/DRM Support**: Full vc4-kms-v3d overlay support for Pi 2/3/4/5
+- **Preset Manager**: Web-based interface for managing and contributing display presets
+- **Internationalization**: Available in 6 languages (English, German, French, Spanish, Italian, Dutch)
+- **Database Auto-Update**: Automatic fetching of latest display presets from GitHub
+
+## Preset Manager
+
+The plugin includes a standalone web interface for managing display presets:
+
+**Access**: http://volumio.local:4567/
+
+**Features**:
+- View and search all display presets
+- Add new presets with full parameter configuration
+- Edit existing presets
+- Import presets from URL, file, or direct upload
+- Export database for backup or GitHub contribution
+- Create and restore backups
+- Revert to bundled database
+
+The Preset Manager is useful for:
+- Adding support for displays not in the default database
+- Testing preset configurations before contributing upstream
+- Managing custom presets for OEM deployments
 
 ## Supported Hardware
 
@@ -88,7 +111,7 @@ A comprehensive display configuration plugin for Volumio 3/4 on Raspberry Pi. Pr
 ## Installation
 
 ### Prerequisites
-- Volumio 3 or 4 running on Raspberry Pi
+- Volumio 4.x (Bookworm) running on Raspberry Pi
 - SSH access enabled
 
 ### Install from GitHub (outside plugin store)
@@ -141,7 +164,17 @@ The plugin includes a presets database for common displays. When selecting a pre
 - Recommended rotation
 - Kernel command line video mode parameter
 
-For displays not in the presets database, use "Custom Timings" to enter manual hdmi_timings or hdmi_cvt values.
+For displays not in the presets database, use "Custom Timings" to enter manual hdmi_timings or hdmi_cvt values, or add them via the Preset Manager.
+
+### Database Updates
+
+The plugin can automatically fetch the latest display presets database from GitHub:
+
+**Automatic Updates**: When enabled in plugin settings, the database is checked for updates periodically. New presets become available without plugin reinstallation.
+
+**Manual Updates**: Use the Preset Manager at http://volumio.local:4567/ to import updated databases from URL or file.
+
+**OTA Behavior**: Configure how the plugin handles system updates that may overwrite display settings.
 
 ### Configuration Files
 
@@ -245,10 +278,21 @@ sudo reboot
 - HDMI0: No suffix (hdmi_group=2)
 - HDMI1: :1 suffix (hdmi_group:1=2)
 
+### Management API
+The Preset Manager runs on port 4567 and exposes a REST API for programmatic access. See API.md for full documentation.
+
 ## Contributing
 
-Display preset contributions welcome. To add a new display:
+Display preset contributions welcome. There are two ways to contribute:
 
+### Via Preset Manager (Recommended)
+1. Open http://volumio.local:4567/
+2. Add or edit presets using the web interface
+3. Test your configuration
+4. Use "Export for PR" to generate a properly formatted database file
+5. Submit pull request with the exported file
+
+### Manual Method
 1. Fork the repository
 2. Edit `display_presets.json`
 3. Add preset with name, config parameters, and recommended rotation
