@@ -217,6 +217,10 @@
 
     "SECTION_DATABASE": "Display Presets Database",
     "SECTION_DATABASE_DESC": "Manage display presets database updates",
+    "SECTION_PRESET_MANAGER": "Preset Manager",
+    "SECTION_PRESET_MANAGER_DESC": "Advanced preset editing interface",
+    "PM_SHOW_ADVANCED": "Show Advanced Settings",
+    "PM_SHOW_ADVANCED_DOC": "Show hostname override option for systems where mDNS is not working",
     "DB_OPEN_SETTINGS": "Database Update Settings",
     "DB_OPEN_SETTINGS_DOC": "Open database update and maintenance settings",
     "DB_CLOSE_SETTINGS": "Close Settings",

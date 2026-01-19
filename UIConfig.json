@@ -1068,25 +1068,6 @@
           "readonly": true
         },
         {
-          "id": "db_hostname_override",
-          "element": "input",
-          "type": "text",
-          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE",
-          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE_DOC",
-          "value": ""
-        },
-        {
-          "id": "db_hostname_save_btn",
-          "element": "button",
-          "label": "TRANSLATE.PI_SCREEN_SETUP.SAVE",
-          "onClick": {
-            "type": "plugin",
-            "endpoint": "system_hardware/pi_screen_setup",
-            "method": "saveHostnameOverride",
-            "data": ["db_hostname_override"]
-          }
-        },
-        {
           "id": "db_check_update_btn",
           "element": "button",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DB_CHECK_UPDATE",
@@ -1108,7 +1089,16 @@
             "method": "revertDatabase"
           },
           "hidden": true
-        },
+        }
+      ]
+    },
+    {
+      "id": "section_preset_manager",
+      "element": "section",
+      "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_PRESET_MANAGER",
+      "icon": "fa-cogs",
+      "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_PRESET_MANAGER_DESC",
+      "content": [
         {
           "id": "db_open_manager_btn",
           "element": "button",
@@ -1117,6 +1107,40 @@
           "onClick": {
             "type": "openUrl",
             "url": ""
+          }
+        },
+        {
+          "id": "pm_show_advanced",
+          "element": "switch",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.PM_SHOW_ADVANCED",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.PM_SHOW_ADVANCED_DOC",
+          "value": false
+        },
+        {
+          "id": "db_hostname_override",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE_DOC",
+          "value": "",
+          "visibleIf": {
+            "field": "pm_show_advanced",
+            "value": true
+          }
+        },
+        {
+          "id": "db_hostname_save_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.SAVE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "saveHostnameOverride",
+            "data": ["db_hostname_override"]
+          },
+          "visibleIf": {
+            "field": "pm_show_advanced",
+            "value": true
           }
         }
       ]

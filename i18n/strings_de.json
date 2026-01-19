@@ -198,6 +198,10 @@
 
     "SECTION_DATABASE": "Display-Preset-Datenbank",
     "SECTION_DATABASE_DESC": "Datenbank-Updates fuer Display-Presets verwalten",
+    "SECTION_PRESET_MANAGER": "Preset-Manager",
+    "SECTION_PRESET_MANAGER_DESC": "Erweiterte Preset-Bearbeitungsoberflaeche",
+    "PM_SHOW_ADVANCED": "Erweiterte Einstellungen anzeigen",
+    "PM_SHOW_ADVANCED_DOC": "Hostname-Ueberschreibung fuer Systeme ohne funktionierendes mDNS anzeigen",
     "DB_OPEN_SETTINGS": "Datenbank-Update-Einstellungen",
     "DB_OPEN_SETTINGS_DOC": "Datenbank-Update- und Wartungseinstellungen oeffnen",
     "DB_CLOSE_SETTINGS": "Einstellungen schliessen",

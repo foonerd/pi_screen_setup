@@ -4872,13 +4872,13 @@ PiScreenSetup.prototype.getUIConfig = function() {
     // Only show on Step 0 (initial) or when wizard is complete
     // Hide during active wizard configuration (steps 1+)
     // ========================================
+    var showDatabaseSections = (wizardStep === 0) || wizardComplete;
+    
     var dbSection = self.findSection(uiconf, 'section_database');
     if (dbSection) {
-      // Hide during active wizard (step >= 1 and not complete)
-      var showDatabase = (wizardStep === 0) || wizardComplete;
-      dbSection.hidden = !showDatabase;
+      dbSection.hidden = !showDatabaseSections;
       
-      if (showDatabase) {
+      if (showDatabaseSections) {
         // Populate values
         self.setUIValue(dbSection, 'db_active_version', self.displayPresetsVersion || 'unknown');
         self.setUIValue(dbSection, 'db_preset_count', Object.keys(self.displayPresets || {}).length.toString());
@@ -4889,15 +4889,25 @@ PiScreenSetup.prototype.getUIConfig = function() {
         if (revertBtn) {
           revertBtn.hidden = (activeSource === 'bundled');
         }
-        
-        // Populate hostname override field
-        self.setUIValue(dbSection, 'db_hostname_override', self.config.get('database.hostname_override', ''));
-        
+      }
+    }
+    
+    // ========================================
+    // PRESET MANAGER SECTION
+    // ========================================
+    var pmSection = self.findSection(uiconf, 'section_preset_manager');
+    if (pmSection) {
+      pmSection.hidden = !showDatabaseSections;
+      
+      if (showDatabaseSections) {
         // Set the URL for the Open Preset Manager button
-        var openManagerBtn = self.findContentItem(dbSection, 'db_open_manager_btn');
+        var openManagerBtn = self.findContentItem(pmSection, 'db_open_manager_btn');
         if (openManagerBtn && openManagerBtn.onClick) {
           openManagerBtn.onClick.url = self.getManagementUrl();
         }
+        
+        // Populate hostname override field
+        self.setUIValue(pmSection, 'db_hostname_override', self.config.get('database.hostname_override', ''));
       }
     }
 
