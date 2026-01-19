@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preset Manager - Pi Screen Setup</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #1c1c1c;
+      color: #e0e0e0;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .header {
+      background: #282828;
+      border-bottom: 1px solid #404040;
+      padding: 15px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-content {
+      flex: 1;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+    
+    .header .subtitle {
+      font-size: 13px;
+      color: #999;
+    }
+    
+    .header-close-btn {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-left: 20px;
+      white-space: nowrap;
+    }
+    
+    .header-close-btn:hover {
+      background: #b71c1c;
+    }
+    
+    .header-close-btn:active {
+      background: #8b0000;
+    }
+    
+    .header-close-btn.hidden {
+      display: none;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 20px;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #404040;
+      flex-wrap: wrap;
+    }
+    
+    .tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .tab:hover {
+      color: #fff;
+    }
+    
+    .tab.active {
+      color: #54b948;
+      border-bottom-color: #54b948;
+    }
+    
+    .tab .fa {
+      font-size: 14px;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .section {
+      background: #282828;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #404040;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 5px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #1c1c1c;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #54b948;
+    }
+    
+    .form-group textarea {
+      min-height: 120px;
+      font-family: monospace;
+      resize: vertical;
+    }
+    
+    .form-group input[readonly] {
+      background: #333;
+      color: #888;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: #54b948;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #4aa63e;
+    }
+    
+    .btn-secondary {
+      background: #404040;
+      color: #fff;
+    }
+    
+    .btn-secondary:hover {
+      background: #505050;
+    }
+    
+    .btn-danger {
+      background: #d32f2f;
+      color: #fff;
+    }
+    
+    .btn-danger:hover {
+      background: #b71c1c;
+    }
+    
+    .btn-warning {
+      background: #f57c00;
+      color: #fff;
+    }
+    
+    .btn-warning:hover {
+      background: #e65100;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .info-box {
+      background: #1c1c1c;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      color: #999;
+      font-size: 13px;
+    }
+    
+    .info-value {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .info-value.modified {
+      color: #f57c00;
+    }
+    
+    .preset-details {
+      background: #1c1c1c;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .preset-details h4 {
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    
+    .preset-details pre {
+      background: #282828;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      color: #54b948;
+    }
+    
+    .warning-box {
+      background: rgba(211, 47, 47, 0.1);
+      border: 1px solid #d32f2f;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+      color: #ff6b6b;
+    }
+    
+    .warning-box .fa {
+      margin-right: 8px;
+    }
+    
+    .success-box {
+      background: rgba(84, 185, 72, 0.1);
+      border: 1px solid #54b948;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+      color: #54b948;
+    }
+    
+    .backup-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .backup-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #333;
+    }
+    
+    .backup-item:hover {
+      background: #333;
+    }
+    
+    .backup-info {
+      flex: 1;
+    }
+    
+    .backup-name {
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .backup-date {
+      color: #999;
+      font-size: 12px;
+    }
+    
+    .backup-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .backup-actions .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      max-width: 400px;
+    }
+    
+    .toast.success {
+      background: #54b948;
+    }
+    
+    .toast.error {
+      background: #d32f2f;
+    }
+    
+    .toast.warning {
+      background: #f57c00;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .version-bump {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      padding: 15px;
+      background: #1c1c1c;
+      border: 1px solid #404040;
+      border-radius: 4px;
+    }
+    
+    .version-bump label {
+      color: #999;
+      font-size: 13px;
+    }
+    
+    .version-bump input {
+      width: 120px;
+      padding: 8px 10px;
+      background: #282828;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .version-bump .suggestion {
+      color: #54b948;
+      font-size: 12px;
+    }
+    
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      
+      .header-close-btn {
+        margin-left: 0;
+        width: 100%;
+      }
+      
+      .tabs {
+        justify-content: center;
+      }
+      
+      .tab {
+        padding: 10px 15px;
+        font-size: 13px;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .btn-group .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1>Preset Manager</h1>
+      <div class="subtitle">Pi Screen Setup Plugin</div>
+    </div>
+    <button id="close-window-btn" class="header-close-btn hidden">
+      <i class="fa fa-times"></i> <span>Close</span>
+    </button>
+  </div>
+  
+  <div class="container">
+    <!-- Database Info Box -->
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-label">Local Version</span>
+        <span class="info-value" id="local-version">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Remote Version</span>
+        <span class="info-value" id="remote-version">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Preset Count</span>
+        <span class="info-value" id="preset-count">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Source</span>
+        <span class="info-value" id="db-source">-</span>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" data-tab="manage">
+        <i class="fa fa-edit"></i>
+        <span>Manage Presets</span>
+      </button>
+      <button class="tab" data-tab="add">
+        <i class="fa fa-plus"></i>
+        <span>Add New Preset</span>
+      </button>
+      <button class="tab" data-tab="delete">
+        <i class="fa fa-trash"></i>
+        <span>Delete Preset</span>
+      </button>
+      <button class="tab" data-tab="database">
+        <i class="fa fa-database"></i>
+        <span>Database File</span>
+      </button>
+    </div>
+    
+    <!-- Tab 1: Manage Presets -->
+    <div id="manage-tab" class="tab-content active">
+      <div class="section">
+        <div class="section-title">Edit Existing Preset</div>
+        
+        <div class="form-group">
+          <label>Select Preset</label>
+          <select id="manage-preset-select">
+            <option value="">-- Select a preset --</option>
+          </select>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="loadPreset()">
+            <i class="fa fa-download"></i> Load Selected
+          </button>
+          <button class="btn btn-secondary" onclick="clearManageForm()">
+            <i class="fa fa-eraser"></i> Clear Form
+          </button>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Preset Details</div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Preset ID (unique identifier)</label>
+            <input type="text" id="manage-id" placeholder="e.g., waveshare-dsi-7inch">
+          </div>
+          <div class="form-group">
+            <label>Display Name</label>
+            <input type="text" id="manage-name" placeholder="e.g., Waveshare 7&quot; DSI Display">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Connection Type</label>
+            <select id="manage-type">
+              <option value="hdmi">HDMI</option>
+              <option value="dsi">DSI</option>
+              <option value="dpi">DPI</option>
+              <option value="composite">Composite</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="manage-desc" placeholder="Brief description">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Configuration (JSON)</label>
+          <textarea id="manage-config" placeholder='{"dtoverlay": "vc4-kms-v3d", "hdmi_group": 2}'></textarea>
+        </div>
+        
+        <div class="version-bump">
+          <label>New Version:</label>
+          <input type="text" id="manage-version" placeholder="1.1.5">
+          <span class="suggestion" id="manage-version-suggestion"></span>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="savePreset()">
+            <i class="fa fa-save"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 2: Add New Preset -->
+    <div id="add-tab" class="tab-content">
+      <div class="section">
+        <div class="section-title">Create New Preset</div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Preset ID (unique identifier)</label>
+            <input type="text" id="add-id" placeholder="e.g., my-custom-display">
+          </div>
+          <div class="form-group">
+            <label>Display Name</label>
+            <input type="text" id="add-name" placeholder="e.g., My Custom Display">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Connection Type</label>
+            <select id="add-type">
+              <option value="hdmi">HDMI</option>
+              <option value="dsi">DSI</option>
+              <option value="dpi">DPI</option>
+              <option value="composite">Composite</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="add-desc" placeholder="Brief description">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Configuration (JSON)</label>
+          <textarea id="add-config" placeholder='{"dtoverlay": "vc4-kms-v3d", "hdmi_group": 2}'>{}</textarea>
+        </div>
+        
+        <div class="version-bump">
+          <label>New Version:</label>
+          <input type="text" id="add-version" placeholder="1.1.5">
+          <span class="suggestion" id="add-version-suggestion"></span>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="addPreset()">
+            <i class="fa fa-plus"></i> Add Preset
+          </button>
+          <button class="btn btn-secondary" onclick="clearAddForm()">
+            <i class="fa fa-eraser"></i> Clear Form
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 3: Delete Preset -->
+    <div id="delete-tab" class="tab-content">
+      <div class="section">
+        <div class="section-title">Remove Preset</div>
+        
+        <div class="form-group">
+          <label>Select Preset to Delete</label>
+          <select id="delete-preset-select">
+            <option value="">-- Select a preset --</option>
+          </select>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="loadDeletePreview()">
+            <i class="fa fa-eye"></i> Preview
+          </button>
+        </div>
+      </div>
+      
+      <div id="delete-preview" class="section" style="display: none;">
+        <div class="section-title">Preset to be Deleted</div>
+        
+        <div class="warning-box">
+          <i class="fa fa-exclamation-triangle"></i>
+          This action cannot be undone. Please verify this is the correct preset.
+        </div>
+        
+        <div class="preset-details">
+          <h4 id="delete-preview-name">-</h4>
+          <div class="info-row">
+            <span class="info-label">ID</span>
+            <span class="info-value" id="delete-preview-id">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Type</span>
+            <span class="info-value" id="delete-preview-type">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Description</span>
+            <span class="info-value" id="delete-preview-desc">-</span>
+          </div>
+          <h4 style="margin-top: 15px;">Configuration</h4>
+          <pre id="delete-preview-config">{}</pre>
+        </div>
+        
+        <div class="version-bump">
+          <label>New Version:</label>
+          <input type="text" id="delete-version" placeholder="1.1.5">
+          <span class="suggestion" id="delete-version-suggestion"></span>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-danger" onclick="confirmDelete()">
+            <i class="fa fa-trash"></i> Confirm Delete
+          </button>
+          <button class="btn btn-secondary" onclick="cancelDelete()">
+            <i class="fa fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 4: Database File -->
+    <div id="database-tab" class="tab-content">
+      <div class="section">
+        <div class="section-title">Import Database</div>
+        
+        <div class="form-group">
+          <label>From Remote URL</label>
+          <input type="text" id="import-url" placeholder="https://raw.githubusercontent.com/...">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="importFromUrl()">
+            <i class="fa fa-cloud-download"></i> Fetch from URL
+          </button>
+        </div>
+        
+        <hr style="border-color: #404040; margin: 20px 0;">
+        
+        <div class="form-group">
+          <label>From Local Device Path</label>
+          <input type="text" id="import-path" placeholder="/data/INTERNAL/display_presets.json">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="importFromPath()">
+            <i class="fa fa-folder-open"></i> Load from Path
+          </button>
+        </div>
+        
+        <hr style="border-color: #404040; margin: 20px 0;">
+        
+        <div class="form-group">
+          <label>Upload from Browser</label>
+          <div class="file-input-wrapper">
+            <button class="btn btn-secondary">
+              <i class="fa fa-upload"></i> Choose File
+            </button>
+            <input type="file" id="import-file" accept=".json" onchange="handleFileUpload(this)">
+          </div>
+          <span id="upload-filename" style="margin-left: 10px; color: #999;"></span>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Export / Download</div>
+        
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="downloadDatabase()">
+            <i class="fa fa-download"></i> Download Current Database
+          </button>
+          <button class="btn btn-secondary" onclick="exportForPR()">
+            <i class="fa fa-github"></i> Export for GitHub PR
+          </button>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Database Operations</div>
+        
+        <div class="btn-group">
+          <button class="btn btn-warning" onclick="publishToCache()">
+            <i class="fa fa-save"></i> Save to Cache (Persist)
+          </button>
+          <button class="btn btn-secondary" onclick="revertToBundled()">
+            <i class="fa fa-undo"></i> Revert to Bundled
+          </button>
+          <button class="btn btn-secondary" onclick="reloadFromCache()">
+            <i class="fa fa-refresh"></i> Reload from Cache
+          </button>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Backups</div>
+        
+        <div class="btn-group" style="margin-bottom: 15px;">
+          <button class="btn btn-primary" onclick="createBackup()">
+            <i class="fa fa-plus"></i> Create Backup
+          </button>
+          <div class="file-input-wrapper">
+            <button class="btn btn-secondary">
+              <i class="fa fa-upload"></i> Upload Backup
+            </button>
+            <input type="file" id="backup-file" accept=".json" onchange="handleBackupUpload(this)">
+          </div>
+        </div>
+        
+        <div id="backup-list" class="backup-list">
+          <p style="color: #666; text-align: center; padding: 20px;">Loading backups...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // ===== GLOBAL STATE =====
+    var presets = {};
+    var databaseInfo = {
+      localVersion: '-',
+      remoteVersion: '-',
+      presetCount: 0,
+      source: '-'
+    };
+    
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', function() {
+      initTabs();
+      initCloseButton();
+      loadDatabaseInfo();
+      loadPresetList();
+      loadBackupList();
+    });
+    
+    function initTabs() {
+      document.querySelectorAll('.tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.tab').forEach(function(t) {
+            t.classList.remove('active');
+          });
+          document.querySelectorAll('.tab-content').forEach(function(c) {
+            c.classList.remove('active');
+          });
+          
+          tab.classList.add('active');
+          var tabId = tab.dataset.tab + '-tab';
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+    }
+    
+    function initCloseButton() {
+      var closeBtn = document.getElementById('close-window-btn');
+      if (window.parent === window) {
+        closeBtn.classList.remove('hidden');
+      } else {
+        closeBtn.classList.add('hidden');
+      }
+      
+      closeBtn.addEventListener('click', closeWindow);
+    }
+    
+    function closeWindow() {
+      window.close();
+      
+      setTimeout(function() {
+        if (!window.closed) {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = '/';
+          }
+        }
+      }, 100);
+    }
+    
+    // ===== API CALLS =====
+    function apiGet(endpoint) {
+      return fetch('/api' + endpoint)
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        });
+    }
+    
+    function apiPost(endpoint, data) {
+      return fetch('/api' + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
+    }
+    
+    function apiDelete(endpoint) {
+      return fetch('/api' + endpoint, {
+        method: 'DELETE'
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
+    }
+    
+    // ===== DATA LOADING =====
+    function loadDatabaseInfo() {
+      apiGet('/database/info')
+        .then(function(data) {
+          databaseInfo = data;
+          document.getElementById('local-version').textContent = data.localVersion || '-';
+          document.getElementById('remote-version').textContent = data.remoteVersion || '-';
+          document.getElementById('preset-count').textContent = data.presetCount || 0;
+          document.getElementById('db-source').textContent = data.source || '-';
+          
+          updateVersionSuggestions();
+        })
+        .catch(function(err) {
+          showToast('Failed to load database info: ' + err.message, 'error');
+        });
+    }
+    
+    function loadPresetList() {
+      apiGet('/presets')
+        .then(function(data) {
+          presets = data.presets || {};
+          populatePresetDropdowns();
+        })
+        .catch(function(err) {
+          showToast('Failed to load presets: ' + err.message, 'error');
+        });
+    }
+    
+    function populatePresetDropdowns() {
+      var manageSelect = document.getElementById('manage-preset-select');
+      var deleteSelect = document.getElementById('delete-preset-select');
+      
+      // Clear existing options
+      manageSelect.innerHTML = '<option value="">-- Select a preset --</option>';
+      deleteSelect.innerHTML = '<option value="">-- Select a preset --</option>';
+      
+      // Sort presets by type then name (handle undefined values)
+      var sortedIds = Object.keys(presets).sort(function(a, b) {
+        var pa = presets[a] || {};
+        var pb = presets[b] || {};
+        var typeA = (pa.type || 'zzz').toLowerCase();
+        var typeB = (pb.type || 'zzz').toLowerCase();
+        if (typeA !== typeB) return typeA.localeCompare(typeB);
+        var nameA = (pa.name || a).toLowerCase();
+        var nameB = (pb.name || b).toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+      
+      sortedIds.forEach(function(id) {
+        var preset = presets[id] || {};
+        var label = '[' + (preset.type || 'unknown').toUpperCase() + '] ' + (preset.name || id);
+        
+        var opt1 = document.createElement('option');
+        opt1.value = id;
+        opt1.textContent = label;
+        manageSelect.appendChild(opt1);
+        
+        var opt2 = document.createElement('option');
+        opt2.value = id;
+        opt2.textContent = label;
+        deleteSelect.appendChild(opt2);
+      });
+    }
+    
+    function loadBackupList() {
+      apiGet('/backups')
+        .then(function(data) {
+          var container = document.getElementById('backup-list');
+          var backups = data.backups || [];
+          
+          if (backups.length === 0) {
+            container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No backups found</p>';
+            return;
+          }
+          
+          container.innerHTML = '';
+          backups.forEach(function(backup) {
+            var item = document.createElement('div');
+            item.className = 'backup-item';
+            item.innerHTML = 
+              '<div class="backup-info">' +
+                '<div class="backup-name">' + backup.name + '</div>' +
+                '<div class="backup-date">' + backup.date + '</div>' +
+              '</div>' +
+              '<div class="backup-actions">' +
+                '<button class="btn btn-secondary" onclick="downloadBackup(\'' + backup.name + '\')">' +
+                  '<i class="fa fa-download"></i>' +
+                '</button>' +
+                '<button class="btn btn-warning" onclick="restoreBackup(\'' + backup.name + '\')">' +
+                  '<i class="fa fa-undo"></i>' +
+                '</button>' +
+                '<button class="btn btn-danger" onclick="deleteBackup(\'' + backup.name + '\')">' +
+                  '<i class="fa fa-trash"></i>' +
+                '</button>' +
+              '</div>';
+            container.appendChild(item);
+          });
+        })
+        .catch(function(err) {
+          document.getElementById('backup-list').innerHTML = 
+            '<p style="color: #d32f2f; text-align: center; padding: 20px;">Failed to load backups</p>';
+        });
+    }
+    
+    // ===== VERSION HELPERS =====
+    function updateVersionSuggestions() {
+      var local = databaseInfo.localVersion || '1.0.0';
+      var remote = databaseInfo.remoteVersion || '1.0.0';
+      
+      var suggested = suggestVersion(local, remote);
+      
+      document.getElementById('manage-version').placeholder = suggested;
+      document.getElementById('manage-version-suggestion').textContent = 'Suggested: ' + suggested;
+      
+      document.getElementById('add-version').placeholder = suggested;
+      document.getElementById('add-version-suggestion').textContent = 'Suggested: ' + suggested;
+      
+      document.getElementById('delete-version').placeholder = suggested;
+      document.getElementById('delete-version-suggestion').textContent = 'Suggested: ' + suggested;
+    }
+    
+    function suggestVersion(local, remote) {
+      var localParts = (local || '1.0.0').split('.').map(Number);
+      var remoteParts = (remote || '1.0.0').split('.').map(Number);
+      
+      // Use the greater version
+      var useParts = localParts;
+      for (var i = 0; i < 3; i++) {
+        if ((remoteParts[i] || 0) > (localParts[i] || 0)) {
+          useParts = remoteParts;
+          break;
+        } else if ((localParts[i] || 0) > (remoteParts[i] || 0)) {
+          break;
+        }
+      }
+      
+      // Bump patch version
+      useParts[2] = (useParts[2] || 0) + 1;
+      
+      return useParts.join('.');
+    }
+    
+    // ===== MANAGE TAB =====
+    function loadPreset() {
+      var id = document.getElementById('manage-preset-select').value;
+      if (!id) {
+        showToast('Please select a preset', 'warning');
+        return;
+      }
+      
+      var preset = presets[id];
+      if (!preset) {
+        showToast('Preset not found', 'error');
+        return;
+      }
+      
+      document.getElementById('manage-id').value = id;
+      document.getElementById('manage-name').value = preset.name || '';
+      document.getElementById('manage-type').value = preset.type || 'hdmi';
+      document.getElementById('manage-desc').value = preset.description || '';
+      document.getElementById('manage-config').value = JSON.stringify(preset.config || {}, null, 2);
+      
+      showToast('Preset loaded: ' + (preset.name || id), 'success');
+    }
+    
+    function clearManageForm() {
+      document.getElementById('manage-preset-select').value = '';
+      document.getElementById('manage-id').value = '';
+      document.getElementById('manage-name').value = '';
+      document.getElementById('manage-type').value = 'hdmi';
+      document.getElementById('manage-desc').value = '';
+      document.getElementById('manage-config').value = '';
+      document.getElementById('manage-version').value = '';
+    }
+    
+    function savePreset() {
+      var id = document.getElementById('manage-id').value.trim();
+      var name = document.getElementById('manage-name').value.trim();
+      var type = document.getElementById('manage-type').value;
+      var desc = document.getElementById('manage-desc').value.trim();
+      var configStr = document.getElementById('manage-config').value.trim();
+      var version = document.getElementById('manage-version').value.trim();
+      
+      if (!id) {
+        showToast('Preset ID is required', 'error');
+        return;
+      }
+      
+      if (!name) {
+        showToast('Display name is required', 'error');
+        return;
+      }
+      
+      var config;
+      try {
+        config = JSON.parse(configStr || '{}');
+      } catch (e) {
+        showToast('Invalid JSON configuration: ' + e.message, 'error');
+        return;
+      }
+      
+      apiPost('/presets/' + encodeURIComponent(id), {
+        name: name,
+        type: type,
+        description: desc,
+        config: config,
+        version: version || null
+      })
+      .then(function(data) {
+        showToast('Preset saved successfully', 'success');
+        loadDatabaseInfo();
+        loadPresetList();
+      })
+      .catch(function(err) {
+        showToast('Failed to save preset: ' + err.message, 'error');
+      });
+    }
+    
+    // ===== ADD TAB =====
+    function clearAddForm() {
+      document.getElementById('add-id').value = '';
+      document.getElementById('add-name').value = '';
+      document.getElementById('add-type').value = 'hdmi';
+      document.getElementById('add-desc').value = '';
+      document.getElementById('add-config').value = '{}';
+      document.getElementById('add-version').value = '';
+    }
+    
+    function addPreset() {
+      var id = document.getElementById('add-id').value.trim();
+      var name = document.getElementById('add-name').value.trim();
+      var type = document.getElementById('add-type').value;
+      var desc = document.getElementById('add-desc').value.trim();
+      var configStr = document.getElementById('add-config').value.trim();
+      var version = document.getElementById('add-version').value.trim();
+      
+      if (!id) {
+        showToast('Preset ID is required', 'error');
+        return;
+      }
+      
+      if (!name) {
+        showToast('Display name is required', 'error');
+        return;
+      }
+      
+      // Check for duplicate ID
+      if (presets[id]) {
+        showToast('A preset with this ID already exists', 'error');
+        return;
+      }
+      
+      // Check for duplicate name
+      var duplicateName = Object.keys(presets).find(function(key) {
+        return presets[key].name === name;
+      });
+      if (duplicateName) {
+        showToast('A preset with this name already exists: ' + duplicateName, 'warning');
+      }
+      
+      var config;
+      try {
+        config = JSON.parse(configStr || '{}');
+      } catch (e) {
+        showToast('Invalid JSON configuration: ' + e.message, 'error');
+        return;
+      }
+      
+      apiPost('/presets', {
+        id: id,
+        name: name,
+        type: type,
+        description: desc,
+        config: config,
+        version: version || null
+      })
+      .then(function(data) {
+        showToast('Preset added successfully', 'success');
+        clearAddForm();
+        loadDatabaseInfo();
+        loadPresetList();
+      })
+      .catch(function(err) {
+        showToast('Failed to add preset: ' + err.message, 'error');
+      });
+    }
+    
+    // ===== DELETE TAB =====
+    function loadDeletePreview() {
+      var id = document.getElementById('delete-preset-select').value;
+      if (!id) {
+        showToast('Please select a preset', 'warning');
+        return;
+      }
+      
+      var preset = presets[id];
+      if (!preset) {
+        showToast('Preset not found', 'error');
+        return;
+      }
+      
+      document.getElementById('delete-preview-id').textContent = id;
+      document.getElementById('delete-preview-name').textContent = preset.name || id;
+      document.getElementById('delete-preview-type').textContent = (preset.type || 'hdmi').toUpperCase();
+      document.getElementById('delete-preview-desc').textContent = preset.description || '-';
+      document.getElementById('delete-preview-config').textContent = JSON.stringify(preset.config || {}, null, 2);
+      
+      document.getElementById('delete-preview').style.display = 'block';
+    }
+    
+    function cancelDelete() {
+      document.getElementById('delete-preview').style.display = 'none';
+      document.getElementById('delete-preset-select').value = '';
+    }
+    
+    function confirmDelete() {
+      var id = document.getElementById('delete-preset-select').value;
+      var version = document.getElementById('delete-version').value.trim();
+      
+      if (!id) {
+        showToast('No preset selected', 'error');
+        return;
+      }
+      
+      apiDelete('/presets/' + encodeURIComponent(id) + (version ? '?version=' + encodeURIComponent(version) : ''))
+        .then(function(data) {
+          showToast('Preset deleted successfully', 'success');
+          cancelDelete();
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to delete preset: ' + err.message, 'error');
+        });
+    }
+    
+    // ===== DATABASE TAB =====
+    function importFromUrl() {
+      var url = document.getElementById('import-url').value.trim();
+      if (!url) {
+        showToast('Please enter a URL', 'warning');
+        return;
+      }
+      
+      apiPost('/database/import-url', { url: url })
+        .then(function(data) {
+          showToast('Database imported successfully: v' + (data.version || 'unknown'), 'success');
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to import: ' + err.message, 'error');
+        });
+    }
+    
+    function importFromPath() {
+      var path = document.getElementById('import-path').value.trim();
+      if (!path) {
+        showToast('Please enter a file path', 'warning');
+        return;
+      }
+      
+      apiPost('/database/import-path', { path: path })
+        .then(function(data) {
+          showToast('Database imported successfully: v' + (data.version || 'unknown'), 'success');
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to import: ' + err.message, 'error');
+        });
+    }
+    
+    function handleFileUpload(input) {
+      var file = input.files[0];
+      if (!file) return;
+      
+      document.getElementById('upload-filename').textContent = file.name;
+      
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = JSON.parse(e.target.result);
+          
+          apiPost('/database/import-data', data)
+            .then(function(result) {
+              showToast('Database imported successfully: v' + (result.version || 'unknown'), 'success');
+              loadDatabaseInfo();
+              loadPresetList();
+            })
+            .catch(function(err) {
+              showToast('Failed to import: ' + err.message, 'error');
+            });
+        } catch (err) {
+          showToast('Invalid JSON file: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+    
+    function downloadDatabase() {
+      window.location.href = '/api/database/export';
+    }
+    
+    function exportForPR() {
+      apiPost('/database/export-pr', {})
+        .then(function(data) {
+          showToast('Exported to: ' + data.path, 'success');
+        })
+        .catch(function(err) {
+          showToast('Failed to export: ' + err.message, 'error');
+        });
+    }
+    
+    function publishToCache() {
+      apiPost('/database/publish', {})
+        .then(function(data) {
+          showToast('Database saved to cache', 'success');
+          loadDatabaseInfo();
+        })
+        .catch(function(err) {
+          showToast('Failed to publish: ' + err.message, 'error');
+        });
+    }
+    
+    function revertToBundled() {
+      if (!confirm('This will replace current database with bundled version. Continue?')) {
+        return;
+      }
+      
+      apiPost('/database/revert', {})
+        .then(function(data) {
+          showToast('Reverted to bundled database', 'success');
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to revert: ' + err.message, 'error');
+        });
+    }
+    
+    function reloadFromCache() {
+      apiPost('/database/reload-cache', {})
+        .then(function(data) {
+          showToast('Reloaded from cache', 'success');
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to reload: ' + err.message, 'error');
+        });
+    }
+    
+    // ===== BACKUP FUNCTIONS =====
+    function createBackup() {
+      apiPost('/backups', {})
+        .then(function(data) {
+          showToast('Backup created: ' + data.name, 'success');
+          loadBackupList();
+        })
+        .catch(function(err) {
+          showToast('Failed to create backup: ' + err.message, 'error');
+        });
+    }
+    
+    function downloadBackup(name) {
+      window.location.href = '/api/backups/' + encodeURIComponent(name);
+    }
+    
+    function restoreBackup(name) {
+      if (!confirm('Restore from backup "' + name + '"? This will replace current database.')) {
+        return;
+      }
+      
+      apiPost('/backups/restore', { name: name })
+        .then(function(data) {
+          showToast('Backup restored successfully', 'success');
+          loadDatabaseInfo();
+          loadPresetList();
+        })
+        .catch(function(err) {
+          showToast('Failed to restore: ' + err.message, 'error');
+        });
+    }
+    
+    function deleteBackup(name) {
+      if (!confirm('Delete backup "' + name + '"?')) {
+        return;
+      }
+      
+      apiDelete('/backups/' + encodeURIComponent(name))
+        .then(function(data) {
+          showToast('Backup deleted', 'success');
+          loadBackupList();
+        })
+        .catch(function(err) {
+          showToast('Failed to delete: ' + err.message, 'error');
+        });
+    }
+    
+    function handleBackupUpload(input) {
+      var file = input.files[0];
+      if (!file) return;
+      
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = JSON.parse(e.target.result);
+          
+          apiPost('/backups/upload', { data: data, name: file.name })
+            .then(function(result) {
+              showToast('Backup uploaded: ' + result.name, 'success');
+              loadBackupList();
+            })
+            .catch(function(err) {
+              showToast('Failed to upload: ' + err.message, 'error');
+            });
+        } catch (err) {
+          showToast('Invalid JSON file: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+    
+    // ===== TOAST NOTIFICATIONS =====
+    function showToast(message, type) {
+      var existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + (type || 'success');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(function() {
+        toast.remove();
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

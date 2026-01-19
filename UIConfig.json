@@ -182,7 +182,9 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["detect_mode"]
+        "data": [
+          "detect_mode"
+        ]
       },
       "content": [
         {
@@ -190,7 +192,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DETECT_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.DETECT_MODE_DOC",
-          "value": { "value": "auto", "label": "" },
+          "value": {
+            "value": "auto",
+            "label": ""
+          },
           "options": []
         }
       ]
@@ -209,7 +214,9 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["primary_output"]
+        "data": [
+          "primary_output"
+        ]
       },
       "content": [
         {
@@ -217,7 +224,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.PRIMARY_OUTPUT",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.PRIMARY_OUTPUT_DOC",
-          "value": { "value": "hdmi0", "label": "HDMI" },
+          "value": {
+            "value": "hdmi0",
+            "label": "HDMI"
+          },
           "options": []
         }
       ]
@@ -236,7 +246,20 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["hdmi_mode", "hdmi_display_preset", "hdmi_custom_timings", "hdmi_custom_params", "hdmi_force_hotplug", "hdmi_ignore_edid", "hdmi_boost", "hdmi_secondary_mode", "hdmi_secondary_display_preset", "hdmi_secondary_force_hotplug", "hdmi_secondary_ignore_edid", "hdmi_secondary_boost"]
+        "data": [
+          "hdmi_mode",
+          "hdmi_display_preset",
+          "hdmi_custom_timings",
+          "hdmi_custom_params",
+          "hdmi_force_hotplug",
+          "hdmi_ignore_edid",
+          "hdmi_boost",
+          "hdmi_secondary_mode",
+          "hdmi_secondary_display_preset",
+          "hdmi_secondary_force_hotplug",
+          "hdmi_secondary_ignore_edid",
+          "hdmi_secondary_boost"
+        ]
       },
       "content": [
         {
@@ -252,7 +275,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_MODE_DOC",
-          "value": { "value": "screen_audio", "label": "" },
+          "value": {
+            "value": "screen_audio",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -260,7 +286,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DISPLAY_PRESET",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.DISPLAY_PRESET_DOC",
-          "value": { "value": "auto", "label": "Auto Detect (EDID)" },
+          "value": {
+            "value": "auto",
+            "label": "Auto Detect (EDID)"
+          },
           "options": []
         },
         {
@@ -300,7 +329,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_BOOST",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_BOOST_DOC",
-          "value": { "value": 0, "label": "" },
+          "value": {
+            "value": 0,
+            "label": ""
+          },
           "options": []
         },
         {
@@ -317,7 +349,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_SECONDARY_MODE_DOC",
-          "value": { "value": "none", "label": "" },
+          "value": {
+            "value": "none",
+            "label": ""
+          },
           "options": [],
           "hidden": true
         },
@@ -326,7 +361,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DISPLAY_PRESET",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.DISPLAY_PRESET_DOC",
-          "value": { "value": "auto", "label": "Auto Detect (EDID)" },
+          "value": {
+            "value": "auto",
+            "label": "Auto Detect (EDID)"
+          },
           "options": [],
           "hidden": true
         },
@@ -351,7 +389,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_BOOST",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_BOOST_DOC",
-          "value": { "value": 0, "label": "" },
+          "value": {
+            "value": 0,
+            "label": ""
+          },
           "options": [],
           "hidden": true
         },
@@ -381,7 +422,10 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["dsi_overlay", "dsi_custom_params"]
+        "data": [
+          "dsi_overlay",
+          "dsi_custom_params"
+        ]
       },
       "content": [
         {
@@ -389,7 +433,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DSI_OVERLAY",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.DSI_OVERLAY_DOC",
-          "value": { "value": "vc4-kms-dsi-7inch", "label": "" },
+          "value": {
+            "value": "vc4-kms-dsi-7inch",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -426,7 +473,10 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["dpi_overlay", "dpi_custom_timing"]
+        "data": [
+          "dpi_overlay",
+          "dpi_custom_timing"
+        ]
       },
       "content": [
         {
@@ -434,7 +484,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.DPI_OVERLAY",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.DPI_OVERLAY_DOC",
-          "value": { "value": "", "label": "" },
+          "value": {
+            "value": "",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -471,7 +524,10 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["composite_mode", "composite_aspect"]
+        "data": [
+          "composite_mode",
+          "composite_aspect"
+        ]
       },
       "content": [
         {
@@ -479,7 +535,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.COMPOSITE_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.COMPOSITE_MODE_DOC",
-          "value": { "value": "pal", "label": "PAL" },
+          "value": {
+            "value": "pal",
+            "label": "PAL"
+          },
           "options": []
         },
         {
@@ -487,7 +546,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.COMPOSITE_ASPECT",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.COMPOSITE_ASPECT_DOC",
-          "value": { "value": "4:3", "label": "4:3" },
+          "value": {
+            "value": "4:3",
+            "label": "4:3"
+          },
           "options": []
         },
         {
@@ -516,7 +578,9 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["custom_overlay_line"]
+        "data": [
+          "custom_overlay_line"
+        ]
       },
       "content": [
         {
@@ -553,7 +617,10 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["audio_hdmi0_mode", "audio_hdmi1_mode"]
+        "data": [
+          "audio_hdmi0_mode",
+          "audio_hdmi1_mode"
+        ]
       },
       "content": [
         {
@@ -569,7 +636,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_AUDIO_MODE_DOC",
-          "value": { "value": "none", "label": "" },
+          "value": {
+            "value": "none",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -586,7 +656,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_MODE",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_AUDIO_MODE_DOC",
-          "value": { "value": "none", "label": "" },
+          "value": {
+            "value": "none",
+            "label": ""
+          },
           "options": [],
           "hidden": true
         },
@@ -616,7 +689,12 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["rotation", "cmdline_video", "cmdline_fbcon", "cmdline_plymouth"]
+        "data": [
+          "rotation",
+          "cmdline_video",
+          "cmdline_fbcon",
+          "cmdline_plymouth"
+        ]
       },
       "content": [
         {
@@ -624,7 +702,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.ROTATION",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.ROTATION_DOC",
-          "value": { "value": 0, "label": "0" },
+          "value": {
+            "value": 0,
+            "label": "0"
+          },
           "options": []
         },
         {
@@ -683,7 +764,10 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["cma_option", "cma_custom_mb"]
+        "data": [
+          "cma_option",
+          "cma_custom_mb"
+        ]
       },
       "content": [
         {
@@ -691,7 +775,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.CMA_OPTION",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.CMA_OPTION_DOC",
-          "value": { "value": "default", "label": "" },
+          "value": {
+            "value": "default",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -706,9 +793,15 @@
             "value": "custom"
           },
           "attributes": [
-            { "placeholder": 256 },
-            { "min": 16 },
-            { "max": 512 }
+            {
+              "placeholder": 256
+            },
+            {
+              "min": 16
+            },
+            {
+              "max": 512
+            }
           ]
         },
         {
@@ -737,7 +830,9 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.CONTINUE",
-        "data": ["ota_behavior"]
+        "data": [
+          "ota_behavior"
+        ]
       },
       "content": [
         {
@@ -745,7 +840,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.OTA_BEHAVIOR",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.OTA_BEHAVIOR_DOC",
-          "value": { "value": "notify", "label": "" },
+          "value": {
+            "value": "notify",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -819,7 +917,9 @@
       },
       "saveButton": {
         "label": "TRANSLATE.PI_SCREEN_SETUP.SAVE",
-        "data": ["ota_behavior_edit"]
+        "data": [
+          "ota_behavior_edit"
+        ]
       },
       "content": [
         {
@@ -851,7 +951,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.OTA_BEHAVIOR",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.OTA_BEHAVIOR_DOC",
-          "value": { "value": "notify", "label": "" },
+          "value": {
+            "value": "notify",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -879,7 +982,10 @@
           "element": "select",
           "label": "TRANSLATE.PI_SCREEN_SETUP.RESTORE_POINT",
           "doc": "TRANSLATE.PI_SCREEN_SETUP.RESTORE_POINT_DOC",
-          "value": { "value": "", "label": "" },
+          "value": {
+            "value": "",
+            "label": ""
+          },
           "options": []
         },
         {
@@ -891,7 +997,9 @@
             "type": "controller",
             "endpoint": "system_hardware/pi_screen_setup",
             "method": "restoreSelectedPoint",
-            "data": ["restore_point"]
+            "data": [
+              "restore_point"
+            ]
           }
         },
         {
@@ -932,6 +1040,83 @@
             "type": "controller",
             "endpoint": "system_hardware/pi_screen_setup",
             "method": "performMigration"
+          }
+        }
+      ]
+    },
+    {
+      "id": "section_database",
+      "element": "section",
+      "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DATABASE",
+      "icon": "fa-database",
+      "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DATABASE_DESC",
+      "content": [
+        {
+          "id": "db_active_version",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_ACTIVE_VERSION",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_preset_count",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_PRESET_COUNT",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_hostname_override",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_HOSTNAME_OVERRIDE_DOC",
+          "value": ""
+        },
+        {
+          "id": "db_hostname_save_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.SAVE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "saveHostnameOverride",
+            "data": ["db_hostname_override"]
+          }
+        },
+        {
+          "id": "db_check_update_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_CHECK_UPDATE",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_CHECK_UPDATE_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "checkForDatabaseUpdate"
+          }
+        },
+        {
+          "id": "db_revert_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_REVERT",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_REVERT_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "revertDatabase"
+          },
+          "hidden": true
+        },
+        {
+          "id": "db_open_manager_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_OPEN_MANAGER",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_OPEN_MANAGER_DOC",
+          "onClick": {
+            "type": "openUrl",
+            "url": ""
           }
         }
       ]

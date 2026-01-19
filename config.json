@@ -80,5 +80,21 @@
     "fbcon": true,
     "plymouth": true
   },
-  "ota_behavior": "notify"
+  "ota_behavior": "notify",
+  "database": {
+    "remote_url": "https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json",
+    "auto_check": true,
+    "check_interval_hours": 24,
+    "last_check": "",
+    "last_update": "",
+    "active_source": "bundled",
+    "cached_version": "",
+    "bundled_version": "",
+    "hostname_override": ""
+  },
+  "admin": {
+    "enabled": false,
+    "draft_dirty": false,
+    "draft_version": ""
+  }
 }
