@@ -1,6 +1,6 @@
 {
   "name": "pi_screen_setup",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Comprehensive display configuration for Raspberry Pi including HDMI, DSI, DPI, and Composite outputs with KMS/DRM support.",
   "main": "index.js",
   "scripts": {
