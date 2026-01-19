@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
+  "version": "1.5.2",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -1015,6 +1015,106 @@
       },
       "recommended_rotation": 0,
       "notes": "Touch via USB. Speaker variant available (FNK0055C)"
+    },
+    "_comment_hdmi_seeed": "--- Seeed Studio Displays ---",
+    "seeed-5-720x1280": {
+      "name": "Seeed Studio 5\" HDMI (720x1280)",
+      "type": "hdmi",
+      "description": "Seeed 5 inch portrait IPS display with wide viewing angle",
+      "native_resolution": "720x1280",
+      "rotated_resolution": "1280x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "720 0 100 33 100 1280 0 20 2 30 0 0 0 60 0 79000000 0",
+        "max_framebuffer_width": 1280,
+        "max_framebuffer_height": 1280
+      },
+      "video_mode": "720x1280M@60",
+      "recommended_rotation": 90,
+      "notes": "Portrait native. May need hdmi_pixel_freq_limit=400000000 on older Pi models"
+    },
+    "seeed-7-720x1280": {
+      "name": "Seeed Studio 7\" HDMI (720x1280)",
+      "type": "hdmi",
+      "description": "Seeed 7 inch portrait IPS display with wide viewing angle",
+      "native_resolution": "720x1280",
+      "rotated_resolution": "1280x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "720 0 100 24 52 1280 0 10 4 4 0 0 0 60 0 70000000 0",
+        "max_framebuffer_width": 1280,
+        "max_framebuffer_height": 1280
+      },
+      "video_mode": "720x1280M@60",
+      "recommended_rotation": 90,
+      "notes": "Portrait native. Backlight adjustable via buttons on back"
+    },
+    "seeed-7-1024x600": {
+      "name": "Seeed Studio 7\" HDMI (1024x600)",
+      "type": "hdmi",
+      "description": "Seeed 7 inch capacitive touch HDMI display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Driver-free plug and play"
+    },
+    "seeed-7-1280x800": {
+      "name": "Seeed Studio 7\" HDMI IPS (1280x800)",
+      "type": "hdmi",
+      "description": "Seeed 7 inch high-resolution IPS display",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 28
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses standard DMT mode 28 for 1280x800@60Hz"
+    },
+    "seeed-10.1-1280x800": {
+      "name": "Seeed Studio 10.1\" HDMI IPS (1280x800)",
+      "type": "hdmi",
+      "description": "Seeed 10.1 inch IPS capacitive touch display",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 28
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Multi-touch support"
+    },
+    "seeed-10.1-1200x1920": {
+      "name": "Seeed Studio 10.1\" HDMI IPS (1200x1920)",
+      "type": "hdmi",
+      "description": "Seeed 10.1 inch high-resolution portrait IPS display",
+      "native_resolution": "1200x1920",
+      "rotated_resolution": "1920x1200",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1200 1920 60 6 0 0 0",
+        "max_framebuffer_height": 1920
+      },
+      "recommended_rotation": 90,
+      "notes": "Portrait native. Backlight adjustable via buttons"
+    },
+    "seeed-10.1-1366x768": {
+      "name": "Seeed Studio 10.1\" HDMI (1366x768)",
+      "type": "hdmi",
+      "description": "Seeed 10.1 inch multi-input display (HDMI/VGA/NTSC/PAL)",
+      "native_resolution": "1366x768",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1360 768 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Use 1360 instead of 1366 for Pi4 compatibility. Supports multiple inputs"
     },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
     "generic-480x320": {
