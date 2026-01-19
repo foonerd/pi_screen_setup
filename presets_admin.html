@@ -75,6 +75,41 @@
       display: none;
     }
     
+    .hidden {
+      display: none !important;
+    }
+    
+    .config-fields {
+      margin-top: 10px;
+    }
+    
+    .config-fields .form-row {
+      margin-bottom: 10px;
+    }
+    
+    .field-help {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    
+    .field-help .example {
+      color: #888;
+    }
+    
+    .config-section-title {
+      font-size: 13px;
+      color: #54b948;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #333;
+    }
+    
+    .config-section-title:first-child {
+      margin-top: 0;
+    }
+    
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -654,9 +689,179 @@
           </div>
         </div>
         
+        <!-- Configuration Fields by Type -->
         <div class="form-group">
-          <label>Configuration (JSON)</label>
-          <textarea id="manage-config" placeholder='{"dtoverlay": "vc4-kms-v3d", "hdmi_group": 2}'></textarea>
+          <label>Configuration</label>
+          
+          <!-- HDMI Configuration Fields -->
+          <div id="manage-config-hdmi" class="config-fields">
+            <div class="config-section-title">HDMI Output Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>HDMI Group</label>
+                <select id="manage-cfg-hdmi-group">
+                  <option value="">-- Not Set --</option>
+                  <option value="1">1 - CEA (TV)</option>
+                  <option value="2">2 - DMT (Monitor)</option>
+                </select>
+                <div class="field-help">CEA for TVs, DMT for computer monitors</div>
+              </div>
+              <div class="form-group">
+                <label>HDMI Mode</label>
+                <input type="number" id="manage-cfg-hdmi-mode" placeholder="e.g., 87 for custom">
+                <div class="field-help">Mode 87 = custom timing. See RPi docs for standard modes.</div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Timing Configuration</div>
+            <div class="form-group">
+              <label>Timing Format</label>
+              <select id="manage-cfg-timing-format">
+                <option value="none">-- No Custom Timing --</option>
+                <option value="hdmi_timings">Custom Timings (hdmi_timings)</option>
+                <option value="hdmi_cvt">CVT Mode (hdmi_cvt)</option>
+              </select>
+            </div>
+            <div id="manage-timing-hdmi_timings" class="hidden">
+              <div class="form-group">
+                <label>hdmi_timings</label>
+                <input type="text" id="manage-cfg-hdmi-timings" placeholder="320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3">
+                <div class="field-help">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags<br><span class="example">Example: 320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3</span></div>
+              </div>
+            </div>
+            <div id="manage-timing-hdmi_cvt" class="hidden">
+              <div class="form-group">
+                <label>hdmi_cvt</label>
+                <input type="text" id="manage-cfg-hdmi-cvt" placeholder="800 480 60">
+                <div class="field-help">Format: width height framerate [aspect margins interlace rb]<br><span class="example">Example: 800 480 60 6 0 0 0</span></div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Framebuffer Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Max Framebuffer Height</label>
+                <input type="number" id="manage-cfg-max-fb-height" placeholder="e.g., 1480">
+                <div class="field-help">For portrait displays taller than wide</div>
+              </div>
+              <div class="form-group">
+                <label>Max Framebuffer Width</label>
+                <input type="number" id="manage-cfg-max-fb-width" placeholder="e.g., 1920">
+                <div class="field-help">For unusual aspect ratios</div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Advanced HDMI Options</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pixel Frequency Limit</label>
+                <input type="number" id="manage-cfg-hdmi-pixel-freq" placeholder="e.g., 356000000">
+                <div class="field-help">Override pixel clock limit in Hz</div>
+              </div>
+              <div class="form-group">
+                <label>HDMI Boost</label>
+                <input type="number" id="manage-cfg-hdmi-boost" min="0" max="11" placeholder="0-11">
+                <div class="field-help">Signal strength boost (0-11). Try 4-7 for long cables.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>GPU Memory (MB)</label>
+                <input type="number" id="manage-cfg-gpu-mem" placeholder="e.g., 256 or 512">
+                <div class="field-help">Override GPU memory allocation</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- DSI Configuration Fields -->
+          <div id="manage-config-dsi" class="config-fields hidden">
+            <div class="config-section-title">DSI Display Settings</div>
+            <div class="form-group">
+              <label>Primary Overlay (dtoverlay)</label>
+              <input type="text" id="manage-cfg-dsi-dtoverlay" placeholder="e.g., vc4-kms-dsi-7inch">
+              <div class="field-help">Main DSI overlay. Can include parameters after comma.<br><span class="example">Example: vc4-kms-dsi-waveshare-panel,2_8_inch</span></div>
+            </div>
+            <div class="form-group">
+              <label>Secondary Overlay (dtoverlay_2)</label>
+              <input type="text" id="manage-cfg-dsi-dtoverlay2" placeholder="e.g., waveshare_35DSI">
+              <div class="field-help">Optional secondary overlay for touch or special features</div>
+            </div>
+          </div>
+          
+          <!-- DPI Configuration Fields -->
+          <div id="manage-config-dpi" class="config-fields hidden">
+            <div class="config-section-title">DPI Display Settings</div>
+            <div class="form-group">
+              <label>Base Overlay (dtoverlay)</label>
+              <input type="text" id="manage-cfg-dpi-dtoverlay" placeholder="e.g., vc4-kms-v3d">
+              <div class="field-help">Usually vc4-kms-v3d for DPI displays</div>
+            </div>
+            <div class="config-section-title">Pi Model-Specific Overlays</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pi 2/3 Overlay (dtoverlay_2)</label>
+                <input type="text" id="manage-cfg-dpi-dtoverlay2" placeholder="e.g., vc4-kms-dpi-2inch8">
+                <div class="field-help">Overlay for Pi 2 and Pi 3 boards</div>
+              </div>
+              <div class="form-group">
+                <label>Pi 3B Overlay (dtoverlay_3)</label>
+                <input type="text" id="manage-cfg-dpi-dtoverlay3" placeholder="e.g., waveshare-28dpi-3b-4b">
+                <div class="field-help">Optional: Pi 3B specific variant</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pi 4/5 Overlay (dtoverlay_4)</label>
+                <input type="text" id="manage-cfg-dpi-dtoverlay4" placeholder="e.g., waveshare-touch-28dpi">
+                <div class="field-help">Overlay for Pi 4 and Pi 5 boards</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Composite Configuration Fields -->
+          <div id="manage-config-composite" class="config-fields hidden">
+            <div class="config-section-title">Composite Video Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Video Standard (sdtv_mode)</label>
+                <select id="manage-cfg-sdtv-mode">
+                  <option value="">-- Not Set --</option>
+                  <option value="0">0 - NTSC (US/Japan)</option>
+                  <option value="1">1 - NTSC-J (Japan)</option>
+                  <option value="2">2 - PAL (Europe/Australia)</option>
+                  <option value="3">3 - PAL-M (Brazil)</option>
+                </select>
+                <div class="field-help">Select video standard for your region</div>
+              </div>
+              <div class="form-group">
+                <label>Aspect Ratio (sdtv_aspect)</label>
+                <select id="manage-cfg-sdtv-aspect">
+                  <option value="">-- Not Set --</option>
+                  <option value="1">1 - 4:3</option>
+                  <option value="2">2 - 14:9</option>
+                  <option value="3">3 - 16:9</option>
+                </select>
+                <div class="field-help">Aspect ratio for composite output</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Enable TV Out</label>
+              <select id="manage-cfg-enable-tvout">
+                <option value="">-- Not Set --</option>
+                <option value="1">1 - Enabled</option>
+                <option value="0">0 - Disabled</option>
+              </select>
+              <div class="field-help">Required for Pi 4/5 composite output</div>
+            </div>
+          </div>
+          
+          <!-- Additional Parameters (for unknown/advanced keys) -->
+          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="form-group">
+            <label>Extra Config (JSON)</label>
+            <textarea id="manage-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
+            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
+          </div>
         </div>
         
         <div class="version-bump">
@@ -705,9 +910,179 @@
           </div>
         </div>
         
+        <!-- Configuration Fields by Type -->
         <div class="form-group">
-          <label>Configuration (JSON)</label>
-          <textarea id="add-config" placeholder='{"dtoverlay": "vc4-kms-v3d", "hdmi_group": 2}'>{}</textarea>
+          <label>Configuration</label>
+          
+          <!-- HDMI Configuration Fields -->
+          <div id="add-config-hdmi" class="config-fields">
+            <div class="config-section-title">HDMI Output Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>HDMI Group</label>
+                <select id="add-cfg-hdmi-group">
+                  <option value="">-- Not Set --</option>
+                  <option value="1">1 - CEA (TV)</option>
+                  <option value="2">2 - DMT (Monitor)</option>
+                </select>
+                <div class="field-help">CEA for TVs, DMT for computer monitors</div>
+              </div>
+              <div class="form-group">
+                <label>HDMI Mode</label>
+                <input type="number" id="add-cfg-hdmi-mode" placeholder="e.g., 87 for custom">
+                <div class="field-help">Mode 87 = custom timing. See RPi docs for standard modes.</div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Timing Configuration</div>
+            <div class="form-group">
+              <label>Timing Format</label>
+              <select id="add-cfg-timing-format">
+                <option value="none">-- No Custom Timing --</option>
+                <option value="hdmi_timings">Custom Timings (hdmi_timings)</option>
+                <option value="hdmi_cvt">CVT Mode (hdmi_cvt)</option>
+              </select>
+            </div>
+            <div id="add-timing-hdmi_timings" class="hidden">
+              <div class="form-group">
+                <label>hdmi_timings</label>
+                <input type="text" id="add-cfg-hdmi-timings" placeholder="320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3">
+                <div class="field-help">Format: h_active h_fp h_sync h_bp v_active v_fp v_sync v_bp v_sync_pol h_sync_pol interlace pixel_rep framerate aspect pixel_freq clock_mode flags<br><span class="example">Example: 320 0 80 16 32 1480 0 16 4 12 0 0 0 60 0 42000000 3</span></div>
+              </div>
+            </div>
+            <div id="add-timing-hdmi_cvt" class="hidden">
+              <div class="form-group">
+                <label>hdmi_cvt</label>
+                <input type="text" id="add-cfg-hdmi-cvt" placeholder="800 480 60">
+                <div class="field-help">Format: width height framerate [aspect margins interlace rb]<br><span class="example">Example: 800 480 60 6 0 0 0</span></div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Framebuffer Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Max Framebuffer Height</label>
+                <input type="number" id="add-cfg-max-fb-height" placeholder="e.g., 1480">
+                <div class="field-help">For portrait displays taller than wide</div>
+              </div>
+              <div class="form-group">
+                <label>Max Framebuffer Width</label>
+                <input type="number" id="add-cfg-max-fb-width" placeholder="e.g., 1920">
+                <div class="field-help">For unusual aspect ratios</div>
+              </div>
+            </div>
+            
+            <div class="config-section-title">Advanced HDMI Options</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pixel Frequency Limit</label>
+                <input type="number" id="add-cfg-hdmi-pixel-freq" placeholder="e.g., 356000000">
+                <div class="field-help">Override pixel clock limit in Hz</div>
+              </div>
+              <div class="form-group">
+                <label>HDMI Boost</label>
+                <input type="number" id="add-cfg-hdmi-boost" min="0" max="11" placeholder="0-11">
+                <div class="field-help">Signal strength boost (0-11). Try 4-7 for long cables.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>GPU Memory (MB)</label>
+                <input type="number" id="add-cfg-gpu-mem" placeholder="e.g., 256 or 512">
+                <div class="field-help">Override GPU memory allocation</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- DSI Configuration Fields -->
+          <div id="add-config-dsi" class="config-fields hidden">
+            <div class="config-section-title">DSI Display Settings</div>
+            <div class="form-group">
+              <label>Primary Overlay (dtoverlay)</label>
+              <input type="text" id="add-cfg-dsi-dtoverlay" placeholder="e.g., vc4-kms-dsi-7inch">
+              <div class="field-help">Main DSI overlay. Can include parameters after comma.<br><span class="example">Example: vc4-kms-dsi-waveshare-panel,2_8_inch</span></div>
+            </div>
+            <div class="form-group">
+              <label>Secondary Overlay (dtoverlay_2)</label>
+              <input type="text" id="add-cfg-dsi-dtoverlay2" placeholder="e.g., waveshare_35DSI">
+              <div class="field-help">Optional secondary overlay for touch or special features</div>
+            </div>
+          </div>
+          
+          <!-- DPI Configuration Fields -->
+          <div id="add-config-dpi" class="config-fields hidden">
+            <div class="config-section-title">DPI Display Settings</div>
+            <div class="form-group">
+              <label>Base Overlay (dtoverlay)</label>
+              <input type="text" id="add-cfg-dpi-dtoverlay" placeholder="e.g., vc4-kms-v3d">
+              <div class="field-help">Usually vc4-kms-v3d for DPI displays</div>
+            </div>
+            <div class="config-section-title">Pi Model-Specific Overlays</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pi 2/3 Overlay (dtoverlay_2)</label>
+                <input type="text" id="add-cfg-dpi-dtoverlay2" placeholder="e.g., vc4-kms-dpi-2inch8">
+                <div class="field-help">Overlay for Pi 2 and Pi 3 boards</div>
+              </div>
+              <div class="form-group">
+                <label>Pi 3B Overlay (dtoverlay_3)</label>
+                <input type="text" id="add-cfg-dpi-dtoverlay3" placeholder="e.g., waveshare-28dpi-3b-4b">
+                <div class="field-help">Optional: Pi 3B specific variant</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pi 4/5 Overlay (dtoverlay_4)</label>
+                <input type="text" id="add-cfg-dpi-dtoverlay4" placeholder="e.g., waveshare-touch-28dpi">
+                <div class="field-help">Overlay for Pi 4 and Pi 5 boards</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Composite Configuration Fields -->
+          <div id="add-config-composite" class="config-fields hidden">
+            <div class="config-section-title">Composite Video Settings</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Video Standard (sdtv_mode)</label>
+                <select id="add-cfg-sdtv-mode">
+                  <option value="">-- Not Set --</option>
+                  <option value="0">0 - NTSC (US/Japan)</option>
+                  <option value="1">1 - NTSC-J (Japan)</option>
+                  <option value="2">2 - PAL (Europe/Australia)</option>
+                  <option value="3">3 - PAL-M (Brazil)</option>
+                </select>
+                <div class="field-help">Select video standard for your region</div>
+              </div>
+              <div class="form-group">
+                <label>Aspect Ratio (sdtv_aspect)</label>
+                <select id="add-cfg-sdtv-aspect">
+                  <option value="">-- Not Set --</option>
+                  <option value="1">1 - 4:3</option>
+                  <option value="2">2 - 14:9</option>
+                  <option value="3">3 - 16:9</option>
+                </select>
+                <div class="field-help">Aspect ratio for composite output</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Enable TV Out</label>
+              <select id="add-cfg-enable-tvout">
+                <option value="">-- Not Set --</option>
+                <option value="1">1 - Enabled</option>
+                <option value="0">0 - Disabled</option>
+              </select>
+              <div class="field-help">Required for Pi 4/5 composite output</div>
+            </div>
+          </div>
+          
+          <!-- Additional Parameters (for unknown/advanced keys) -->
+          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="form-group">
+            <label>Extra Config (JSON)</label>
+            <textarea id="add-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
+            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
+          </div>
         </div>
         
         <div class="version-bump">
@@ -895,6 +1270,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       initTabs();
       initCloseButton();
+      initConfigFieldToggles();
       loadDatabaseInfo();
       loadPresetList();
       loadBackupList();
@@ -941,6 +1317,440 @@
           }
         }
       }, 100);
+    }
+    
+    // ===== CONFIG FIELD TOGGLE LOGIC =====
+    function initConfigFieldToggles() {
+      // Edit form: type dropdown changes config fields visibility
+      var manageType = document.getElementById('manage-type');
+      if (manageType) {
+        manageType.addEventListener('change', function() {
+          showConfigFieldsForType('manage', this.value);
+        });
+      }
+      
+      // Add form: type dropdown changes config fields visibility
+      var addType = document.getElementById('add-type');
+      if (addType) {
+        addType.addEventListener('change', function() {
+          showConfigFieldsForType('add', this.value);
+        });
+      }
+      
+      // Edit form: timing format dropdown (hdmi_timings vs hdmi_cvt)
+      var manageTimingFormat = document.getElementById('manage-cfg-timing-format');
+      if (manageTimingFormat) {
+        manageTimingFormat.addEventListener('change', function() {
+          showTimingFieldsForFormat('manage', this.value);
+        });
+      }
+      
+      // Add form: timing format dropdown (hdmi_timings vs hdmi_cvt)
+      var addTimingFormat = document.getElementById('add-cfg-timing-format');
+      if (addTimingFormat) {
+        addTimingFormat.addEventListener('change', function() {
+          showTimingFieldsForFormat('add', this.value);
+        });
+      }
+    }
+    
+    /**
+     * Show/hide config field containers based on connection type
+     * @param {string} prefix - 'manage' or 'add'
+     * @param {string} type - 'hdmi', 'dsi', 'dpi', or 'composite'
+     */
+    function showConfigFieldsForType(prefix, type) {
+      var types = ['hdmi', 'dsi', 'dpi', 'composite'];
+      
+      types.forEach(function(t) {
+        var container = document.getElementById(prefix + '-config-' + t);
+        if (container) {
+          if (t === type) {
+            container.classList.remove('hidden');
+          } else {
+            container.classList.add('hidden');
+          }
+        }
+      });
+    }
+    
+    /**
+     * Show/hide timing input fields based on timing format selection
+     * @param {string} prefix - 'manage' or 'add'
+     * @param {string} format - 'none', 'hdmi_timings', or 'hdmi_cvt'
+     */
+    function showTimingFieldsForFormat(prefix, format) {
+      var timingsContainer = document.getElementById(prefix + '-timing-hdmi_timings');
+      var cvtContainer = document.getElementById(prefix + '-timing-hdmi_cvt');
+      
+      if (timingsContainer) {
+        if (format === 'hdmi_timings') {
+          timingsContainer.classList.remove('hidden');
+        } else {
+          timingsContainer.classList.add('hidden');
+        }
+      }
+      
+      if (cvtContainer) {
+        if (format === 'hdmi_cvt') {
+          cvtContainer.classList.remove('hidden');
+        } else {
+          cvtContainer.classList.add('hidden');
+        }
+      }
+    }
+    
+    /**
+     * Clear all config fields for a form
+     * @param {string} prefix - 'manage' or 'add'
+     */
+    function clearConfigFields(prefix) {
+      // HDMI fields
+      var hdmiGroup = document.getElementById(prefix + '-cfg-hdmi-group');
+      if (hdmiGroup) hdmiGroup.value = '';
+      var hdmiMode = document.getElementById(prefix + '-cfg-hdmi-mode');
+      if (hdmiMode) hdmiMode.value = '';
+      var timingFormat = document.getElementById(prefix + '-cfg-timing-format');
+      if (timingFormat) timingFormat.value = 'none';
+      var hdmiTimings = document.getElementById(prefix + '-cfg-hdmi-timings');
+      if (hdmiTimings) hdmiTimings.value = '';
+      var hdmiCvt = document.getElementById(prefix + '-cfg-hdmi-cvt');
+      if (hdmiCvt) hdmiCvt.value = '';
+      var maxFbHeight = document.getElementById(prefix + '-cfg-max-fb-height');
+      if (maxFbHeight) maxFbHeight.value = '';
+      var maxFbWidth = document.getElementById(prefix + '-cfg-max-fb-width');
+      if (maxFbWidth) maxFbWidth.value = '';
+      var pixelFreq = document.getElementById(prefix + '-cfg-hdmi-pixel-freq');
+      if (pixelFreq) pixelFreq.value = '';
+      var hdmiBoost = document.getElementById(prefix + '-cfg-hdmi-boost');
+      if (hdmiBoost) hdmiBoost.value = '';
+      var gpuMem = document.getElementById(prefix + '-cfg-gpu-mem');
+      if (gpuMem) gpuMem.value = '';
+      
+      // DSI fields
+      var dsiOverlay = document.getElementById(prefix + '-cfg-dsi-dtoverlay');
+      if (dsiOverlay) dsiOverlay.value = '';
+      var dsiOverlay2 = document.getElementById(prefix + '-cfg-dsi-dtoverlay2');
+      if (dsiOverlay2) dsiOverlay2.value = '';
+      
+      // DPI fields
+      var dpiOverlay = document.getElementById(prefix + '-cfg-dpi-dtoverlay');
+      if (dpiOverlay) dpiOverlay.value = '';
+      var dpiOverlay2 = document.getElementById(prefix + '-cfg-dpi-dtoverlay2');
+      if (dpiOverlay2) dpiOverlay2.value = '';
+      var dpiOverlay3 = document.getElementById(prefix + '-cfg-dpi-dtoverlay3');
+      if (dpiOverlay3) dpiOverlay3.value = '';
+      var dpiOverlay4 = document.getElementById(prefix + '-cfg-dpi-dtoverlay4');
+      if (dpiOverlay4) dpiOverlay4.value = '';
+      
+      // Composite fields
+      var sdtvMode = document.getElementById(prefix + '-cfg-sdtv-mode');
+      if (sdtvMode) sdtvMode.value = '';
+      var sdtvAspect = document.getElementById(prefix + '-cfg-sdtv-aspect');
+      if (sdtvAspect) sdtvAspect.value = '';
+      var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
+      if (enableTvout) enableTvout.value = '';
+      
+      // Additional parameters
+      var additional = document.getElementById(prefix + '-cfg-additional');
+      if (additional) additional.value = '';
+      
+      // Hide timing sub-fields
+      showTimingFieldsForFormat(prefix, 'none');
+    }
+    
+    /**
+     * Populate form fields from a config object
+     * @param {string} prefix - 'manage' or 'add'
+     * @param {string} type - 'hdmi', 'dsi', 'dpi', or 'composite'
+     * @param {object} config - The config object from the preset
+     */
+    function populateFieldsFromConfig(prefix, type, config) {
+      // Clear all fields first
+      clearConfigFields(prefix);
+      
+      if (!config || typeof config !== 'object') {
+        return;
+      }
+      
+      // Define known keys per type
+      var knownKeys = {
+        hdmi: ['hdmi_group', 'hdmi_mode', 'hdmi_timings', 'hdmi_cvt', 
+               'max_framebuffer_height', 'max_framebuffer_width',
+               'hdmi_pixel_freq_limit', 'config_hdmi_boost', 'gpu_mem'],
+        dsi: ['dtoverlay', 'dtoverlay_2'],
+        dpi: ['dtoverlay', 'dtoverlay_2', 'dtoverlay_3', 'dtoverlay_4'],
+        composite: ['sdtv_mode', 'sdtv_aspect', 'enable_tvout']
+      };
+      
+      var handledKeys = [];
+      
+      if (type === 'hdmi') {
+        // HDMI Group
+        if (config.hdmi_group !== undefined) {
+          var hdmiGroup = document.getElementById(prefix + '-cfg-hdmi-group');
+          if (hdmiGroup) hdmiGroup.value = String(config.hdmi_group);
+          handledKeys.push('hdmi_group');
+        }
+        
+        // HDMI Mode
+        if (config.hdmi_mode !== undefined) {
+          var hdmiMode = document.getElementById(prefix + '-cfg-hdmi-mode');
+          if (hdmiMode) hdmiMode.value = config.hdmi_mode;
+          handledKeys.push('hdmi_mode');
+        }
+        
+        // Timing format and values (mutually exclusive)
+        var timingFormat = document.getElementById(prefix + '-cfg-timing-format');
+        if (config.hdmi_timings) {
+          if (timingFormat) timingFormat.value = 'hdmi_timings';
+          var hdmiTimings = document.getElementById(prefix + '-cfg-hdmi-timings');
+          if (hdmiTimings) hdmiTimings.value = config.hdmi_timings;
+          showTimingFieldsForFormat(prefix, 'hdmi_timings');
+          handledKeys.push('hdmi_timings');
+        } else if (config.hdmi_cvt) {
+          if (timingFormat) timingFormat.value = 'hdmi_cvt';
+          var hdmiCvt = document.getElementById(prefix + '-cfg-hdmi-cvt');
+          if (hdmiCvt) hdmiCvt.value = config.hdmi_cvt;
+          showTimingFieldsForFormat(prefix, 'hdmi_cvt');
+          handledKeys.push('hdmi_cvt');
+        } else {
+          if (timingFormat) timingFormat.value = 'none';
+        }
+        
+        // Framebuffer settings
+        if (config.max_framebuffer_height !== undefined) {
+          var maxFbHeight = document.getElementById(prefix + '-cfg-max-fb-height');
+          if (maxFbHeight) maxFbHeight.value = config.max_framebuffer_height;
+          handledKeys.push('max_framebuffer_height');
+        }
+        if (config.max_framebuffer_width !== undefined) {
+          var maxFbWidth = document.getElementById(prefix + '-cfg-max-fb-width');
+          if (maxFbWidth) maxFbWidth.value = config.max_framebuffer_width;
+          handledKeys.push('max_framebuffer_width');
+        }
+        
+        // Advanced options
+        if (config.hdmi_pixel_freq_limit !== undefined) {
+          var pixelFreq = document.getElementById(prefix + '-cfg-hdmi-pixel-freq');
+          if (pixelFreq) pixelFreq.value = config.hdmi_pixel_freq_limit;
+          handledKeys.push('hdmi_pixel_freq_limit');
+        }
+        if (config.config_hdmi_boost !== undefined) {
+          var hdmiBoost = document.getElementById(prefix + '-cfg-hdmi-boost');
+          if (hdmiBoost) hdmiBoost.value = config.config_hdmi_boost;
+          handledKeys.push('config_hdmi_boost');
+        }
+        if (config.gpu_mem !== undefined) {
+          var gpuMem = document.getElementById(prefix + '-cfg-gpu-mem');
+          if (gpuMem) gpuMem.value = config.gpu_mem;
+          handledKeys.push('gpu_mem');
+        }
+        
+      } else if (type === 'dsi') {
+        // DSI overlay
+        if (config.dtoverlay !== undefined) {
+          var dsiOverlay = document.getElementById(prefix + '-cfg-dsi-dtoverlay');
+          if (dsiOverlay) dsiOverlay.value = config.dtoverlay;
+          handledKeys.push('dtoverlay');
+        }
+        if (config.dtoverlay_2 !== undefined) {
+          var dsiOverlay2 = document.getElementById(prefix + '-cfg-dsi-dtoverlay2');
+          if (dsiOverlay2) dsiOverlay2.value = config.dtoverlay_2;
+          handledKeys.push('dtoverlay_2');
+        }
+        
+      } else if (type === 'dpi') {
+        // DPI overlays
+        if (config.dtoverlay !== undefined) {
+          var dpiOverlay = document.getElementById(prefix + '-cfg-dpi-dtoverlay');
+          if (dpiOverlay) dpiOverlay.value = config.dtoverlay;
+          handledKeys.push('dtoverlay');
+        }
+        if (config.dtoverlay_2 !== undefined) {
+          var dpiOverlay2 = document.getElementById(prefix + '-cfg-dpi-dtoverlay2');
+          if (dpiOverlay2) dpiOverlay2.value = config.dtoverlay_2;
+          handledKeys.push('dtoverlay_2');
+        }
+        if (config.dtoverlay_3 !== undefined) {
+          var dpiOverlay3 = document.getElementById(prefix + '-cfg-dpi-dtoverlay3');
+          if (dpiOverlay3) dpiOverlay3.value = config.dtoverlay_3;
+          handledKeys.push('dtoverlay_3');
+        }
+        if (config.dtoverlay_4 !== undefined) {
+          var dpiOverlay4 = document.getElementById(prefix + '-cfg-dpi-dtoverlay4');
+          if (dpiOverlay4) dpiOverlay4.value = config.dtoverlay_4;
+          handledKeys.push('dtoverlay_4');
+        }
+        
+      } else if (type === 'composite') {
+        // Composite settings
+        if (config.sdtv_mode !== undefined) {
+          var sdtvMode = document.getElementById(prefix + '-cfg-sdtv-mode');
+          if (sdtvMode) sdtvMode.value = String(config.sdtv_mode);
+          handledKeys.push('sdtv_mode');
+        }
+        if (config.sdtv_aspect !== undefined) {
+          var sdtvAspect = document.getElementById(prefix + '-cfg-sdtv-aspect');
+          if (sdtvAspect) sdtvAspect.value = String(config.sdtv_aspect);
+          handledKeys.push('sdtv_aspect');
+        }
+        if (config.enable_tvout !== undefined) {
+          var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
+          if (enableTvout) enableTvout.value = String(config.enable_tvout);
+          handledKeys.push('enable_tvout');
+        }
+      }
+      
+      // Collect unknown keys into additional parameters
+      var unknownConfig = {};
+      var configKeys = Object.keys(config);
+      var typeKnownKeys = knownKeys[type] || [];
+      
+      for (var i = 0; i < configKeys.length; i++) {
+        var key = configKeys[i];
+        if (handledKeys.indexOf(key) === -1 && typeKnownKeys.indexOf(key) === -1) {
+          unknownConfig[key] = config[key];
+        }
+      }
+      
+      // If there are unknown keys, populate the additional textarea
+      if (Object.keys(unknownConfig).length > 0) {
+        var additional = document.getElementById(prefix + '-cfg-additional');
+        if (additional) {
+          additional.value = JSON.stringify(unknownConfig, null, 2);
+        }
+      }
+    }
+    
+    /**
+     * Build a config object from form fields
+     * @param {string} prefix - 'manage' or 'add'
+     * @param {string} type - 'hdmi', 'dsi', 'dpi', or 'composite'
+     * @returns {object} The config object for the preset
+     */
+    function buildConfigFromFields(prefix, type) {
+      var config = {};
+      
+      if (type === 'hdmi') {
+        // HDMI Group
+        var hdmiGroup = document.getElementById(prefix + '-cfg-hdmi-group');
+        if (hdmiGroup && hdmiGroup.value !== '') {
+          config.hdmi_group = parseInt(hdmiGroup.value, 10);
+        }
+        
+        // HDMI Mode
+        var hdmiMode = document.getElementById(prefix + '-cfg-hdmi-mode');
+        if (hdmiMode && hdmiMode.value !== '') {
+          config.hdmi_mode = parseInt(hdmiMode.value, 10);
+        }
+        
+        // Timing values (mutually exclusive)
+        var timingFormat = document.getElementById(prefix + '-cfg-timing-format');
+        if (timingFormat) {
+          if (timingFormat.value === 'hdmi_timings') {
+            var hdmiTimings = document.getElementById(prefix + '-cfg-hdmi-timings');
+            if (hdmiTimings && hdmiTimings.value.trim() !== '') {
+              config.hdmi_timings = hdmiTimings.value.trim();
+            }
+          } else if (timingFormat.value === 'hdmi_cvt') {
+            var hdmiCvt = document.getElementById(prefix + '-cfg-hdmi-cvt');
+            if (hdmiCvt && hdmiCvt.value.trim() !== '') {
+              config.hdmi_cvt = hdmiCvt.value.trim();
+            }
+          }
+        }
+        
+        // Framebuffer settings
+        var maxFbHeight = document.getElementById(prefix + '-cfg-max-fb-height');
+        if (maxFbHeight && maxFbHeight.value !== '') {
+          config.max_framebuffer_height = parseInt(maxFbHeight.value, 10);
+        }
+        var maxFbWidth = document.getElementById(prefix + '-cfg-max-fb-width');
+        if (maxFbWidth && maxFbWidth.value !== '') {
+          config.max_framebuffer_width = parseInt(maxFbWidth.value, 10);
+        }
+        
+        // Advanced options
+        var pixelFreq = document.getElementById(prefix + '-cfg-hdmi-pixel-freq');
+        if (pixelFreq && pixelFreq.value !== '') {
+          config.hdmi_pixel_freq_limit = parseInt(pixelFreq.value, 10);
+        }
+        var hdmiBoost = document.getElementById(prefix + '-cfg-hdmi-boost');
+        if (hdmiBoost && hdmiBoost.value !== '') {
+          config.config_hdmi_boost = parseInt(hdmiBoost.value, 10);
+        }
+        var gpuMem = document.getElementById(prefix + '-cfg-gpu-mem');
+        if (gpuMem && gpuMem.value !== '') {
+          config.gpu_mem = parseInt(gpuMem.value, 10);
+        }
+        
+      } else if (type === 'dsi') {
+        // DSI overlays
+        var dsiOverlay = document.getElementById(prefix + '-cfg-dsi-dtoverlay');
+        if (dsiOverlay && dsiOverlay.value.trim() !== '') {
+          config.dtoverlay = dsiOverlay.value.trim();
+        }
+        var dsiOverlay2 = document.getElementById(prefix + '-cfg-dsi-dtoverlay2');
+        if (dsiOverlay2 && dsiOverlay2.value.trim() !== '') {
+          config.dtoverlay_2 = dsiOverlay2.value.trim();
+        }
+        
+      } else if (type === 'dpi') {
+        // DPI overlays
+        var dpiOverlay = document.getElementById(prefix + '-cfg-dpi-dtoverlay');
+        if (dpiOverlay && dpiOverlay.value.trim() !== '') {
+          config.dtoverlay = dpiOverlay.value.trim();
+        }
+        var dpiOverlay2 = document.getElementById(prefix + '-cfg-dpi-dtoverlay2');
+        if (dpiOverlay2 && dpiOverlay2.value.trim() !== '') {
+          config.dtoverlay_2 = dpiOverlay2.value.trim();
+        }
+        var dpiOverlay3 = document.getElementById(prefix + '-cfg-dpi-dtoverlay3');
+        if (dpiOverlay3 && dpiOverlay3.value.trim() !== '') {
+          config.dtoverlay_3 = dpiOverlay3.value.trim();
+        }
+        var dpiOverlay4 = document.getElementById(prefix + '-cfg-dpi-dtoverlay4');
+        if (dpiOverlay4 && dpiOverlay4.value.trim() !== '') {
+          config.dtoverlay_4 = dpiOverlay4.value.trim();
+        }
+        
+      } else if (type === 'composite') {
+        // Composite settings
+        var sdtvMode = document.getElementById(prefix + '-cfg-sdtv-mode');
+        if (sdtvMode && sdtvMode.value !== '') {
+          config.sdtv_mode = parseInt(sdtvMode.value, 10);
+        }
+        var sdtvAspect = document.getElementById(prefix + '-cfg-sdtv-aspect');
+        if (sdtvAspect && sdtvAspect.value !== '') {
+          config.sdtv_aspect = parseInt(sdtvAspect.value, 10);
+        }
+        var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
+        if (enableTvout && enableTvout.value !== '') {
+          config.enable_tvout = parseInt(enableTvout.value, 10);
+        }
+      }
+      
+      // Merge additional parameters from textarea
+      var additional = document.getElementById(prefix + '-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var additionalConfig = JSON.parse(additional.value.trim());
+          if (additionalConfig && typeof additionalConfig === 'object') {
+            // Merge additional keys into config (additional params take precedence)
+            var addKeys = Object.keys(additionalConfig);
+            for (var i = 0; i < addKeys.length; i++) {
+              var key = addKeys[i];
+              config[key] = additionalConfig[key];
+            }
+          }
+        } catch (e) {
+          // Invalid JSON in additional params - will be caught during save validation
+          console.warn('Invalid JSON in additional parameters: ' + e.message);
+        }
+      }
+      
+      return config;
     }
     
     // ===== API CALLS =====
@@ -1206,12 +2016,17 @@
         return;
       }
       
+      var type = preset.type || 'hdmi';
+      
       document.getElementById('manage-form').style.display = 'block';
       document.getElementById('manage-id').value = id;
       document.getElementById('manage-name').value = preset.name || '';
-      document.getElementById('manage-type').value = preset.type || 'hdmi';
+      document.getElementById('manage-type').value = type;
       document.getElementById('manage-desc').value = preset.description || '';
-      document.getElementById('manage-config').value = JSON.stringify(preset.config || {}, null, 2);
+      
+      // Show correct config fields for this type and populate them
+      showConfigFieldsForType('manage', type);
+      populateFieldsFromConfig('manage', type, preset.config || {});
       
       showToast('Preset loaded: ' + (preset.name || id), 'success');
     }
@@ -1221,7 +2036,6 @@
       var name = document.getElementById('manage-name').value;
       var type = document.getElementById('manage-type').value;
       var desc = document.getElementById('manage-desc').value;
-      var configStr = document.getElementById('manage-config').value;
       var version = document.getElementById('manage-version').value;
       
       if (!id) {
@@ -1229,12 +2043,23 @@
         return;
       }
       
-      try {
-        var config = JSON.parse(configStr);
-      } catch (e) {
-        showToast('Invalid JSON in configuration', 'error');
-        return;
+      // Validate additional parameters JSON before building config
+      var additional = document.getElementById('manage-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var parsed = JSON.parse(additional.value.trim());
+          if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            showToast('Additional parameters must be a JSON object', 'error');
+            return;
+          }
+        } catch (e) {
+          showToast('Invalid JSON in additional parameters: ' + e.message, 'error');
+          return;
+        }
       }
+      
+      // Build config from form fields
+      var config = buildConfigFromFields('manage', type);
       
       var data = {
         name: name,
@@ -1264,7 +2089,6 @@
       var name = document.getElementById('add-name').value.trim();
       var type = document.getElementById('add-type').value;
       var desc = document.getElementById('add-desc').value;
-      var configStr = document.getElementById('add-config').value;
       var version = document.getElementById('add-version').value;
       
       if (!id) {
@@ -1282,12 +2106,23 @@
         return;
       }
       
-      try {
-        var config = JSON.parse(configStr);
-      } catch (e) {
-        showToast('Invalid JSON in configuration', 'error');
-        return;
+      // Validate additional parameters JSON before building config
+      var additional = document.getElementById('add-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var parsed = JSON.parse(additional.value.trim());
+          if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            showToast('Additional parameters must be a JSON object', 'error');
+            return;
+          }
+        } catch (e) {
+          showToast('Invalid JSON in additional parameters: ' + e.message, 'error');
+          return;
+        }
       }
+      
+      // Build config from form fields
+      var config = buildConfigFromFields('add', type);
       
       var data = {
         id: id,
@@ -1318,8 +2153,11 @@
       document.getElementById('add-name').value = '';
       document.getElementById('add-type').value = 'hdmi';
       document.getElementById('add-desc').value = '';
-      document.getElementById('add-config').value = '{}';
       document.getElementById('add-version').value = '';
+      
+      // Clear all config fields and show HDMI fields (default type)
+      clearConfigFields('add');
+      showConfigFieldsForType('add', 'hdmi');
     }
     
     // ===== DELETE PRESET TAB =====
