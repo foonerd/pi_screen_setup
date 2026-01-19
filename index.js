@@ -424,25 +424,12 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.get('/api/language', function(req, res) {
       try {
-        // Try to get language from Volumio's system config
-        var lang = 'en';
-        try {
-          var systemConfigPath = '/data/configuration/system_controller/system/config.json';
-          if (fs.existsSync(systemConfigPath)) {
-            var systemConfig = JSON.parse(fs.readFileSync(systemConfigPath, 'utf8'));
-            if (systemConfig.language && systemConfig.language.value) {
-              // Normalize: de_DE -> de, en_US -> en
-              var rawLang = systemConfig.language.value;
-              lang = rawLang.split('_')[0].split('-')[0].toLowerCase();
-              self.logger.info('pi_screen_setup: Detected language from config: ' + rawLang + ' -> ' + lang);
-            }
-          }
-        } catch (langErr) {
-          self.logger.warn('pi_screen_setup: Could not read language config, defaulting to en');
-        }
+        // Use Volumio's shared vars - same method as rtlsdr_radio plugin
+        var lang = self.commandRouter.sharedVars.get('language_code') || 'en';
+        self.logger.info('pi_screen_setup: /api/language returning: ' + lang);
         res.json({ language: lang });
       } catch (e) {
-        self.logger.error('pi_screen_setup: API error (language) - ' + e);
+        self.logger.error('pi_screen_setup: Failed to get language setting: ' + e);
         res.json({ language: 'en' });
       }
     });
@@ -451,32 +438,51 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // API: i18n Translations
     // ========================================
     self.expressApp.get('/api/i18n/:lang', function(req, res) {
-      try {
-        // Normalize language code (de_DE -> de, en_US -> en)
-        var rawLang = req.params.lang || 'en';
-        var lang = rawLang.split('_')[0].split('-')[0].toLowerCase();
-        
-        var i18nPath = path.join(__dirname, 'i18n', 'strings_' + lang + '.json');
-        
-        // Fallback to English if requested language doesn't exist
-        if (!fs.existsSync(i18nPath)) {
-          self.logger.info('pi_screen_setup: i18n file not found for ' + lang + ', falling back to en');
-          i18nPath = path.join(__dirname, 'i18n', 'strings_en.json');
-        }
-        
-        var translations = JSON.parse(fs.readFileSync(i18nPath, 'utf8'));
-        
-        // Return the inner object (PI_SCREEN_SETUP key contains the actual translations)
-        var keys = Object.keys(translations);
-        if (keys.length === 1 && typeof translations[keys[0]] === 'object') {
-          res.json(translations[keys[0]]);
+      var lang = req.params.lang || 'en';
+      self.logger.info('pi_screen_setup: /api/i18n/' + lang + ' requested');
+      var stringsFile = path.join(__dirname, 'i18n', 'strings_' + lang + '.json');
+      
+      fs.readFile(stringsFile, 'utf8', function(err, data) {
+        if (err) {
+          // Fallback to English
+          self.logger.info('pi_screen_setup: Translation file not found for ' + lang + ', using English');
+          stringsFile = path.join(__dirname, 'i18n', 'strings_en.json');
+          fs.readFile(stringsFile, 'utf8', function(err2, data2) {
+            if (err2) {
+              self.logger.error('pi_screen_setup: Failed to load English translations: ' + err2);
+              res.status(500).json({ error: 'Failed to load translations' });
+            } else {
+              try {
+                var translations = JSON.parse(data2);
+                // Unwrap PI_SCREEN_SETUP if present
+                var keys = Object.keys(translations);
+                if (keys.length === 1 && typeof translations[keys[0]] === 'object') {
+                  res.json(translations[keys[0]]);
+                } else {
+                  res.json(translations);
+                }
+              } catch (e) {
+                self.logger.error('pi_screen_setup: Failed to parse English translations: ' + e);
+                res.status(500).json({ error: 'Failed to parse translations' });
+              }
+            }
+          });
         } else {
-          res.json(translations);
+          try {
+            var translations = JSON.parse(data);
+            // Unwrap PI_SCREEN_SETUP if present
+            var keys = Object.keys(translations);
+            if (keys.length === 1 && typeof translations[keys[0]] === 'object') {
+              res.json(translations[keys[0]]);
+            } else {
+              res.json(translations);
+            }
+          } catch (e) {
+            self.logger.error('pi_screen_setup: Failed to parse translations for ' + lang + ': ' + e);
+            res.status(500).json({ error: 'Failed to parse translations' });
+          }
         }
-      } catch (e) {
-        self.logger.error('pi_screen_setup: API error (i18n) - ' + e);
-        res.status(500).json({ error: e.message });
-      }
+      });
     });
     
     // ========================================

@@ -1278,65 +1278,38 @@
     }
     
     function loadTranslations() {
-      // Get Volumio's API base URL (same host, default port)
-      var volumioApiBase = window.location.protocol + '//' + window.location.hostname;
-      
-      // Helper to normalize language code (de_DE -> de, en_US -> en)
-      function normalizeLang(lang) {
-        if (!lang) return 'en';
-        return lang.split('_')[0].split('-')[0].toLowerCase();
-      }
-      
-      // Try multiple methods to detect language
-      function detectLanguage() {
-        // Method 1: Volumio's REST API
-        return fetch(volumioApiBase + '/api/v1/getsystemlanguage')
-          .then(function(res) { 
-            if (!res.ok) throw new Error('API returned ' + res.status);
-            return res.json(); 
-          })
-          .then(function(data) {
-            console.log('Language from Volumio API:', data);
-            return normalizeLang(data.defaultLanguage || data.language);
-          })
-          .catch(function() {
-            // Method 2: Our local API (reads config file)
-            return fetch('/api/language')
-              .then(function(res) { return res.json(); })
-              .then(function(data) {
-                console.log('Language from local API:', data);
-                return normalizeLang(data.language);
-              });
-          })
-          .catch(function() {
-            // Method 3: Browser language
-            var browserLang = normalizeLang(navigator.language);
-            console.log('Using browser language:', browserLang);
-            return browserLang;
-          });
-      }
-      
-      return detectLanguage()
-        .then(function(lang) {
-          console.log('Final detected language:', lang);
-          // Fetch translations from our Express server
+      console.log('loadTranslations: Starting...');
+      // Fetch current Volumio language setting from server
+      return fetch('/api/language')
+        .then(function(res) { 
+          console.log('loadTranslations: /api/language response status:', res.status);
+          return res.json(); 
+        })
+        .then(function(langData) {
+          console.log('loadTranslations: Language data:', langData);
+          var lang = langData.language || 'en';
+          console.log('loadTranslations: Fetching translations for:', lang);
+          // Fetch translations for that language
           return fetch('/api/i18n/' + lang);
         })
         .then(function(res) { 
-          if (!res.ok) throw new Error('i18n fetch failed');
+          console.log('loadTranslations: /api/i18n response status:', res.status);
           return res.json(); 
         })
         .then(function(data) {
-          console.log('Loaded translations, keys:', Object.keys(data).length);
+          console.log('loadTranslations: Got translations, key count:', Object.keys(data).length);
+          console.log('loadTranslations: Sample key PM_TITLE:', data.PM_TITLE);
           i18n = data;
           updateUIText();
+          console.log('loadTranslations: updateUIText() called');
         })
         .catch(function(error) {
-          console.error('Translation loading failed:', error);
-          // Final fallback to English
+          console.error('loadTranslations: Failed:', error);
+          // Fallback to English on error
           return fetch('/api/i18n/en')
             .then(function(res) { return res.json(); })
             .then(function(data) {
+              console.log('loadTranslations: Fallback to English, keys:', Object.keys(data).length);
               i18n = data;
               updateUIText();
             });
@@ -1344,10 +1317,18 @@
     }
     
     function updateUIText() {
+      console.log('updateUIText: Starting, i18n keys:', Object.keys(i18n).length);
       // Helper to set text content safely
       function setText(id, key) {
         var el = document.getElementById(id);
-        if (el) el.textContent = t(key);
+        if (el) {
+          var translated = t(key);
+          el.textContent = translated;
+          // Log first few for debugging
+          if (id === 'page-title' || id === 'tab-manage-text') {
+            console.log('updateUIText: Set', id, '=', translated, '(key:', key, ')');
+          }
+        }
       }
       
       // Header and tabs
