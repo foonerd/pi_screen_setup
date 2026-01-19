@@ -1,5 +1,5 @@
 {
-  "version": "1.5.2",
+  "version": "1.5.3",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -1231,6 +1231,49 @@
       "description": "Enter manual hdmi_timings or hdmi_cvt",
       "config": {}
     },
+    "_comment_hdmi_bigtreetech": "--- BIGTREETECH/BIQU HDMI Displays ---",
+    "btt-hdmi5-v1.0": {
+      "name": "BIGTREETECH HDMI5 V1.0 (800x480)",
+      "type": "hdmi",
+      "description": "5 inch IPS capacitive touch, 5-point touch via USB",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0",
+        "hdmi_drive": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, supports 3.5mm audio output, hardware brightness buttons"
+    },
+    "btt-hdmi7-v1.0": {
+      "name": "BIGTREETECH HDMI7 V1.0 (1024x600)",
+      "type": "hdmi",
+      "description": "7 inch IPS capacitive touch, 5-point touch via USB",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "hdmi_drive": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, supports 3.5mm audio output, hardware brightness buttons"
+    },
+    "btt-hdmi7-v1.2": {
+      "name": "BIGTREETECH HDMI7 V1.2 (1024x600)",
+      "type": "hdmi",
+      "description": "7 inch IPS capacitive touch, 5-point touch via USB",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "hdmi_drive": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, supports 3.5mm audio output, hardware brightness buttons"
+    },
     "_comment_dsi_official": "=== OFFICIAL RASPBERRY PI DSI DISPLAYS ===",
     "rpi-touch-7inch": {
       "name": "Raspberry Pi Touch Display 7\" (Original)",
@@ -1860,6 +1903,79 @@
       "notes": "Pi display compatible, uses official 7-inch overlay, driver-free",
       "overlay_rotation_param": false
     },
+    "_comment_dsi_bigtreetech": "--- BIGTREETECH/BIQU DSI Displays ---",
+    "btt-pitft43-v2.0": {
+      "name": "BIGTREETECH PI TFT43 V2.0 (800x480)",
+      "type": "dsi",
+      "description": "4.3 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
+    "btt-pitft43-v2.1": {
+      "name": "BIGTREETECH PI TFT43 V2.1 (800x480)",
+      "type": "dsi",
+      "description": "4.3 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
+    "btt-pitft50-v2.0": {
+      "name": "BIGTREETECH PI TFT50 V2.0 (800x480)",
+      "type": "dsi",
+      "description": "5 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
+    "btt-pitft50-v2.1": {
+      "name": "BIGTREETECH PI TFT50 V2.1 (800x480)",
+      "type": "dsi",
+      "description": "5 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
+    "btt-pitft70-v2.0": {
+      "name": "BIGTREETECH PI TFT70 V2.0 (800x480)",
+      "type": "dsi",
+      "description": "7 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
+    "btt-pitft70-v2.1": {
+      "name": "BIGTREETECH PI TFT70 V2.1 (800x480)",
+      "type": "dsi",
+      "description": "7 inch DSI capacitive touchscreen for Raspberry Pi",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi display compatible, powered via DSI ribbon, adjustable backlight via encoder",
+      "overlay_rotation_param": false
+    },
     "_comment_dsi_other": "=== OTHER DSI DISPLAYS ===",
     "jdi-lt070me05000": {
       "name": "JDI LT070ME05000 DSI (1920x1200)",
@@ -2027,6 +2143,22 @@
       },
       "recommended_rotation": 0,
       "notes": "Converts DPI output to VGA signal"
+    },
+    "_comment_dpi_bigtreetech": "--- BIGTREETECH/BIQU DPI Displays ---",
+    "btt-tft43-dip": {
+      "name": "BIGTREETECH TFT43-DIP (800x480)",
+      "type": "dpi",
+      "description": "4.3 inch DPI display with GT911 capacitive touch",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-generic",
+        "dtparam": "rgb666-padhi,clock-frequency=32000000",
+        "dtparam_2": "hactive=800,hfp=16,hsync=1,hbp=46",
+        "dtparam_3": "vactive=480,vfp=7,vsync=3,vbp=23",
+        "dtparam_4": "backlight-gpio=19"
+      },
+      "recommended_rotation": 0,
+      "notes": "Requires gt911_btt_tft43_dip overlay for touch from BIGTREETECH GitHub"
     },
     "_comment_dpi_other": "--- Other DPI Displays ---",
     "owootecc-dpi-4.3": {
