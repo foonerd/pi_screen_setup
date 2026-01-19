@@ -1,5 +1,5 @@
 {
-  "version": "1.5.4",
+  "version": "1.5.5",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -1423,6 +1423,135 @@
       "recommended_rotation": 0,
       "notes": "Touch via USB, supports 3.5mm audio output, hardware brightness buttons"
     },
+    "_comment_hdmi_hosyond": "--- Hosyond HDMI Displays ---",
+    "hosyond-5-hdmi-b": {
+      "name": "Hosyond 5\" HDMI Display-B (800x480)",
+      "type": "hdmi",
+      "description": "MPI5001 capacitive touch display with OSD menu",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. OSD for brightness/contrast. 3.5mm audio output"
+    },
+    "hosyond-7-hdmi-c": {
+      "name": "Hosyond 7\" HDMI Display-C (1024x600)",
+      "type": "hdmi",
+      "description": "MPI7002 capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "5-point capacitive touch via USB. Backlight power switch"
+    },
+    "hosyond-7-hdmi-h": {
+      "name": "Hosyond 7\" HDMI Display-H (1024x600)",
+      "type": "hdmi",
+      "description": "MPI7002 variant with case and OSD controls",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. OSD menu. Includes protective case"
+    },
+    "hosyond-8.8-hdmi": {
+      "name": "Hosyond 8.8\" HDMI Bar (480x1920)",
+      "type": "hdmi",
+      "description": "MPC8801 portrait IPS bar display",
+      "native_resolution": "480x1920",
+      "rotated_resolution": "1920x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1920 480 60 6 0 0 0",
+        "config_hdmi_boost": 7,
+        "max_framebuffer_height": 1920
+      },
+      "video_mode": "480x1920M@60",
+      "recommended_rotation": 90,
+      "notes": "Portrait native IPS. Touch via USB Type-C. MPC8802 is non-touch variant"
+    },
+    "hosyond-10.1-hdmi-h": {
+      "name": "Hosyond 10.1\" HDMI Display-H (1024x600)",
+      "type": "hdmi",
+      "description": "10.1 inch capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. OSD controls. External 12V power recommended"
+    },
+    "hosyond-10.1-hdmi-y": {
+      "name": "Hosyond 10.1\" HDMI Display-Y (1024x600)",
+      "type": "hdmi",
+      "description": "10.1 inch capacitive touch display Y variant",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Y model variant"
+    },
+    "hosyond-10.1-hdmi-s": {
+      "name": "Hosyond 10.1\" HDMI Display-S (1024x600)",
+      "type": "hdmi",
+      "description": "10.1 inch capacitive touch display S variant",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. S model variant"
+    },
+    "_comment_hdmi_hmtech": "--- HMTECH HDMI Displays ---",
+    "hmtech-7-hdmi": {
+      "name": "HMTECH 7\" HDMI Monitor (800x480)",
+      "type": "hdmi",
+      "description": "IPS display, non-touch, plug and play",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "USB powered. No touch. Use with Pi 4 requires Micro-HDMI adapter"
+    },
+    "hmtech-10.1-hdmi": {
+      "name": "HMTECH 10.1\" HDMI Touchscreen (1024x600)",
+      "type": "hdmi",
+      "description": "IPS capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Built-in stand. Use with Pi 4 requires Micro-HDMI adapter"
+    },
     "_comment_dsi_official": "=== OFFICIAL RASPBERRY PI DSI DISPLAYS ===",
     "rpi-touch-7inch": {
       "name": "Raspberry Pi Touch Display 7\" (Original)",
@@ -1459,6 +1588,31 @@
       "recommended_rotation": 0,
       "notes": "ILI9881 based panel, portrait native",
       "overlay_rotation_param": true
+    },
+    "_comment_dsi_hosyond": "--- Hosyond DSI Displays ---",
+    "hosyond-5-dsi": {
+      "name": "Hosyond 5\" DSI Display (800x480)",
+      "type": "dsi",
+      "description": "5-inch DSI capacitive touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses official 7-inch overlay. Compatible with Pi 4/5",
+      "overlay_rotation_param": false
+    },
+    "hosyond-7-dsi": {
+      "name": "Hosyond 7\" DSI Display (800x480)",
+      "type": "dsi",
+      "description": "7-inch DSI capacitive touchscreen",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "Uses official 7-inch overlay. Compatible with Pi 4/5. Case variant available",
+      "overlay_rotation_param": false
     },
     "_comment_dsi_waveshare": "=== WAVESHARE DSI DISPLAYS (vc4-kms-dsi-waveshare-panel) ===",
     "_comment_dsi_waveshare_special": "--- Waveshare 3.5\" DSI (custom overlays) ---",
