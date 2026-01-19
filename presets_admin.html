@@ -974,6 +974,37 @@
       });
     }
     
+    // ===== NATURAL SORT HELPER =====
+    // Handles numeric values properly: "2.8 inch" < "10.1 inch"
+    function naturalSortCompare(a, b) {
+      var reChunk = /(\d+\.?\d*|\D+)/g;
+      var chunksA = (a || '').toLowerCase().match(reChunk) || [];
+      var chunksB = (b || '').toLowerCase().match(reChunk) || [];
+      
+      var len = Math.max(chunksA.length, chunksB.length);
+      for (var i = 0; i < len; i++) {
+        var chunkA = chunksA[i] || '';
+        var chunkB = chunksB[i] || '';
+        
+        var numA = parseFloat(chunkA);
+        var numB = parseFloat(chunkB);
+        var isNumA = !isNaN(numA);
+        var isNumB = !isNaN(numB);
+        
+        if (isNumA && isNumB) {
+          if (numA !== numB) return numA - numB;
+        } else if (isNumA) {
+          return -1;
+        } else if (isNumB) {
+          return 1;
+        } else {
+          var cmp = chunkA.localeCompare(chunkB);
+          if (cmp !== 0) return cmp;
+        }
+      }
+      return 0;
+    }
+    
     // ===== TOAST NOTIFICATIONS =====
     function showToast(message, type) {
       type = type || 'info';
@@ -1086,7 +1117,7 @@
       manageSelect.innerHTML = '<option value="">-- Select a preset --</option>';
       deleteSelect.innerHTML = '<option value="">-- Select a preset --</option>';
       
-      // Filter out _comment_ entries and sort by type then name
+      // Filter out _comment_ entries and sort by type then name (natural sort)
       var sortedIds = Object.keys(presets)
         .filter(function(id) {
           return !id.startsWith('_comment');
@@ -1097,9 +1128,10 @@
           var typeA = (pa.type || 'zzz').toLowerCase();
           var typeB = (pb.type || 'zzz').toLowerCase();
           if (typeA !== typeB) return typeA.localeCompare(typeB);
-          var nameA = (pa.name || a).toLowerCase();
-          var nameB = (pb.name || b).toLowerCase();
-          return nameA.localeCompare(nameB);
+          // Use natural sort for names (handles "2.8 inch" < "10.1 inch")
+          var nameA = pa.name || a;
+          var nameB = pb.name || b;
+          return naturalSortCompare(nameA, nameB);
         });
       
       sortedIds.forEach(function(id) {

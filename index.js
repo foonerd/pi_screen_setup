@@ -107,6 +107,49 @@ var MIGRATION_PATTERNS = [
   /^enable_tvout/m                 // Composite enable
 ];
 
+/**
+ * Natural sort comparator for display preset names
+ * Handles numeric values properly: "2.8 inch" < "10.1 inch"
+ * Also handles: 8" = 8.0", version numbers, resolutions
+ */
+function naturalSortCompare(a, b) {
+  // Split strings into chunks of numbers and non-numbers
+  var reChunk = /(\d+\.?\d*|\D+)/g;
+  var chunksA = (a || '').toLowerCase().match(reChunk) || [];
+  var chunksB = (b || '').toLowerCase().match(reChunk) || [];
+  
+  var len = Math.max(chunksA.length, chunksB.length);
+  for (var i = 0; i < len; i++) {
+    var chunkA = chunksA[i] || '';
+    var chunkB = chunksB[i] || '';
+    
+    // Check if both chunks are numeric
+    var numA = parseFloat(chunkA);
+    var numB = parseFloat(chunkB);
+    var isNumA = !isNaN(numA);
+    var isNumB = !isNaN(numB);
+    
+    if (isNumA && isNumB) {
+      // Compare as numbers
+      if (numA !== numB) {
+        return numA - numB;
+      }
+    } else if (isNumA) {
+      // Numbers come before non-numbers
+      return -1;
+    } else if (isNumB) {
+      return 1;
+    } else {
+      // Compare as strings
+      var cmp = chunkA.localeCompare(chunkB);
+      if (cmp !== 0) {
+        return cmp;
+      }
+    }
+  }
+  return 0;
+}
+
 
 function PiScreenSetup(context) {
   var self = this;
@@ -1767,10 +1810,10 @@ PiScreenSetup.prototype.getAdminPresetList = function() {
     });
   }
   
-  // Sort by type then name
+  // Sort by type then name (natural sort for numeric values)
   list.sort(function(a, b) {
     if (a.type !== b.type) return a.type.localeCompare(b.type);
-    return a.name.localeCompare(b.name);
+    return naturalSortCompare(a.name, b.name);
   });
   
   return list;
@@ -5171,9 +5214,14 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
               presetOptions.push({ value: presetKey, label: preset.name });
             }
           }
-          if (presetOptions.length === 0) {
-            presetOptions.push({ value: 'auto', label: 'Auto Detect (EDID)' });
-          }
+          // Sort using natural sort (handles numeric values properly)
+          presetOptions.sort(function(a, b) {
+            return naturalSortCompare(a.label, b.label);
+          });
+          // Add Auto Detect at start and Off at end
+          presetOptions.unshift({ value: 'auto', label: 'Auto Detect (EDID)' });
+          presetOptions.push({ value: 'off', label: 'Off' });
+          
           presetSelect.options = presetOptions;
           var currentPreset = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto');
           presetSelect.value = presetOptions.find(function(o) { return o.value === currentPreset; }) || presetOptions[0];
@@ -5312,6 +5360,10 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
               dsiOptions.push({ value: presetKey, label: preset.name });
             }
           }
+          // Sort using natural sort (handles numeric values properly)
+          dsiOptions.sort(function(a, b) {
+            return naturalSortCompare(a.label, b.label);
+          });
           // Log warning if no presets loaded (database issue)
           if (dsiOptions.length === 0) {
             self.logger.warn('pi_screen_setup: No DSI presets found in database');
@@ -5353,6 +5405,10 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
               dpiOptions.push({ value: presetKey, label: preset.name });
             }
           }
+          // Sort using natural sort (handles numeric values properly)
+          dpiOptions.sort(function(a, b) {
+            return naturalSortCompare(a.label, b.label);
+          });
           // Log warning if no presets loaded (database issue)
           if (dpiOptions.length === 0) {
             self.logger.warn('pi_screen_setup: No DPI presets found in database');
