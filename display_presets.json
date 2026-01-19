@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
+  "version": "1.5.0",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -613,6 +613,73 @@
       },
       "recommended_rotation": 0,
       "notes": "10-point touch via USB. USB-C display input. Requires 5V 3A external power"
+    },
+    "_comment_hdmi_joyit": "--- Joy-IT HDMI Displays ---",
+    "joyit-5-hdmi-v2": {
+      "name": "Joy-IT 5\" HDMI LCD V2 (800x480)",
+      "type": "hdmi",
+      "description": "RB-LCD-5 with resistive touch, uses goodtft driver",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch requires goodtft LCD-show driver installation. Model: 5 Inch HDMI LCD V2"
+    },
+    "joyit-7-hdmi-v2": {
+      "name": "Joy-IT 7\" HDMI LCD V2 (1024x600)",
+      "type": "hdmi",
+      "description": "RB-LCD-7-2 TFT with capacitive touch (GT811)",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "hdmi_drive": 1
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Single-touch on Pi, 5-point on PC"
+    },
+    "joyit-10-hdmi-v2": {
+      "name": "Joy-IT 10\" HDMI LCD V2 (1280x800)",
+      "type": "hdmi",
+      "description": "RB-LCD-10-2 IPS with capacitive touch, metal case",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Professional metal enclosure"
+    },
+    "joyit-10.1-hdmi-v3": {
+      "name": "Joy-IT 10.1\" IPS HDMI V3 (1280x800)",
+      "type": "hdmi",
+      "description": "RB-LCD10-3 professional IPS with 5-point touch and speakers",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Has VGA input, 3.5mm audio out, built-in speakers. Touch via USB"
+    },
+    "joyit-10.1-hdmi-b": {
+      "name": "Joy-IT 10.1\" HDMI LCD Version B (1280x800)",
+      "type": "hdmi",
+      "description": "RB-LCD-10B IPS in acrylic case with stand",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Includes mounting bracket and stand"
     },
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
