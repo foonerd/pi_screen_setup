@@ -1,6 +1,6 @@
 {
   "name": "pi_screen_setup",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Comprehensive display configuration for Raspberry Pi including HDMI, DSI, DPI, and Composite outputs with KMS/DRM support.",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "boot_priority": 5,
     "has_alsa_contribution": false,
     "details": "Configure display outputs on Raspberry Pi devices. Supports HDMI (single and dual), DSI displays (official 7-inch and third-party), DPI/GPIO displays, and Composite output. Features include display presets for popular screens (Waveshare, Elecrow), rotation, KMS/CMA configuration, and automatic migration from existing display settings.",
-    "changelog": "0.7.0: Preset Manager UI improvements - radio manager styling, button alignment, version suggestions from max(local/remote), split database sections"
+    "changelog": "0.7.1: Natural sort for preset dropdowns, complete translations for all 6 languages, version suggestion uses max(local/remote), button styling fixes"
   },
   "engines": {
     "node": ">=20",
