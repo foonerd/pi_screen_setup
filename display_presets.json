@@ -1,5 +1,5 @@
 {
-  "version": "1.3.3",
+  "version": "1.3.4",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -100,6 +100,19 @@
       "notes": "Optical bonding for better display quality"
     },
     "_comment_hdmi_small": "--- Small Displays (under 5 inch) ---",
+    "waveshare-3.5-hdmi": {
+      "name": "Waveshare 3.5\" HDMI LCD (480x320)",
+      "type": "hdmi",
+      "description": "Small IPS display with resistive touch via SPI",
+      "native_resolution": "480x320",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 320 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch requires waveshare-ads7846 overlay. Can scale to 800x480 with hdmi_cvt 800 480 60 6 0 0 0"
+    },
     "waveshare-4-hdmi": {
       "name": "Waveshare 4\" HDMI LCD (480x800)",
       "type": "hdmi",
@@ -127,42 +140,272 @@
       "recommended_rotation": 0,
       "notes": "Requires ads7846 overlay for touch"
     },
-    "_comment_hdmi_standard": "--- Standard Displays ---",
-    "waveshare-5-hdmi": {
-      "name": "Waveshare 5\" HDMI LCD (800x480)",
+    "waveshare-4.3-hdmi-b": {
+      "name": "Waveshare 4.3\" HDMI LCD (B) (800x480)",
       "type": "hdmi",
-      "description": "Standard landscape HDMI display",
+      "description": "Small IPS display with capacitive touch via USB",
       "native_resolution": "800x480",
       "config": {
         "hdmi_group": 2,
         "hdmi_mode": 87,
         "hdmi_cvt": "800 480 60 6 0 0 0"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "notes": "5-point capacitive touch, supports HDMI audio with 3.5mm jack"
+    },
+    "_comment_hdmi_standard": "--- Standard Displays ---",
+    "waveshare-5-hdmi": {
+      "name": "Waveshare 5\" HDMI LCD (800x480)",
+      "type": "hdmi",
+      "description": "Standard landscape HDMI display with resistive touch",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch requires waveshare-ads7846 overlay via SPI"
+    },
+    "waveshare-5-hdmi-b": {
+      "name": "Waveshare 5\" HDMI LCD (B) (800x480)",
+      "type": "hdmi",
+      "description": "Resistive touch display with USB touch interface",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, supports backlight control"
+    },
+    "waveshare-5-hdmi-g": {
+      "name": "Waveshare 5\" HDMI LCD (G) (800x480)",
+      "type": "hdmi",
+      "description": "Resistive touch display with OSD menu",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Touch via USB, OSD for brightness/contrast, 3.5mm audio jack"
+    },
+    "waveshare-5-hdmi-h": {
+      "name": "Waveshare 5\" HDMI LCD (H) (800x480)",
+      "type": "hdmi",
+      "description": "Capacitive touch display with OSD menu",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point capacitive touch via USB, OSD menu, 3.5mm audio jack"
+    },
+    "waveshare-5-hdmi-amoled": {
+      "name": "Waveshare 5\" HDMI AMOLED (960x544)",
+      "type": "hdmi",
+      "description": "AMOLED display with capacitive touch",
+      "native_resolution": "960x544",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "960 0 190 4 32 544 0 10 10 12 0 0 0 60 0 41000000 3",
+        "config_hdmi_boost": 10
+      },
+      "recommended_rotation": 0,
+      "notes": "AMOLED - avoid static images >1hr. 3.5mm audio jack"
+    },
+    "waveshare-5.5-hdmi-amoled": {
+      "name": "Waveshare 5.5\" HDMI AMOLED (1080x1920)",
+      "type": "hdmi",
+      "description": "Portrait AMOLED display with capacitive touch",
+      "native_resolution": "1080x1920",
+      "rotated_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1080 1 26 4 50 1920 1 8 2 6 0 0 0 60 0 135580000 3",
+        "max_framebuffer_height": 1920,
+        "config_hdmi_boost": 10
+      },
+      "recommended_rotation": 90,
+      "notes": "AMOLED - avoid static images >1hr. Portrait native, 3.5mm audio jack"
+    },
+    "waveshare-5.5-hdmi-2k": {
+      "name": "Waveshare 5.5\" 2K HDMI LCD (1440x2560)",
+      "type": "hdmi",
+      "description": "Portrait 2K IPS display with capacitive touch",
+      "native_resolution": "1440x2560",
+      "rotated_resolution": "2560x1440",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1440 0 10 10 140 2560 0 11 2 2 0 0 0 50 0 206000000 3",
+        "hdmi_pixel_freq_limit": 268500000,
+        "framebuffer_width": 1440,
+        "framebuffer_height": 2560,
+        "max_framebuffer_width": 1440,
+        "max_framebuffer_height": 2560,
+        "config_hdmi_boost": 10,
+        "gpu_mem": 256
+      },
+      "recommended_rotation": 90,
+      "notes": "Pi 4/5 only. Portrait native. 10-point touch, 3.5mm audio"
     },
     "waveshare-7-hdmi": {
       "name": "Waveshare 7\" HDMI LCD (1024x600)",
       "type": "hdmi",
-      "description": "Standard landscape HDMI display",
+      "description": "Standard landscape HDMI display with resistive touch",
       "native_resolution": "1024x600",
       "config": {
         "hdmi_group": 2,
         "hdmi_mode": 87,
         "hdmi_cvt": "1024 600 60 3 0 0 0"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "notes": "Touch requires waveshare-ads7846 overlay via SPI"
+    },
+    "waveshare-7-hdmi-b": {
+      "name": "Waveshare 7\" HDMI LCD (B) (800x480)",
+      "type": "hdmi",
+      "description": "Lower resolution display with capacitive touch via USB",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB, supports backlight control"
+    },
+    "waveshare-7-hdmi-c": {
+      "name": "Waveshare 7\" HDMI LCD (C) (1024x600)",
+      "type": "hdmi",
+      "description": "Capacitive touch display with USB interface",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB, supports HDMI audio"
+    },
+    "waveshare-7-hdmi-h": {
+      "name": "Waveshare 7\" HDMI LCD (H) (1024x600)",
+      "type": "hdmi",
+      "description": "Capacitive touch display with case option",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "5-point capacitive touch via USB, OSD menu, 3.5mm audio jack"
+    },
+    "waveshare-7-fhd-hdmi": {
+      "name": "Waveshare 7\" FHD HDMI Monitor (1080x1920)",
+      "type": "hdmi",
+      "description": "Portrait FHD IPS display with capacitive touch",
+      "native_resolution": "1080x1920",
+      "rotated_resolution": "1920x1080",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1080 0 112 16 160 1920 0 4 10 10 0 0 0 60 0 140000000 3",
+        "max_framebuffer_height": 1920,
+        "extra_transpose_buffer": 2,
+        "gpu_mem": 512
+      },
+      "recommended_rotation": 90,
+      "notes": "Portrait native, Pi Zero use gpu_mem=256. Metal CNC case, 3.5mm audio"
     },
     "waveshare-10.1-hdmi": {
       "name": "Waveshare 10.1\" HDMI LCD (1024x600)",
       "type": "hdmi",
-      "description": "Standard landscape HDMI display",
+      "description": "Standard landscape HDMI display with resistive touch",
       "native_resolution": "1024x600",
       "config": {
         "hdmi_group": 2,
         "hdmi_mode": 87,
         "hdmi_cvt": "1024 600 60 3 0 0 0"
       },
-      "recommended_rotation": 0
+      "recommended_rotation": 0,
+      "notes": "Touch requires waveshare-ads7846 overlay via SPI"
+    },
+    "waveshare-10.1-hdmi-b": {
+      "name": "Waveshare 10.1\" HDMI LCD (B) (1280x800)",
+      "type": "hdmi",
+      "description": "Higher resolution display with capacitive touch",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point capacitive touch via USB, toughened glass, low power"
+    },
+    "waveshare-10.1-hdmi-e": {
+      "name": "Waveshare 10.1\" HDMI LCD (E) (1024x600)",
+      "type": "hdmi",
+      "description": "Optical bonding display with capacitive touch",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB, optical bonding, 3.5mm audio jack"
+    },
+    "waveshare-10.1-hdmi-f": {
+      "name": "Waveshare 10.1\" HDMI LCD (F) (1024x600)",
+      "type": "hdmi",
+      "description": "Updated model with capacitive touch and case",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "10-point touch via USB, with protective case option"
+    },
+    "waveshare-10.1-hdmi-h": {
+      "name": "Waveshare 10.1\" HDMI LCD (H) (1024x600)",
+      "type": "hdmi",
+      "description": "Display with case and external controller board",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Capacitive touch via USB, external 12V power, VGA/AV inputs available"
+    },
+    "waveshare-10.5-hdmi-amoled": {
+      "name": "Waveshare 10.5\" HDMI AMOLED (2560x1600)",
+      "type": "hdmi",
+      "description": "2K AMOLED display with capacitive touch",
+      "native_resolution": "2560x1600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "2560 0 300 32 102 1600 0 10 10 10 0 0 0 60 0 297000000 3",
+        "framebuffer_width": 2560,
+        "framebuffer_height": 1600,
+        "config_hdmi_boost": 4
+      },
+      "recommended_rotation": 0,
+      "notes": "Pi 4/5 only. AMOLED - avoid static images >1hr. CNC alloy case, speaker"
     },
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
