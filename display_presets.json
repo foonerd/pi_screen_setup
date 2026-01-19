@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "last_updated": "2026-01-19",
   "presets": {
     "auto": {
@@ -1787,6 +1787,17 @@
       },
       "recommended_rotation": 0,
       "notes": "Pimoroni HyperPixel 4.0 square display"
+    },
+    "hyperpixel2r": {
+      "name": "Pimoroni HyperPixel 2.1 Round",
+      "type": "dpi",
+      "description": "2.1-inch round DPI display (480x480)",
+      "native_resolution": "480x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-hyperpixel2r"
+      },
+      "recommended_rotation": 0,
+      "notes": "Pimoroni HyperPixel 2.1 Round display. Touch can be disabled with disable-touch parameter."
     },
     "vga666": {
       "name": "VGA666 Adapter",
