@@ -854,6 +854,14 @@
               <div class="field-help">Required for Pi 4/5 composite output</div>
             </div>
           </div>
+          
+          <!-- Additional Parameters (for unknown/advanced keys) -->
+          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="form-group">
+            <label>Extra Config (JSON)</label>
+            <textarea id="manage-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
+            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
+          </div>
         </div>
         
         <div class="version-bump">
@@ -1066,6 +1074,14 @@
               </select>
               <div class="field-help">Required for Pi 4/5 composite output</div>
             </div>
+          </div>
+          
+          <!-- Additional Parameters (for unknown/advanced keys) -->
+          <div class="config-section-title" style="margin-top: 20px;">Additional Parameters</div>
+          <div class="form-group">
+            <label>Extra Config (JSON)</label>
+            <textarea id="add-cfg-additional" rows="3" placeholder='{"custom_key": "value"}'></textarea>
+            <div class="field-help">For advanced or unusual config keys not covered above. Must be valid JSON object.<br><span class="example">Example: {"dtparam": "audio=on", "display_rotate": 2}</span></div>
           </div>
         </div>
         
@@ -1435,6 +1451,10 @@
       var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
       if (enableTvout) enableTvout.value = '';
       
+      // Additional parameters
+      var additional = document.getElementById(prefix + '-cfg-additional');
+      if (additional) additional.value = '';
+      
       // Hide timing sub-fields
       showTimingFieldsForFormat(prefix, 'none');
     }
@@ -1453,17 +1473,31 @@
         return;
       }
       
+      // Define known keys per type
+      var knownKeys = {
+        hdmi: ['hdmi_group', 'hdmi_mode', 'hdmi_timings', 'hdmi_cvt', 
+               'max_framebuffer_height', 'max_framebuffer_width',
+               'hdmi_pixel_freq_limit', 'config_hdmi_boost', 'gpu_mem'],
+        dsi: ['dtoverlay', 'dtoverlay_2'],
+        dpi: ['dtoverlay', 'dtoverlay_2', 'dtoverlay_3', 'dtoverlay_4'],
+        composite: ['sdtv_mode', 'sdtv_aspect', 'enable_tvout']
+      };
+      
+      var handledKeys = [];
+      
       if (type === 'hdmi') {
         // HDMI Group
         if (config.hdmi_group !== undefined) {
           var hdmiGroup = document.getElementById(prefix + '-cfg-hdmi-group');
           if (hdmiGroup) hdmiGroup.value = String(config.hdmi_group);
+          handledKeys.push('hdmi_group');
         }
         
         // HDMI Mode
         if (config.hdmi_mode !== undefined) {
           var hdmiMode = document.getElementById(prefix + '-cfg-hdmi-mode');
           if (hdmiMode) hdmiMode.value = config.hdmi_mode;
+          handledKeys.push('hdmi_mode');
         }
         
         // Timing format and values (mutually exclusive)
@@ -1473,11 +1507,13 @@
           var hdmiTimings = document.getElementById(prefix + '-cfg-hdmi-timings');
           if (hdmiTimings) hdmiTimings.value = config.hdmi_timings;
           showTimingFieldsForFormat(prefix, 'hdmi_timings');
+          handledKeys.push('hdmi_timings');
         } else if (config.hdmi_cvt) {
           if (timingFormat) timingFormat.value = 'hdmi_cvt';
           var hdmiCvt = document.getElementById(prefix + '-cfg-hdmi-cvt');
           if (hdmiCvt) hdmiCvt.value = config.hdmi_cvt;
           showTimingFieldsForFormat(prefix, 'hdmi_cvt');
+          handledKeys.push('hdmi_cvt');
         } else {
           if (timingFormat) timingFormat.value = 'none';
         }
@@ -1486,24 +1522,29 @@
         if (config.max_framebuffer_height !== undefined) {
           var maxFbHeight = document.getElementById(prefix + '-cfg-max-fb-height');
           if (maxFbHeight) maxFbHeight.value = config.max_framebuffer_height;
+          handledKeys.push('max_framebuffer_height');
         }
         if (config.max_framebuffer_width !== undefined) {
           var maxFbWidth = document.getElementById(prefix + '-cfg-max-fb-width');
           if (maxFbWidth) maxFbWidth.value = config.max_framebuffer_width;
+          handledKeys.push('max_framebuffer_width');
         }
         
         // Advanced options
         if (config.hdmi_pixel_freq_limit !== undefined) {
           var pixelFreq = document.getElementById(prefix + '-cfg-hdmi-pixel-freq');
           if (pixelFreq) pixelFreq.value = config.hdmi_pixel_freq_limit;
+          handledKeys.push('hdmi_pixel_freq_limit');
         }
         if (config.config_hdmi_boost !== undefined) {
           var hdmiBoost = document.getElementById(prefix + '-cfg-hdmi-boost');
           if (hdmiBoost) hdmiBoost.value = config.config_hdmi_boost;
+          handledKeys.push('config_hdmi_boost');
         }
         if (config.gpu_mem !== undefined) {
           var gpuMem = document.getElementById(prefix + '-cfg-gpu-mem');
           if (gpuMem) gpuMem.value = config.gpu_mem;
+          handledKeys.push('gpu_mem');
         }
         
       } else if (type === 'dsi') {
@@ -1511,10 +1552,12 @@
         if (config.dtoverlay !== undefined) {
           var dsiOverlay = document.getElementById(prefix + '-cfg-dsi-dtoverlay');
           if (dsiOverlay) dsiOverlay.value = config.dtoverlay;
+          handledKeys.push('dtoverlay');
         }
         if (config.dtoverlay_2 !== undefined) {
           var dsiOverlay2 = document.getElementById(prefix + '-cfg-dsi-dtoverlay2');
           if (dsiOverlay2) dsiOverlay2.value = config.dtoverlay_2;
+          handledKeys.push('dtoverlay_2');
         }
         
       } else if (type === 'dpi') {
@@ -1522,18 +1565,22 @@
         if (config.dtoverlay !== undefined) {
           var dpiOverlay = document.getElementById(prefix + '-cfg-dpi-dtoverlay');
           if (dpiOverlay) dpiOverlay.value = config.dtoverlay;
+          handledKeys.push('dtoverlay');
         }
         if (config.dtoverlay_2 !== undefined) {
           var dpiOverlay2 = document.getElementById(prefix + '-cfg-dpi-dtoverlay2');
           if (dpiOverlay2) dpiOverlay2.value = config.dtoverlay_2;
+          handledKeys.push('dtoverlay_2');
         }
         if (config.dtoverlay_3 !== undefined) {
           var dpiOverlay3 = document.getElementById(prefix + '-cfg-dpi-dtoverlay3');
           if (dpiOverlay3) dpiOverlay3.value = config.dtoverlay_3;
+          handledKeys.push('dtoverlay_3');
         }
         if (config.dtoverlay_4 !== undefined) {
           var dpiOverlay4 = document.getElementById(prefix + '-cfg-dpi-dtoverlay4');
           if (dpiOverlay4) dpiOverlay4.value = config.dtoverlay_4;
+          handledKeys.push('dtoverlay_4');
         }
         
       } else if (type === 'composite') {
@@ -1541,14 +1588,37 @@
         if (config.sdtv_mode !== undefined) {
           var sdtvMode = document.getElementById(prefix + '-cfg-sdtv-mode');
           if (sdtvMode) sdtvMode.value = String(config.sdtv_mode);
+          handledKeys.push('sdtv_mode');
         }
         if (config.sdtv_aspect !== undefined) {
           var sdtvAspect = document.getElementById(prefix + '-cfg-sdtv-aspect');
           if (sdtvAspect) sdtvAspect.value = String(config.sdtv_aspect);
+          handledKeys.push('sdtv_aspect');
         }
         if (config.enable_tvout !== undefined) {
           var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
           if (enableTvout) enableTvout.value = String(config.enable_tvout);
+          handledKeys.push('enable_tvout');
+        }
+      }
+      
+      // Collect unknown keys into additional parameters
+      var unknownConfig = {};
+      var configKeys = Object.keys(config);
+      var typeKnownKeys = knownKeys[type] || [];
+      
+      for (var i = 0; i < configKeys.length; i++) {
+        var key = configKeys[i];
+        if (handledKeys.indexOf(key) === -1 && typeKnownKeys.indexOf(key) === -1) {
+          unknownConfig[key] = config[key];
+        }
+      }
+      
+      // If there are unknown keys, populate the additional textarea
+      if (Object.keys(unknownConfig).length > 0) {
+        var additional = document.getElementById(prefix + '-cfg-additional');
+        if (additional) {
+          additional.value = JSON.stringify(unknownConfig, null, 2);
         }
       }
     }
@@ -1658,6 +1728,25 @@
         var enableTvout = document.getElementById(prefix + '-cfg-enable-tvout');
         if (enableTvout && enableTvout.value !== '') {
           config.enable_tvout = parseInt(enableTvout.value, 10);
+        }
+      }
+      
+      // Merge additional parameters from textarea
+      var additional = document.getElementById(prefix + '-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var additionalConfig = JSON.parse(additional.value.trim());
+          if (additionalConfig && typeof additionalConfig === 'object') {
+            // Merge additional keys into config (additional params take precedence)
+            var addKeys = Object.keys(additionalConfig);
+            for (var i = 0; i < addKeys.length; i++) {
+              var key = addKeys[i];
+              config[key] = additionalConfig[key];
+            }
+          }
+        } catch (e) {
+          // Invalid JSON in additional params - will be caught during save validation
+          console.warn('Invalid JSON in additional parameters: ' + e.message);
         }
       }
       
@@ -1954,6 +2043,21 @@
         return;
       }
       
+      // Validate additional parameters JSON before building config
+      var additional = document.getElementById('manage-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var parsed = JSON.parse(additional.value.trim());
+          if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            showToast('Additional parameters must be a JSON object', 'error');
+            return;
+          }
+        } catch (e) {
+          showToast('Invalid JSON in additional parameters: ' + e.message, 'error');
+          return;
+        }
+      }
+      
       // Build config from form fields
       var config = buildConfigFromFields('manage', type);
       
@@ -1985,7 +2089,6 @@
       var name = document.getElementById('add-name').value.trim();
       var type = document.getElementById('add-type').value;
       var desc = document.getElementById('add-desc').value;
-      var configStr = document.getElementById('add-config').value;
       var version = document.getElementById('add-version').value;
       
       if (!id) {
@@ -2003,12 +2106,23 @@
         return;
       }
       
-      try {
-        var config = JSON.parse(configStr);
-      } catch (e) {
-        showToast('Invalid JSON in configuration', 'error');
-        return;
+      // Validate additional parameters JSON before building config
+      var additional = document.getElementById('add-cfg-additional');
+      if (additional && additional.value.trim() !== '') {
+        try {
+          var parsed = JSON.parse(additional.value.trim());
+          if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            showToast('Additional parameters must be a JSON object', 'error');
+            return;
+          }
+        } catch (e) {
+          showToast('Invalid JSON in additional parameters: ' + e.message, 'error');
+          return;
+        }
       }
+      
+      // Build config from form fields
+      var config = buildConfigFromFields('add', type);
       
       var data = {
         id: id,
@@ -2039,8 +2153,11 @@
       document.getElementById('add-name').value = '';
       document.getElementById('add-type').value = 'hdmi';
       document.getElementById('add-desc').value = '';
-      document.getElementById('add-config').value = '{}';
       document.getElementById('add-version').value = '';
+      
+      // Clear all config fields and show HDMI fields (default type)
+      clearConfigFields('add');
+      showConfigFieldsForType('add', 'hdmi');
     }
     
     // ===== DELETE PRESET TAB =====
