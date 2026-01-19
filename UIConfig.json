@@ -935,6 +935,310 @@
           }
         }
       ]
+    },
+    {
+      "id": "section_database",
+      "element": "section",
+      "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DATABASE",
+      "icon": "fa-database",
+      "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DATABASE_DESC",
+      "content": [
+        {
+          "id": "db_active_version",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_ACTIVE_VERSION",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_active_source",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_ACTIVE_SOURCE",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_preset_count",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_PRESET_COUNT",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_last_check",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_LAST_CHECK",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "db_check_update_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_CHECK_UPDATE",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_CHECK_UPDATE_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "checkForDatabaseUpdate"
+          }
+        },
+        {
+          "id": "db_revert_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_REVERT",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_REVERT_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "revertDatabase"
+          },
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "section_database_settings",
+      "element": "section",
+      "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DB_SETTINGS",
+      "icon": "fa-cog",
+      "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DB_SETTINGS_DESC",
+      "content": [
+        {
+          "id": "db_remote_url",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_REMOTE_URL",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_REMOTE_URL_DOC",
+          "value": "https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json"
+        },
+        {
+          "id": "db_auto_check",
+          "element": "switch",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_AUTO_CHECK",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_AUTO_CHECK_DOC",
+          "value": true
+        },
+        {
+          "id": "db_settings_save",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.SAVE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "saveDatabaseSettings",
+            "data": [
+              "db_remote_url",
+              "db_auto_check"
+            ]
+          }
+        },
+        {
+          "id": "db_toggle_admin",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_TOGGLE_ADMIN",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_TOGGLE_ADMIN_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "toggleAdminMode"
+          }
+        }
+      ]
+    },
+    {
+      "id": "section_admin",
+      "element": "section",
+      "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_ADMIN",
+      "icon": "fa-wrench",
+      "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_ADMIN_DESC",
+      "hidden": true,
+      "content": [
+        {
+          "id": "admin_draft_status",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DRAFT_STATUS",
+          "value": "",
+          "readonly": true
+        },
+        {
+          "id": "admin_draft_version",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DRAFT_VERSION",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DRAFT_VERSION_DOC",
+          "value": ""
+        },
+        {
+          "id": "admin_version_save",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_VERSION_SAVE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminUpdateVersion",
+            "data": [
+              "admin_draft_version"
+            ]
+          }
+        },
+        {
+          "id": "admin_preset_list",
+          "element": "select",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_SELECT_PRESET",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_SELECT_PRESET_DOC",
+          "value": "",
+          "options": []
+        },
+        {
+          "id": "admin_preset_id",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_ID",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_ID_DOC",
+          "value": ""
+        },
+        {
+          "id": "admin_preset_name",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_NAME",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_NAME_DOC",
+          "value": ""
+        },
+        {
+          "id": "admin_preset_type",
+          "element": "select",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_TYPE",
+          "value": "hdmi",
+          "options": [
+            { "value": "hdmi", "label": "HDMI" },
+            { "value": "dsi", "label": "DSI" },
+            { "value": "dpi", "label": "DPI" },
+            { "value": "composite", "label": "Composite" }
+          ]
+        },
+        {
+          "id": "admin_preset_desc",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_DESC",
+          "value": ""
+        },
+        {
+          "id": "admin_preset_config",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_CONFIG",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PRESET_CONFIG_DOC",
+          "value": "{}"
+        },
+        {
+          "id": "admin_add_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_ADD",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminAddPreset",
+            "data": [
+              "admin_preset_id",
+              "admin_preset_name",
+              "admin_preset_type",
+              "admin_preset_desc",
+              "admin_preset_config"
+            ]
+          }
+        },
+        {
+          "id": "admin_update_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_UPDATE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminUpdatePreset",
+            "data": [
+              "admin_preset_id",
+              "admin_preset_name",
+              "admin_preset_type",
+              "admin_preset_desc",
+              "admin_preset_config"
+            ]
+          }
+        },
+        {
+          "id": "admin_delete_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DELETE",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminDeletePreset",
+            "data": [
+              "admin_preset_id"
+            ]
+          }
+        },
+        {
+          "id": "admin_import_url",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT_URL",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT_URL_DOC",
+          "value": ""
+        },
+        {
+          "id": "admin_import_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminImportFromUrl",
+            "data": [
+              "admin_import_url"
+            ]
+          }
+        },
+        {
+          "id": "admin_publish_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PUBLISH",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_PUBLISH_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminPublishDraft"
+          }
+        },
+        {
+          "id": "admin_discard_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DISCARD",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_DISCARD_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminDiscardDraft"
+          }
+        },
+        {
+          "id": "admin_export_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_EXPORT",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_EXPORT_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminExportDraft"
+          }
+        }
+      ]
     }
   ]
 }

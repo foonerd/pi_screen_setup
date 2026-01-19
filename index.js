@@ -23,6 +23,12 @@ var CMDLINE_TXT = BOOT_PATH + '/cmdline.txt';
 var OVERLAYS_PATH = BOOT_PATH + '/overlays';
 var OVERLAYS_README = OVERLAYS_PATH + '/README';
 
+// Presets cache paths
+var PRESETS_CACHE_DIR = '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
+var PRESETS_REMOTE_CACHE = PRESETS_CACHE_DIR + '/remote.json';
+var PRESETS_DRAFT = PRESETS_CACHE_DIR + '/draft.json';
+var PRESETS_METADATA = PRESETS_CACHE_DIR + '/metadata.json';
+
 // Hardware definitions
 var PI_MODELS = {
   'Pi 2': { socs: ['bcm2836', 'bcm2837'], hdmi_ports: 1, dsi_ports: ['dsi0'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d' },
@@ -146,6 +152,15 @@ function PiScreenSetup(context) {
   
   // Display presets cache
   self.displayPresets = null;
+  self.displayPresetsVersion = null;
+  self.displayPresetsDate = null;
+  
+  // Database update state
+  self.presetsMetadata = null;
+  self.presetsCacheDir = path.join('/data/plugins', self.pluginType, self.pluginName, 'presets_cache');
+  
+  // Admin working copy
+  self.draftPresets = null;
 }
 
 // Helper to get config value - checks cache first, then v-conf, then default
@@ -227,6 +242,32 @@ PiScreenSetup.prototype.onStart = function() {
       if (validationResult.drift_detected) {
         self.handleConfigDrift(validationResult);
       }
+      
+      // Check for database updates if auto_check enabled
+      if (self.config.get('database.auto_check', true)) {
+        var lastCheck = self.config.get('database.last_check', '');
+        var checkInterval = self.config.get('database.check_interval_hours', 24);
+        var shouldCheck = true;
+        
+        if (lastCheck) {
+          var lastCheckDate = new Date(lastCheck);
+          var hoursSince = (Date.now() - lastCheckDate.getTime()) / (1000 * 60 * 60);
+          shouldCheck = hoursSince >= checkInterval;
+        }
+        
+        if (shouldCheck) {
+          self.checkDatabaseUpdate()
+            .then(function(result) {
+              if (result.available) {
+                self.logger.info('pi_screen_setup: Database update available - v' + result.remote_version);
+              }
+            })
+            .fail(function(err) {
+              self.logger.warn('pi_screen_setup: Auto-check failed - ' + err);
+            });
+        }
+      }
+      
       defer.resolve();
     })
     .fail(function(err) {
@@ -494,20 +535,965 @@ PiScreenSetup.prototype.getI18n = function(key) {
 PiScreenSetup.prototype.loadDisplayPresets = function() {
   var self = this;
 
+  // Use the enhanced cache-aware loading
+  self.loadDisplayPresetsWithCache();
+};
+
+// ============================================================================
+// DATABASE UPDATE SYSTEM
+// ============================================================================
+
+/**
+ * Initialize presets cache directory and metadata
+ */
+PiScreenSetup.prototype.initPresetsCache = function() {
+  var self = this;
+  
+  fs.ensureDirSync(self.presetsCacheDir);
+  
+  // Load or create metadata
+  var metadataFile = path.join(self.presetsCacheDir, 'metadata.json');
+  if (fs.existsSync(metadataFile)) {
+    try {
+      self.presetsMetadata = fs.readJsonSync(metadataFile);
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: Failed to load presets metadata - ' + e);
+      self.presetsMetadata = self.createDefaultMetadata();
+    }
+  } else {
+    self.presetsMetadata = self.createDefaultMetadata();
+    self.savePresetsMetadata();
+  }
+  
+  // Record bundled version
+  var bundledFile = path.join(self.pluginDir, 'display_presets.json');
+  if (fs.existsSync(bundledFile)) {
+    try {
+      var bundled = fs.readJsonSync(bundledFile);
+      self.presetsMetadata.bundled_version = bundled.version || 'unknown';
+      self.config.set('database.bundled_version', self.presetsMetadata.bundled_version);
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: Failed to read bundled version - ' + e);
+    }
+  }
+};
+
+/**
+ * Create default metadata structure
+ */
+PiScreenSetup.prototype.createDefaultMetadata = function() {
+  var self = this;
+  return {
+    bundled_version: '',
+    cached_version: '',
+    cached_date: '',
+    draft_version: '',
+    draft_dirty: false,
+    last_check: '',
+    remote_url: self.config.get('database.remote_url', 
+      'https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json')
+  };
+};
+
+/**
+ * Save presets metadata to disk
+ */
+PiScreenSetup.prototype.savePresetsMetadata = function() {
+  var self = this;
+  var metadataFile = path.join(self.presetsCacheDir, 'metadata.json');
   try {
-    var presetsFile = path.join(self.pluginDir, 'display_presets.json');
-    if (fs.existsSync(presetsFile)) {
-      var presetsData = fs.readJsonSync(presetsFile);
-      self.displayPresets = presetsData.presets || {};
-      self.logger.info('pi_screen_setup: Loaded ' + Object.keys(self.displayPresets).length + ' display presets');
-    } else {
-      self.logger.warn('pi_screen_setup: display_presets.json not found');
-      self.displayPresets = {};
+    fs.writeJsonSync(metadataFile, self.presetsMetadata, { spaces: 2 });
+  } catch (e) {
+    self.logger.error('pi_screen_setup: Failed to save presets metadata - ' + e);
+  }
+};
+
+/**
+ * Load display presets with priority: cached > bundled
+ */
+PiScreenSetup.prototype.loadDisplayPresetsWithCache = function() {
+  var self = this;
+  
+  self.initPresetsCache();
+  
+  var cachedFile = path.join(self.presetsCacheDir, 'remote.json');
+  var bundledFile = path.join(self.pluginDir, 'display_presets.json');
+  var activeSource = 'bundled';
+  var presetsData = null;
+  
+  // Try cached first
+  if (fs.existsSync(cachedFile)) {
+    try {
+      presetsData = fs.readJsonSync(cachedFile);
+      activeSource = 'cached';
+      self.logger.info('pi_screen_setup: Loaded cached presets v' + (presetsData.version || 'unknown'));
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: Failed to load cached presets - ' + e);
+      presetsData = null;
+    }
+  }
+  
+  // Fall back to bundled
+  if (!presetsData && fs.existsSync(bundledFile)) {
+    try {
+      presetsData = fs.readJsonSync(bundledFile);
+      activeSource = 'bundled';
+      self.logger.info('pi_screen_setup: Loaded bundled presets v' + (presetsData.version || 'unknown'));
+    } catch (e) {
+      self.logger.error('pi_screen_setup: Failed to load bundled presets - ' + e);
+      presetsData = { presets: {} };
+    }
+  }
+  
+  self.displayPresets = presetsData.presets || {};
+  self.displayPresetsVersion = presetsData.version || 'unknown';
+  self.displayPresetsDate = presetsData.last_updated || '';
+  self.config.set('database.active_source', activeSource);
+  
+  self.logger.info('pi_screen_setup: Active presets source: ' + activeSource + 
+    ', ' + Object.keys(self.displayPresets).length + ' presets loaded');
+};
+
+/**
+ * Check remote for database updates
+ * Returns promise with { available: bool, remote_version: string, current_version: string }
+ */
+PiScreenSetup.prototype.checkDatabaseUpdate = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  var remoteUrl = self.config.get('database.remote_url',
+    'https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json');
+  
+  self.logger.info('pi_screen_setup: Checking for database update from ' + remoteUrl);
+  
+  // Use https or http module based on URL
+  var httpModule = remoteUrl.startsWith('https') ? require('https') : require('http');
+  
+  var request = httpModule.get(remoteUrl, function(response) {
+    if (response.statusCode !== 200) {
+      defer.reject(new Error('HTTP ' + response.statusCode));
+      return;
+    }
+    
+    var data = '';
+    response.on('data', function(chunk) {
+      data += chunk;
+    });
+    
+    response.on('end', function() {
+      try {
+        var remoteData = JSON.parse(data);
+        var remoteVersion = remoteData.version || 'unknown';
+        var currentVersion = self.displayPresetsVersion || 'unknown';
+        
+        // Update last check time
+        var now = new Date().toISOString();
+        self.config.set('database.last_check', now);
+        self.presetsMetadata.last_check = now;
+        self.savePresetsMetadata();
+        
+        // Compare versions (simple string compare - assumes semver-like format)
+        var updateAvailable = self.compareVersions(remoteVersion, currentVersion) > 0;
+        
+        defer.resolve({
+          available: updateAvailable,
+          remote_version: remoteVersion,
+          remote_date: remoteData.last_updated || '',
+          remote_preset_count: Object.keys(remoteData.presets || {}).length,
+          current_version: currentVersion,
+          current_source: self.config.get('database.active_source', 'bundled')
+        });
+      } catch (e) {
+        defer.reject(new Error('Invalid JSON: ' + e.message));
+      }
+    });
+  });
+  
+  request.on('error', function(e) {
+    defer.reject(new Error('Network error: ' + e.message));
+  });
+  
+  request.setTimeout(10000, function() {
+    request.destroy();
+    defer.reject(new Error('Request timeout'));
+  });
+  
+  return defer.promise;
+};
+
+/**
+ * Download and cache remote database
+ * Returns promise with { success: bool, version: string, preset_count: number }
+ */
+PiScreenSetup.prototype.downloadDatabaseUpdate = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  var remoteUrl = self.config.get('database.remote_url',
+    'https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json');
+  
+  self.logger.info('pi_screen_setup: Downloading database update from ' + remoteUrl);
+  
+  var httpModule = remoteUrl.startsWith('https') ? require('https') : require('http');
+  
+  var request = httpModule.get(remoteUrl, function(response) {
+    if (response.statusCode !== 200) {
+      defer.reject(new Error('HTTP ' + response.statusCode));
+      return;
+    }
+    
+    var data = '';
+    response.on('data', function(chunk) {
+      data += chunk;
+    });
+    
+    response.on('end', function() {
+      try {
+        var remoteData = JSON.parse(data);
+        
+        // Validate structure
+        if (!remoteData.presets || typeof remoteData.presets !== 'object') {
+          defer.reject(new Error('Invalid database structure: missing presets object'));
+          return;
+        }
+        
+        // Save to cache
+        var cachedFile = path.join(self.presetsCacheDir, 'remote.json');
+        fs.writeJsonSync(cachedFile, remoteData, { spaces: 2 });
+        
+        // Update metadata
+        var now = new Date().toISOString();
+        self.presetsMetadata.cached_version = remoteData.version || 'unknown';
+        self.presetsMetadata.cached_date = now;
+        self.config.set('database.cached_version', remoteData.version || 'unknown');
+        self.config.set('database.last_update', now);
+        self.savePresetsMetadata();
+        
+        // Reload active presets
+        self.displayPresets = remoteData.presets;
+        self.displayPresetsVersion = remoteData.version || 'unknown';
+        self.displayPresetsDate = remoteData.last_updated || '';
+        self.config.set('database.active_source', 'cached');
+        
+        var presetCount = Object.keys(remoteData.presets).length;
+        self.logger.info('pi_screen_setup: Database updated to v' + remoteData.version + 
+          ' with ' + presetCount + ' presets');
+        
+        defer.resolve({
+          success: true,
+          version: remoteData.version || 'unknown',
+          preset_count: presetCount
+        });
+      } catch (e) {
+        defer.reject(new Error('Failed to process update: ' + e.message));
+      }
+    });
+  });
+  
+  request.on('error', function(e) {
+    defer.reject(new Error('Network error: ' + e.message));
+  });
+  
+  request.setTimeout(30000, function() {
+    request.destroy();
+    defer.reject(new Error('Download timeout'));
+  });
+  
+  return defer.promise;
+};
+
+/**
+ * Compare version strings (semver-like)
+ * Returns: 1 if a > b, -1 if a < b, 0 if equal
+ */
+PiScreenSetup.prototype.compareVersions = function(a, b) {
+  if (a === b) return 0;
+  if (a === 'unknown') return -1;
+  if (b === 'unknown') return 1;
+  
+  var partsA = a.split('.').map(function(x) { return parseInt(x, 10) || 0; });
+  var partsB = b.split('.').map(function(x) { return parseInt(x, 10) || 0; });
+  
+  var maxLen = Math.max(partsA.length, partsB.length);
+  for (var i = 0; i < maxLen; i++) {
+    var numA = partsA[i] || 0;
+    var numB = partsB[i] || 0;
+    if (numA > numB) return 1;
+    if (numA < numB) return -1;
+  }
+  return 0;
+};
+
+/**
+ * Revert to bundled database (delete cache)
+ */
+PiScreenSetup.prototype.revertToBundledDatabase = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  try {
+    var cachedFile = path.join(self.presetsCacheDir, 'remote.json');
+    if (fs.existsSync(cachedFile)) {
+      fs.unlinkSync(cachedFile);
+    }
+    
+    // Reload from bundled
+    self.loadDisplayPresetsWithCache();
+    
+    self.presetsMetadata.cached_version = '';
+    self.presetsMetadata.cached_date = '';
+    self.config.set('database.cached_version', '');
+    self.config.set('database.active_source', 'bundled');
+    self.savePresetsMetadata();
+    
+    self.logger.info('pi_screen_setup: Reverted to bundled database');
+    defer.resolve({ success: true });
+  } catch (e) {
+    defer.reject(new Error('Failed to revert: ' + e.message));
+  }
+  
+  return defer.promise;
+};
+
+// ============================================================================
+// UI ENDPOINTS - DATABASE UPDATE
+// ============================================================================
+
+/**
+ * UI endpoint: Check for database updates
+ */
+PiScreenSetup.prototype.checkForDatabaseUpdate = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  self.checkDatabaseUpdate()
+    .then(function(result) {
+      if (result.available) {
+        // Show update available modal
+        var modalData = {
+          title: self.getI18n('DB_UPDATE_AVAILABLE') || 'Database Update Available',
+          message: (self.getI18n('DB_UPDATE_MESSAGE') || 
+            'A newer display presets database is available.\n\nCurrent: v{current}\nAvailable: v{remote}\n\nThe new version contains {count} display presets.')
+            .replace('{current}', result.current_version)
+            .replace('{remote}', result.remote_version)
+            .replace('{count}', result.remote_preset_count),
+          size: 'md',
+          buttons: [
+            {
+              name: self.getI18n('DB_UPDATE_NOW') || 'Update Now',
+              class: 'btn btn-success',
+              emit: 'callMethod',
+              payload: {
+                endpoint: 'system_hardware/pi_screen_setup',
+                method: 'applyDatabaseUpdate'
+              }
+            },
+            {
+              name: self.getI18n('DB_UPDATE_LATER') || 'Later',
+              class: 'btn btn-default',
+              emit: 'closeModals',
+              payload: ''
+            }
+          ]
+        };
+        self.commandRouter.broadcastMessage('openModal', modalData);
+      } else {
+        self.commandRouter.pushToastMessage('info', 'Pi Screen Setup',
+          (self.getI18n('DB_UP_TO_DATE') || 'Database is up to date (v{version})')
+            .replace('{version}', result.current_version));
+      }
+      defer.resolve({});
+    })
+    .fail(function(err) {
+      self.logger.error('pi_screen_setup: Database check failed - ' + err);
+      self.commandRouter.pushToastMessage('warning', 'Pi Screen Setup',
+        (self.getI18n('DB_CHECK_FAILED') || 'Could not check for updates: {error}')
+          .replace('{error}', err.message || err));
+      defer.resolve({});
+    });
+  
+  return defer.promise;
+};
+
+/**
+ * UI endpoint: Apply database update
+ */
+PiScreenSetup.prototype.applyDatabaseUpdate = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  self.commandRouter.pushToastMessage('info', 'Pi Screen Setup',
+    self.getI18n('DB_DOWNLOADING') || 'Downloading database update...');
+  
+  self.downloadDatabaseUpdate()
+    .then(function(result) {
+      self.commandRouter.pushToastMessage('success', 'Pi Screen Setup',
+        (self.getI18n('DB_UPDATE_SUCCESS') || 'Database updated to v{version} ({count} presets)')
+          .replace('{version}', result.version)
+          .replace('{count}', result.preset_count));
+      
+      // Refresh UI to show new presets in dropdowns
+      self.refreshUIConfig();
+      defer.resolve({});
+    })
+    .fail(function(err) {
+      self.logger.error('pi_screen_setup: Database update failed - ' + err);
+      self.commandRouter.pushToastMessage('error', 'Pi Screen Setup',
+        (self.getI18n('DB_UPDATE_FAILED') || 'Update failed: {error}')
+          .replace('{error}', err.message || err));
+      defer.resolve({});
+    });
+  
+  return defer.promise;
+};
+
+/**
+ * UI endpoint: Revert to bundled database
+ */
+PiScreenSetup.prototype.revertDatabase = function() {
+  var self = this;
+  var defer = libQ.defer();
+  
+  self.revertToBundledDatabase()
+    .then(function() {
+      self.commandRouter.pushToastMessage('success', 'Pi Screen Setup',
+        self.getI18n('DB_REVERTED') || 'Reverted to bundled database');
+      self.refreshUIConfig();
+      defer.resolve({});
+    })
+    .fail(function(err) {
+      self.commandRouter.pushToastMessage('error', 'Pi Screen Setup',
+        (self.getI18n('DB_REVERT_FAILED') || 'Revert failed: {error}')
+          .replace('{error}', err.message || err));
+      defer.resolve({});
+    });
+  
+  return defer.promise;
+};
+
+/**
+ * UI endpoint: Save database settings
+ */
+PiScreenSetup.prototype.saveDatabaseSettings = function(data) {
+  var self = this;
+  
+  if (data.db_remote_url !== undefined) {
+    self.config.set('database.remote_url', data.db_remote_url);
+    self.presetsMetadata.remote_url = data.db_remote_url;
+  }
+  if (data.db_auto_check !== undefined) {
+    self.config.set('database.auto_check', data.db_auto_check);
+  }
+  
+  self.savePresetsMetadata();
+  
+  self.commandRouter.pushToastMessage('success', 'Pi Screen Setup',
+    self.getI18n('SETTINGS_SAVED') || 'Settings saved');
+  
+  return libQ.resolve({});
+};
+
+// ============================================================================
+// ADMIN ENTRIES MANAGER
+// ============================================================================
+
+/**
+ * Initialize draft presets (copy from active)
+ */
+PiScreenSetup.prototype.initDraftPresets = function() {
+  var self = this;
+  
+  var draftFile = path.join(self.presetsCacheDir, 'draft.json');
+  
+  if (fs.existsSync(draftFile)) {
+    try {
+      var draftData = fs.readJsonSync(draftFile);
+      self.draftPresets = draftData;
+      self.logger.info('pi_screen_setup: Loaded draft presets v' + (draftData.version || 'unknown'));
+      return;
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: Failed to load draft - ' + e);
+    }
+  }
+  
+  // Create new draft from active
+  self.draftPresets = {
+    version: self.displayPresetsVersion || '0.0.0',
+    last_updated: new Date().toISOString().split('T')[0],
+    presets: JSON.parse(JSON.stringify(self.displayPresets || {}))
+  };
+  self.saveDraftPresets();
+};
+
+/**
+ * Save draft presets to disk
+ */
+PiScreenSetup.prototype.saveDraftPresets = function() {
+  var self = this;
+  
+  var draftFile = path.join(self.presetsCacheDir, 'draft.json');
+  try {
+    fs.writeJsonSync(draftFile, self.draftPresets, { spaces: 2 });
+    self.presetsMetadata.draft_version = self.draftPresets.version;
+    self.savePresetsMetadata();
+  } catch (e) {
+    self.logger.error('pi_screen_setup: Failed to save draft - ' + e);
+  }
+};
+
+/**
+ * Get list of presets for admin table
+ */
+PiScreenSetup.prototype.getAdminPresetList = function() {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var list = [];
+  for (var presetId in self.draftPresets.presets) {
+    if (presetId.startsWith('_comment')) continue;
+    var preset = self.draftPresets.presets[presetId];
+    list.push({
+      id: presetId,
+      name: preset.name || presetId,
+      type: preset.type || 'unknown',
+      description: preset.description || ''
+    });
+  }
+  
+  // Sort by type then name
+  list.sort(function(a, b) {
+    if (a.type !== b.type) return a.type.localeCompare(b.type);
+    return a.name.localeCompare(b.name);
+  });
+  
+  return list;
+};
+
+/**
+ * UI endpoint: Get preset for editing
+ */
+PiScreenSetup.prototype.adminGetPreset = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var presetId = data.preset_id;
+  var preset = self.draftPresets.presets[presetId];
+  
+  if (!preset) {
+    return libQ.resolve({ success: false, error: 'Preset not found' });
+  }
+  
+  return libQ.resolve({
+    success: true,
+    preset_id: presetId,
+    preset: preset
+  });
+};
+
+/**
+ * UI endpoint: Add new preset
+ */
+PiScreenSetup.prototype.adminAddPreset = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var presetId = data.admin_preset_id;
+  
+  // Validate ID
+  if (!presetId || typeof presetId !== 'string' || presetId.trim() === '') {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_INVALID_ID') || 'Invalid preset ID');
+    return libQ.resolve({});
+  }
+  
+  presetId = presetId.trim().toLowerCase().replace(/\s+/g, '-');
+  
+  // Check for duplicates
+  if (self.draftPresets.presets[presetId]) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_ERROR_DUPLICATE') || 'Preset ID already exists: {id}').replace('{id}', presetId));
+    return libQ.resolve({});
+  }
+  
+  // Parse config JSON
+  var configObj = {};
+  try {
+    if (data.admin_preset_config && data.admin_preset_config.trim() !== '') {
+      configObj = JSON.parse(data.admin_preset_config);
     }
   } catch (e) {
-    self.logger.error('pi_screen_setup: Failed to load display presets - ' + e);
-    self.displayPresets = {};
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_ERROR_INVALID_JSON') || 'Invalid JSON in config: {error}').replace('{error}', e.message));
+    return libQ.resolve({});
   }
+  
+  // Build preset object
+  var preset = {
+    name: data.admin_preset_name || presetId,
+    type: data.admin_preset_type || 'hdmi',
+    description: data.admin_preset_desc || '',
+    config: configObj
+  };
+  
+  // Validate preset data
+  var validation = self.validatePresetData(preset);
+  if (!validation.valid) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', validation.error);
+    return libQ.resolve({});
+  }
+  
+  self.draftPresets.presets[presetId] = preset;
+  self.config.set('admin.draft_dirty', true);
+  self.saveDraftPresets();
+  
+  self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+    (self.getI18n('ADMIN_PRESET_ADDED') || 'Added preset: {name}').replace('{name}', preset.name));
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Update existing preset
+ */
+PiScreenSetup.prototype.adminUpdatePreset = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var presetId = data.admin_preset_id;
+  
+  if (!presetId || !self.draftPresets.presets[presetId]) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NOT_FOUND') || 'Preset not found');
+    return libQ.resolve({});
+  }
+  
+  // Parse config JSON
+  var configObj = {};
+  try {
+    if (data.admin_preset_config && data.admin_preset_config.trim() !== '') {
+      configObj = JSON.parse(data.admin_preset_config);
+    }
+  } catch (e) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_ERROR_INVALID_JSON') || 'Invalid JSON in config: {error}').replace('{error}', e.message));
+    return libQ.resolve({});
+  }
+  
+  // Build preset object
+  var preset = {
+    name: data.admin_preset_name || presetId,
+    type: data.admin_preset_type || 'hdmi',
+    description: data.admin_preset_desc || '',
+    config: configObj
+  };
+  
+  // Validate preset data
+  var validation = self.validatePresetData(preset);
+  if (!validation.valid) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', validation.error);
+    return libQ.resolve({});
+  }
+  
+  self.draftPresets.presets[presetId] = preset;
+  self.config.set('admin.draft_dirty', true);
+  self.saveDraftPresets();
+  
+  self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+    (self.getI18n('ADMIN_PRESET_UPDATED') || 'Updated preset: {name}').replace('{name}', preset.name));
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Delete preset
+ */
+PiScreenSetup.prototype.adminDeletePreset = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var presetId = data.admin_preset_id;
+  
+  if (!presetId || !self.draftPresets.presets[presetId]) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NOT_FOUND') || 'Preset not found');
+    return libQ.resolve({});
+  }
+  
+  var presetName = self.draftPresets.presets[presetId].name || presetId;
+  delete self.draftPresets.presets[presetId];
+  self.config.set('admin.draft_dirty', true);
+  self.saveDraftPresets();
+  
+  self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+    (self.getI18n('ADMIN_PRESET_DELETED') || 'Deleted preset: {name}').replace('{name}', presetName));
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * Validate preset data structure
+ */
+PiScreenSetup.prototype.validatePresetData = function(preset) {
+  var self = this;
+  
+  if (!preset || typeof preset !== 'object') {
+    return { valid: false, error: self.getI18n('ADMIN_ERROR_INVALID_DATA') || 'Invalid preset data' };
+  }
+  
+  if (!preset.name || typeof preset.name !== 'string' || preset.name.trim() === '') {
+    return { valid: false, error: self.getI18n('ADMIN_ERROR_NO_NAME') || 'Preset must have a name' };
+  }
+  
+  var validTypes = ['hdmi', 'dsi', 'dpi', 'composite'];
+  if (!preset.type || validTypes.indexOf(preset.type) === -1) {
+    return { valid: false, error: self.getI18n('ADMIN_ERROR_INVALID_TYPE') || 'Invalid type. Must be: hdmi, dsi, dpi, or composite' };
+  }
+  
+  if (!preset.config || typeof preset.config !== 'object') {
+    return { valid: false, error: self.getI18n('ADMIN_ERROR_NO_CONFIG') || 'Preset must have a config object' };
+  }
+  
+  return { valid: true };
+};
+
+/**
+ * UI endpoint: Publish draft to active
+ */
+PiScreenSetup.prototype.adminPublishDraft = function() {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NO_DRAFT') || 'No draft to publish');
+    return libQ.resolve({});
+  }
+  
+  // Save draft as cached/active
+  var cachedFile = path.join(self.presetsCacheDir, 'remote.json');
+  try {
+    fs.writeJsonSync(cachedFile, self.draftPresets, { spaces: 2 });
+    
+    // Reload active presets
+    self.displayPresets = self.draftPresets.presets;
+    self.displayPresetsVersion = self.draftPresets.version;
+    self.displayPresetsDate = self.draftPresets.last_updated;
+    self.config.set('database.active_source', 'cached');
+    self.config.set('database.cached_version', self.draftPresets.version);
+    self.config.set('admin.draft_dirty', false);
+    
+    self.presetsMetadata.cached_version = self.draftPresets.version;
+    self.presetsMetadata.cached_date = new Date().toISOString();
+    self.presetsMetadata.draft_dirty = false;
+    self.savePresetsMetadata();
+    
+    self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_DRAFT_PUBLISHED') || 'Draft published as active database');
+    self.refreshUIConfig();
+  } catch (e) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_PUBLISH_FAILED') || 'Publish failed: {error}').replace('{error}', e.message));
+  }
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Discard draft changes
+ */
+PiScreenSetup.prototype.adminDiscardDraft = function() {
+  var self = this;
+  
+  var draftFile = path.join(self.presetsCacheDir, 'draft.json');
+  if (fs.existsSync(draftFile)) {
+    fs.unlinkSync(draftFile);
+  }
+  
+  self.draftPresets = null;
+  self.config.set('admin.draft_dirty', false);
+  self.presetsMetadata.draft_dirty = false;
+  self.savePresetsMetadata();
+  
+  self.commandRouter.pushToastMessage('info', 'Pi Screen Setup', 
+    self.getI18n('ADMIN_DRAFT_DISCARDED') || 'Draft discarded');
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Import from URL into draft
+ */
+PiScreenSetup.prototype.adminImportFromUrl = function(data) {
+  var self = this;
+  var defer = libQ.defer();
+  
+  var importUrl = data.admin_import_url;
+  if (!importUrl || importUrl.trim() === '') {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NO_URL') || 'No URL provided');
+    return libQ.resolve({});
+  }
+  
+  importUrl = importUrl.trim();
+  self.commandRouter.pushToastMessage('info', 'Pi Screen Setup', 
+    self.getI18n('ADMIN_IMPORTING') || 'Importing from URL...');
+  
+  var httpModule = importUrl.startsWith('https') ? require('https') : require('http');
+  
+  var request = httpModule.get(importUrl, function(response) {
+    if (response.statusCode !== 200) {
+      self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+        'HTTP error: ' + response.statusCode);
+      defer.resolve({});
+      return;
+    }
+    
+    var responseData = '';
+    response.on('data', function(chunk) {
+      responseData += chunk;
+    });
+    
+    response.on('end', function() {
+      try {
+        var importData = JSON.parse(responseData);
+        
+        // Validate structure
+        if (!importData.presets || typeof importData.presets !== 'object') {
+          self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+            self.getI18n('ADMIN_ERROR_INVALID_STRUCTURE') || 'Invalid database structure');
+          defer.resolve({});
+          return;
+        }
+        
+        // Replace draft
+        self.draftPresets = importData;
+        self.config.set('admin.draft_dirty', true);
+        self.saveDraftPresets();
+        
+        var presetCount = Object.keys(importData.presets).length;
+        self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+          (self.getI18n('ADMIN_IMPORT_SUCCESS') || 'Imported v{version} ({count} presets) into draft')
+            .replace('{version}', importData.version || 'unknown')
+            .replace('{count}', presetCount));
+        self.refreshUIConfig();
+        defer.resolve({});
+      } catch (e) {
+        self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+          (self.getI18n('ADMIN_ERROR_INVALID_JSON') || 'Invalid JSON: {error}').replace('{error}', e.message));
+        defer.resolve({});
+      }
+    });
+  });
+  
+  request.on('error', function(e) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      'Network error: ' + e.message);
+    defer.resolve({});
+  });
+  
+  request.setTimeout(30000, function() {
+    request.destroy();
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 'Request timeout');
+    defer.resolve({});
+  });
+  
+  return defer.promise;
+};
+
+/**
+ * UI endpoint: Export draft to downloadable file
+ */
+PiScreenSetup.prototype.adminExportDraft = function() {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  // Update timestamp
+  self.draftPresets.last_updated = new Date().toISOString().split('T')[0];
+  
+  // Write to export location
+  var exportFile = path.join(self.presetsCacheDir, 'display_presets_export.json');
+  try {
+    fs.writeJsonSync(exportFile, self.draftPresets, { spaces: 2 });
+    
+    self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_EXPORT_SUCCESS') || 'Exported to: {path}').replace('{path}', exportFile));
+  } catch (e) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_EXPORT_FAILED') || 'Export failed: {error}').replace('{error}', e.message));
+  }
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Update draft version
+ */
+PiScreenSetup.prototype.adminUpdateVersion = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var newVersion = data.admin_draft_version;
+  if (newVersion && newVersion.trim() !== '') {
+    self.draftPresets.version = newVersion.trim();
+    self.config.set('admin.draft_dirty', true);
+    self.saveDraftPresets();
+    
+    self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_VERSION_UPDATED') || 'Version updated to: {version}').replace('{version}', newVersion));
+    self.refreshUIConfig();
+  }
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Toggle admin mode
+ */
+PiScreenSetup.prototype.toggleAdminMode = function() {
+  var self = this;
+  
+  var current = self.config.get('admin.enabled', false);
+  self.config.set('admin.enabled', !current);
+  
+  if (!current) {
+    // Enabling admin - initialize draft
+    self.initDraftPresets();
+  }
+  
+  self.refreshUIConfig();
+  
+  self.commandRouter.pushToastMessage('info', 'Pi Screen Setup', 
+    (self.getI18n('ADMIN_MODE_TOGGLED') || 'Admin mode {state}')
+      .replace('{state}', !current ? 
+        (self.getI18n('ENABLED') || 'enabled') : 
+        (self.getI18n('DISABLED') || 'disabled')));
+  
+  return libQ.resolve({});
 };
 
 PiScreenSetup.prototype.getDisplayPreset = function(presetId) {
@@ -3116,6 +4102,82 @@ PiScreenSetup.prototype.getUIConfig = function() {
       }
     }
 
+    // ========================================
+    // DATABASE STATUS SECTION
+    // ========================================
+    var dbSection = self.findSection(uiconf, 'section_database');
+    if (dbSection) {
+      var activeSource = self.config.get('database.active_source', 'bundled');
+      var sourceLabels = {
+        'bundled': self.getI18n('DB_SOURCE_BUNDLED') || 'Bundled',
+        'cached': self.getI18n('DB_SOURCE_CACHED') || 'Updated (cached)',
+        'draft': self.getI18n('DB_SOURCE_DRAFT') || 'Draft'
+      };
+      var sourceLabel = sourceLabels[activeSource] || activeSource;
+      
+      self.setUIValue(dbSection, 'db_active_version', self.displayPresetsVersion || 'unknown');
+      self.setUIValue(dbSection, 'db_active_source', sourceLabel);
+      self.setUIValue(dbSection, 'db_preset_count', Object.keys(self.displayPresets || {}).length.toString());
+      
+      var lastCheck = self.config.get('database.last_check', '');
+      var lastCheckDisplay = lastCheck ? new Date(lastCheck).toLocaleString() : (self.getI18n('NEVER') || 'Never');
+      self.setUIValue(dbSection, 'db_last_check', lastCheckDisplay);
+      
+      // Show revert button only if using cached
+      var revertBtn = self.findContentItem(dbSection, 'db_revert_btn');
+      if (revertBtn) {
+        revertBtn.hidden = (activeSource === 'bundled');
+      }
+    }
+
+    // ========================================
+    // DATABASE SETTINGS SECTION
+    // ========================================
+    var dbSettingsSection = self.findSection(uiconf, 'section_database_settings');
+    if (dbSettingsSection) {
+      self.setUIValue(dbSettingsSection, 'db_remote_url', 
+        self.config.get('database.remote_url', 
+          'https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json'));
+      self.setUIValue(dbSettingsSection, 'db_auto_check', self.config.get('database.auto_check', true));
+    }
+
+    // ========================================
+    // ADMIN SECTION
+    // ========================================
+    var adminSection = self.findSection(uiconf, 'section_admin');
+    if (adminSection) {
+      adminSection.hidden = !self.config.get('admin.enabled', false);
+      
+      if (!adminSection.hidden) {
+        if (!self.draftPresets) {
+          self.initDraftPresets();
+        }
+        
+        var dirty = self.config.get('admin.draft_dirty', false);
+        var draftVersion = self.draftPresets ? self.draftPresets.version : 'none';
+        var presetCount = self.draftPresets ? Object.keys(self.draftPresets.presets || {}).length : 0;
+        
+        var statusText = 'v' + draftVersion + ' (' + presetCount + ' ' + 
+          (self.getI18n('PRESETS') || 'presets') + ')' + 
+          (dirty ? ' [' + (self.getI18n('MODIFIED') || 'MODIFIED') + ']' : '');
+        self.setUIValue(adminSection, 'admin_draft_status', statusText);
+        self.setUIValue(adminSection, 'admin_draft_version', draftVersion);
+        
+        // Populate preset dropdown
+        var presetSelect = self.findContentItem(adminSection, 'admin_preset_list');
+        if (presetSelect) {
+          presetSelect.options = [{ value: '', label: '-- ' + (self.getI18n('SELECT') || 'Select') + ' --' }];
+          var presetList = self.getAdminPresetList();
+          presetList.forEach(function(p) {
+            presetSelect.options.push({
+              value: p.id,
+              label: '[' + p.type.toUpperCase() + '] ' + p.name
+            });
+          });
+        }
+      }
+    }
+
     // If not in migration flow, populate wizard sections
     if (migrationState === 'none' || migrationState === undefined) {
       self.populateWizardSections(uiconf, wizardStep, wizardComplete, capabilities);
@@ -3804,6 +4866,28 @@ PiScreenSetup.prototype.findContentItem = function(section, id) {
   }
 
   return null;
+};
+
+PiScreenSetup.prototype.findSection = function(uiconf, sectionId) {
+  if (!uiconf || !uiconf.sections) {
+    return null;
+  }
+
+  for (var i = 0; i < uiconf.sections.length; i++) {
+    if (uiconf.sections[i].id === sectionId) {
+      return uiconf.sections[i];
+    }
+  }
+
+  return null;
+};
+
+PiScreenSetup.prototype.setUIValue = function(section, itemId, value) {
+  var self = this;
+  var item = self.findContentItem(section, itemId);
+  if (item) {
+    item.value = value;
+  }
 };
 
 PiScreenSetup.prototype.refreshUIConfig = function() {
