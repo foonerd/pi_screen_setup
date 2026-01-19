@@ -997,6 +997,17 @@
             "method": "revertDatabase"
           },
           "hidden": true
+        },
+        {
+          "id": "db_show_settings_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_SHOW_SETTINGS",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DB_SHOW_SETTINGS_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "showDatabaseSettings"
+          }
         }
       ]
     },
@@ -1006,6 +1017,7 @@
       "label": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DB_SETTINGS",
       "icon": "fa-cog",
       "description": "TRANSLATE.PI_SCREEN_SETUP.SECTION_DB_SETTINGS_DESC",
+      "hidden": true,
       "content": [
         {
           "id": "db_remote_url",
@@ -1045,6 +1057,16 @@
             "type": "plugin",
             "endpoint": "system_hardware/pi_screen_setup",
             "method": "toggleAdminMode"
+          }
+        },
+        {
+          "id": "db_hide_settings_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DB_HIDE_SETTINGS",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "hideDatabaseSettings"
           }
         }
       ]
@@ -1093,6 +1115,20 @@
           "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_SELECT_PRESET_DOC",
           "value": "",
           "options": []
+        },
+        {
+          "id": "admin_load_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_LOAD",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_LOAD_DOC",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminLoadPreset",
+            "data": [
+              "admin_preset_list"
+            ]
+          }
         },
         {
           "id": "admin_preset_id",
@@ -1202,6 +1238,27 @@
             "method": "adminImportFromUrl",
             "data": [
               "admin_import_url"
+            ]
+          }
+        },
+        {
+          "id": "admin_import_file",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT_FILE",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT_FILE_DOC",
+          "value": ""
+        },
+        {
+          "id": "admin_import_file_btn",
+          "element": "button",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.ADMIN_IMPORT_FILE_BTN",
+          "onClick": {
+            "type": "plugin",
+            "endpoint": "system_hardware/pi_screen_setup",
+            "method": "adminImportFromFile",
+            "data": [
+              "admin_import_file"
             ]
           }
         },

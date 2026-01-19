@@ -161,6 +161,10 @@ function PiScreenSetup(context) {
   
   // Admin working copy
   self.draftPresets = null;
+  
+  // Ephemeral UI state (not persisted, resets on page load)
+  self.showDatabaseSettingsUI = false;
+  self.adminLoadedPreset = null;
 }
 
 // Helper to get config value - checks cache first, then v-conf, then default
@@ -1492,6 +1496,124 @@ PiScreenSetup.prototype.toggleAdminMode = function() {
       .replace('{state}', !current ? 
         (self.getI18n('ENABLED') || 'enabled') : 
         (self.getI18n('DISABLED') || 'disabled')));
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Show database settings section (ephemeral)
+ */
+PiScreenSetup.prototype.showDatabaseSettings = function() {
+  var self = this;
+  
+  self.showDatabaseSettingsUI = true;
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Hide database settings section (ephemeral)
+ */
+PiScreenSetup.prototype.hideDatabaseSettings = function() {
+  var self = this;
+  
+  self.showDatabaseSettingsUI = false;
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Load selected preset into form fields
+ */
+PiScreenSetup.prototype.adminLoadPreset = function(data) {
+  var self = this;
+  
+  if (!self.draftPresets) {
+    self.initDraftPresets();
+  }
+  
+  var presetId = data.admin_preset_list;
+  
+  if (!presetId || presetId === '') {
+    self.commandRouter.pushToastMessage('warning', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_SELECT_FIRST') || 'Please select a preset first');
+    return libQ.resolve({});
+  }
+  
+  var preset = self.draftPresets.presets[presetId];
+  
+  if (!preset) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NOT_FOUND') || 'Preset not found');
+    return libQ.resolve({});
+  }
+  
+  // Store loaded preset data in cache for UI population
+  self.adminLoadedPreset = {
+    id: presetId,
+    name: preset.name || '',
+    type: preset.type || 'hdmi',
+    description: preset.description || '',
+    config: JSON.stringify(preset.config || {}, null, 2)
+  };
+  
+  self.commandRouter.pushToastMessage('info', 'Pi Screen Setup', 
+    (self.getI18n('ADMIN_PRESET_LOADED') || 'Loaded preset: {name}').replace('{name}', preset.name || presetId));
+  
+  self.refreshUIConfig();
+  
+  return libQ.resolve({});
+};
+
+/**
+ * UI endpoint: Import from local file path
+ */
+PiScreenSetup.prototype.adminImportFromFile = function(data) {
+  var self = this;
+  
+  var filePath = data.admin_import_file;
+  if (!filePath || filePath.trim() === '') {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_NO_PATH') || 'No file path provided');
+    return libQ.resolve({});
+  }
+  
+  filePath = filePath.trim();
+  
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_ERROR_FILE_NOT_FOUND') || 'File not found: {path}').replace('{path}', filePath));
+    return libQ.resolve({});
+  }
+  
+  try {
+    var importData = fs.readJsonSync(filePath);
+    
+    // Validate structure
+    if (!importData.presets || typeof importData.presets !== 'object') {
+      self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+        self.getI18n('ADMIN_ERROR_INVALID_STRUCTURE') || 'Invalid database structure');
+      return libQ.resolve({});
+    }
+    
+    // Replace draft
+    self.draftPresets = importData;
+    self.config.set('admin.draft_dirty', true);
+    self.saveDraftPresets();
+    
+    var presetCount = Object.keys(importData.presets).length;
+    self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_IMPORT_SUCCESS') || 'Imported v{version} ({count} presets) into draft')
+        .replace('{version}', importData.version || 'unknown')
+        .replace('{count}', presetCount));
+    self.refreshUIConfig();
+  } catch (e) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      (self.getI18n('ADMIN_ERROR_INVALID_JSON') || 'Invalid JSON: {error}').replace('{error}', e.message));
+  }
   
   return libQ.resolve({});
 };
@@ -4135,6 +4257,9 @@ PiScreenSetup.prototype.getUIConfig = function() {
     // ========================================
     var dbSettingsSection = self.findSection(uiconf, 'section_database_settings');
     if (dbSettingsSection) {
+      // Ephemeral visibility - defaults to hidden, shown via button
+      dbSettingsSection.hidden = !self.showDatabaseSettingsUI;
+      
       self.setUIValue(dbSettingsSection, 'db_remote_url', 
         self.config.get('database.remote_url', 
           'https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json'));
@@ -4174,6 +4299,25 @@ PiScreenSetup.prototype.getUIConfig = function() {
               label: '[' + p.type.toUpperCase() + '] ' + p.name
             });
           });
+          
+          // If a preset was loaded, set it as selected
+          if (self.adminLoadedPreset && self.adminLoadedPreset.id) {
+            presetSelect.value = self.adminLoadedPreset.id;
+          }
+        }
+        
+        // Populate form fields from loaded preset if available
+        if (self.adminLoadedPreset) {
+          self.setUIValue(adminSection, 'admin_preset_id', self.adminLoadedPreset.id || '');
+          self.setUIValue(adminSection, 'admin_preset_name', self.adminLoadedPreset.name || '');
+          self.setUIValue(adminSection, 'admin_preset_desc', self.adminLoadedPreset.description || '');
+          self.setUIValue(adminSection, 'admin_preset_config', self.adminLoadedPreset.config || '{}');
+          
+          // Set type dropdown
+          var typeSelect = self.findContentItem(adminSection, 'admin_preset_type');
+          if (typeSelect) {
+            typeSelect.value = self.adminLoadedPreset.type || 'hdmi';
+          }
         }
       }
     }
