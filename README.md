@@ -5,7 +5,7 @@ A comprehensive display configuration plugin for Volumio 4.x (Bookworm) on Raspb
 ## Features
 
 - **Guided Setup Wizard**: 7-step wizard walks through complete display configuration
-- **Display Presets Database**: 193 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman, Pimoroni, Raspberry Pi Official, Joy-IT, Freenove, Seeed Studio, Spotpear, Longruner, Hosyond, HMTECH, BIGTREETECH/BIQU)
+- **Display Presets Database**: Over 200 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman, Pimoroni, Raspberry Pi Official, Joy-IT, Freenove, Seeed Studio, Spotpear, Longruner, Hosyond, HMTECH, BIGTREETECH/BIQU)
 - **Multiple Output Types**: HDMI, DSI (ribbon), DPI (GPIO), Composite, Custom overlays
 - **Dual HDMI Support**: Full configuration for Pi 4/5 dual HDMI ports
 - **Rotation Support**: 0/90/180/270 degree rotation with proper KMS, fbcon, and plymouth integration
@@ -169,7 +169,9 @@ The Preset Manager is useful for:
 
 **Other DPI:**
 - VGA666 adapter
-- Owootecc 4.3" (480x320)
+- Waveshare 3.5" DPI (640x480)
+- Waveshare 4" DPI-C (720x720)
+- Owootecc 4.3" DPI (480x320)
 - Custom/Generic DPI panel
 
 ### Other
