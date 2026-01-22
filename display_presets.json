@@ -1,6 +1,6 @@
 {
-  "version": "1.5.5",
-  "last_updated": "2026-01-19",
+  "version": "1.5.6",
+  "last_updated": "2026-01-22",
   "presets": {
     "auto": {
       "name": "Auto Detect (EDID)",
@@ -681,6 +681,23 @@
       "recommended_rotation": 0,
       "notes": "Touch via USB. Includes mounting bracket and stand"
     },
+    "_comment_hdmi_pollin": "--- Pollin HDMI Displays ---",
+    "pollin-5-hdmi-800x480": {
+      "name": "Pollin 5\" HDMI 800x480 Touch (pre-2020)",
+      "type": "hdmi",
+      "description": "Discontinued 5 inch HDMI touch display sold by Pollin Germany",
+      "native_resolution": "800x480",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "800 480 60 6 0 0 0",
+        "hdmi_drive": 1
+      },
+      "video_mode": "800x480M@60D",
+      "recommended_rotation": 0,
+      "notes": "Touch via USB. Discontinued product (EBE170011535)"
+    },
+    "_comment_hdmi_elecrow": "--- Elecrow HDMI Displays ---",
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
       "type": "hdmi",
