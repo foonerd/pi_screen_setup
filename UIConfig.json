@@ -477,6 +477,16 @@
           "options": []
         },
         {
+          "id": "dsi_preset_hint",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DSI_PRESET_HINT_LABEL",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DSI_PRESET_HINT_DOC",
+          "value": "",
+          "readonly": true,
+          "hidden": true
+        },
+        {
           "id": "dsi_custom_params",
           "element": "input",
           "type": "text",

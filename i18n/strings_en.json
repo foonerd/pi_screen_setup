@@ -62,6 +62,10 @@
     "DSI_OVERLAY_DOC": "Select your DSI display model",
     "DSI_CUSTOM_PARAMS": "Additional Parameters",
     "DSI_CUSTOM_PARAMS_DOC": "Optional overlay parameters (comma-separated)",
+    "DSI_PRESET_HINT_LABEL": "Preset note",
+    "DSI_PRESET_HINT_DOC": "This display preset omits the vc4-kms-dsi panel dtoverlay line in videoconfig.txt.",
+    "DSI_PRESET_EMIT_HINT": "This preset omits the vc4-kms-dsi panel dtoverlay line in videoconfig (emit_dsi_overlay=false).",
+    "DSI_SUMMARY_NO_PANEL_OVERLAY": "no vc4-kms-dsi panel overlay line in videoconfig",
 
     "STEP2_DPI_TITLE": "Step 2 of 7: DPI/GPIO Display Configuration",
     "STEP2_DPI_DESC": "Configure DPI display connected via GPIO. The UI will reload after saving.",
@@ -347,6 +351,7 @@
     "ADMIN_ERROR_INVALID_TYPE": "Invalid type. Must be: hdmi, dsi, dpi, or composite",
     "ADMIN_ERROR_NO_CONFIG": "Preset must have a config object",
     "ADMIN_ERROR_VC4_KMS": "vc4_kms must be a boolean when set",
+    "ADMIN_ERROR_EMIT_DSI": "emit_dsi_overlay must be a boolean when set",
 
     "PM_TITLE": "Preset Manager",
     "PM_SUBTITLE": "Pi Screen Setup - Display Presets Database",

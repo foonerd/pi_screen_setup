@@ -1,6 +1,6 @@
 {
-  "version": "1.5.7",
-  "last_updated": "2026-03-22",
+  "version": "1.5.8",
+  "last_updated": "2026-03-24",
   "presets": {
     "auto": {
       "name": "Auto Detect (EDID)",
@@ -1724,8 +1724,9 @@
         "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
       },
       "vc4_kms": false,
+      "emit_dsi_overlay": false,
       "recommended_rotation": 0,
-      "notes": "Preset defaults to Follow preset: KMS driver line omitted. If touch fails, add dtoverlay=rpi-ft5406 in Additional Parameters (may require KMS on some setups—then use Force KMS on in Step 4).",
+      "notes": "Omits vc4-kms-v3d and omits vc4-kms-dsi panel overlay in videoconfig (emit_dsi_overlay=false). Verified: touch OK, no artifacts. Add dtoverlay=rpi-ft5406 in Additional Parameters if touch fails on your stack.",
       "overlay_rotation_param": false
     },
     "waveshare-dsi-4.3-qled": {
@@ -2237,6 +2238,20 @@
       "overlay_rotation_param": false
     },
     "_comment_dsi_bigtreetech": "--- BIGTREETECH/BIQU DSI Displays ---",
+    "btt-pitft50-v1.0": {
+      "name": "BIGTREETECH PI TFT50 V1.0 (800x480)",
+      "type": "dsi",
+      "description": "5\" DSI capacitive touchscreen V1.0 PCB (BTT-PITFT50). Same legacy class as Waveshare 4.3\" rev1: omit KMS driver and omit KMS DSI panel overlay.",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
+      },
+      "vc4_kms": false,
+      "emit_dsi_overlay": false,
+      "recommended_rotation": 0,
+      "notes": "Tested with same videoconfig strategy as waveshare-dsi-4.3-rev1-knockout: no vc4-kms-v3d, no vc4-kms-dsi line. Touch OK, no artifacts. config.dtoverlay kept for reference; not written when emit_dsi_overlay=false.",
+      "overlay_rotation_param": false
+    },
     "btt-pitft43-v2.0": {
       "name": "BIGTREETECH PI TFT43 V2.0 (800x480)",
       "type": "dsi",

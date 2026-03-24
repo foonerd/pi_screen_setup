@@ -2151,6 +2151,10 @@ PiScreenSetup.prototype.validatePresetData = function(preset) {
   if (preset.vc4_kms !== undefined && typeof preset.vc4_kms !== 'boolean') {
     return { valid: false, error: self.getI18n('ADMIN_ERROR_VC4_KMS') || 'vc4_kms must be a boolean when set' };
   }
+
+  if (preset.emit_dsi_overlay !== undefined && typeof preset.emit_dsi_overlay !== 'boolean') {
+    return { valid: false, error: self.getI18n('ADMIN_ERROR_EMIT_DSI') || 'emit_dsi_overlay must be a boolean when set' };
+  }
   
   return { valid: true };
 };
@@ -3204,76 +3208,49 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
     }
   }
 
-  // DSI configuration
-  if (primaryOutput === 'dsi0' || self.getConfigValue('dsi0.enabled', false)) {
-    var dsi0PresetId = self.getConfigValue('dsi0.overlay', '');
-    if (dsi0PresetId && dsi0PresetId !== 'custom') {
-      lines.push('# DSI0 Configuration');
-      var dsi0Preset = self.getDisplayPreset(dsi0PresetId);
-      var dsi0Overlay = '';
-      if (dsi0Preset && dsi0Preset.config && dsi0Preset.config.dtoverlay) {
-        dsi0Overlay = dsi0Preset.config.dtoverlay;
+  // DSI configuration (emit_dsi_overlay:false = omit vc4-kms-dsi panel dtoverlay line)
+  var appendDsiPortLines = function(portKey, sectionTitle) {
+    if (!(primaryOutput === portKey || self.getConfigValue(portKey + '.enabled', false))) {
+      return;
+    }
+    var presetId = self.getConfigValue(portKey + '.overlay', '');
+    if (presetId && presetId !== 'custom') {
+      lines.push('# ' + sectionTitle + ' Configuration');
+      var dsiPreset = self.getDisplayPreset(presetId);
+      var emitDsiOverlay = !dsiPreset || dsiPreset.emit_dsi_overlay !== false;
+      if (!emitDsiOverlay) {
+        lines.push('# No vc4-kms-dsi panel dtoverlay line (preset emit_dsi_overlay=false)');
+        lines.push('');
+        return;
+      }
+      var dsiOverlay = '';
+      if (dsiPreset && dsiPreset.config && dsiPreset.config.dtoverlay) {
+        dsiOverlay = dsiPreset.config.dtoverlay;
       } else {
-        // Fallback: assume preset ID is the overlay name (backward compat)
-        dsi0Overlay = dsi0PresetId;
+        dsiOverlay = presetId;
       }
-      var dsi0Params = self.getConfigValue('dsi0.custom_params', '');
-      var dsi0Rotation = self.getConfigValue('dsi0.rotation', 0);
-      var dsi0Line = 'dtoverlay=' + dsi0Overlay;
-      // Only add rotation to overlay if it supports the rotation parameter
-      if (dsi0Rotation !== 0 && dsi0Preset && dsi0Preset.overlay_rotation_param === true) {
-        dsi0Line += ',rotation=' + dsi0Rotation;
+      var dsiParams = self.getConfigValue(portKey + '.custom_params', '');
+      var dsiRotation = self.getConfigValue(portKey + '.rotation', 0);
+      var dsiLine = 'dtoverlay=' + dsiOverlay;
+      if (dsiRotation !== 0 && dsiPreset && dsiPreset.overlay_rotation_param === true) {
+        dsiLine += ',rotation=' + dsiRotation;
       }
-      if (dsi0Params) {
-        dsi0Line += ',' + dsi0Params;
+      if (dsiParams) {
+        dsiLine += ',' + dsiParams;
       }
-      lines.push(dsi0Line);
+      lines.push(dsiLine);
       lines.push('');
-    } else if (dsi0PresetId === 'custom') {
-      // Custom overlay - use custom_params as the full overlay line
-      var customLine = self.getConfigValue('dsi0.custom_params', '');
+    } else if (presetId === 'custom') {
+      var customLine = self.getConfigValue(portKey + '.custom_params', '');
       if (customLine) {
-        lines.push('# DSI0 Custom Configuration');
+        lines.push('# ' + sectionTitle + ' Custom Configuration');
         lines.push('dtoverlay=' + customLine);
         lines.push('');
       }
     }
-  }
-
-  if (primaryOutput === 'dsi1' || self.getConfigValue('dsi1.enabled', false)) {
-    var dsi1PresetId = self.getConfigValue('dsi1.overlay', '');
-    if (dsi1PresetId && dsi1PresetId !== 'custom') {
-      lines.push('# DSI1 Configuration');
-      var dsi1Preset = self.getDisplayPreset(dsi1PresetId);
-      var dsi1Overlay = '';
-      if (dsi1Preset && dsi1Preset.config && dsi1Preset.config.dtoverlay) {
-        dsi1Overlay = dsi1Preset.config.dtoverlay;
-      } else {
-        // Fallback: assume preset ID is the overlay name (backward compat)
-        dsi1Overlay = dsi1PresetId;
-      }
-      var dsi1Params = self.getConfigValue('dsi1.custom_params', '');
-      var dsi1Rotation = self.getConfigValue('dsi1.rotation', 0);
-      var dsi1Line = 'dtoverlay=' + dsi1Overlay;
-      // Only add rotation to overlay if it supports the rotation parameter
-      if (dsi1Rotation !== 0 && dsi1Preset && dsi1Preset.overlay_rotation_param === true) {
-        dsi1Line += ',rotation=' + dsi1Rotation;
-      }
-      if (dsi1Params) {
-        dsi1Line += ',' + dsi1Params;
-      }
-      lines.push(dsi1Line);
-      lines.push('');
-    } else if (dsi1PresetId === 'custom') {
-      // Custom overlay - use custom_params as the full overlay line
-      var customLine1 = self.getConfigValue('dsi1.custom_params', '');
-      if (customLine1) {
-        lines.push('# DSI1 Custom Configuration');
-        lines.push('dtoverlay=' + customLine1);
-        lines.push('');
-      }
-    }
-  }
+  };
+  appendDsiPortLines('dsi0', 'DSI0');
+  appendDsiPortLines('dsi1', 'DSI1');
 
   // DPI configuration
   if (primaryOutput === 'dpi' || self.getConfigValue('dpi.enabled', false)) {
@@ -3518,6 +3495,9 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     var dsiPreset = self.getDisplayPreset(dsiPresetId);
     var dsiLabel = dsiPreset && dsiPreset.name ? dsiPreset.name : dsiPresetId;
     parts.push('DSI: ' + dsiLabel);
+    if (dsiPreset && dsiPreset.emit_dsi_overlay === false) {
+      parts.push(self.getI18n('DSI_SUMMARY_NO_PANEL_OVERLAY'));
+    }
   } else if (primaryOutput === 'dpi') {
     var dpiPresetId = self.getConfigValue('dpi.overlay', '');
     var dpiPreset = self.getDisplayPreset(dpiPresetId);
@@ -5846,6 +5826,19 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         var paramsInput = self.findContentItem(step3Section, 'dsi_custom_params');
         if (paramsInput) {
           paramsInput.value = self.getConfigValue(dsiPrefix + '.custom_params', '');
+        }
+
+        var dsiHint = self.findContentItem(step3Section, 'dsi_preset_hint');
+        if (dsiHint) {
+          var selId = self.getConfigValue(dsiPrefix + '.overlay', '');
+          var selPreset = selId && selId !== 'custom' ? self.getDisplayPreset(selId) : null;
+          if (selPreset && selPreset.emit_dsi_overlay === false) {
+            dsiHint.value = self.getI18n('DSI_PRESET_EMIT_HINT');
+            dsiHint.hidden = false;
+          } else {
+            dsiHint.value = '';
+            dsiHint.hidden = true;
+          }
         }
       }
     }
