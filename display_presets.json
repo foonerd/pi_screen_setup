@@ -1,5 +1,5 @@
 {
-  "version": "1.5.8",
+  "version": "1.5.9",
   "last_updated": "2026-03-24",
   "presets": {
     "auto": {
@@ -2250,6 +2250,21 @@
       "emit_dsi_overlay": false,
       "recommended_rotation": 0,
       "notes": "Tested with same videoconfig strategy as waveshare-dsi-4.3-rev1-knockout: no vc4-kms-v3d, no vc4-kms-dsi line. Touch OK, no artifacts. config.dtoverlay kept for reference; not written when emit_dsi_overlay=false.",
+      "overlay_rotation_param": false
+    },
+    "_comment_dsi_dfrobot": "--- DFRobot DSI Displays ---",
+    "dfrobot-dsi-5-tft-v1.0": {
+      "name": "DFRobot 5\" TFT with Touchscreen V1.0 (800x480)",
+      "type": "dsi",
+      "description": "5\" DSI capacitive touchscreen, silkscreen \"5'' TFT-Display with Touchscreen(V1.0)\". Same legacy knockout class as Waveshare 4.3\" rev1 / BTT PITFT50 V1.0: omit vc4-kms-v3d and omit KMS DSI panel overlay in videoconfig.",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-waveshare-800x480"
+      },
+      "vc4_kms": false,
+      "emit_dsi_overlay": false,
+      "recommended_rotation": 0,
+      "notes": "Field-tested: works with same strategy as waveshare-dsi-4.3-rev1-knockout (manual comment of vc4-kms-dsi-waveshare-800x480 before emit_dsi_overlay). Touch OK, no artifacts. Not a Waveshare PCB — pick this preset by brand/model.",
       "overlay_rotation_param": false
     },
     "btt-pitft43-v2.0": {
