@@ -23,7 +23,7 @@
     "boot_priority": 5,
     "has_alsa_contribution": false,
     "details": "Configure display outputs on Raspberry Pi devices. Supports HDMI (single and dual), DSI displays (official 7-inch and third-party), DPI/GPIO displays, and Composite output. Features include display presets for popular screens (Waveshare, Elecrow), rotation, KMS/CMA configuration, and automatic migration from existing display settings.",
-    "changelog": "0.8.2: Preset editor server: backup names and import paths are checked, import from URL works again, no cross-origin header. 0.8.1: Preset emit_dsi_overlay omits vc4-kms-dsi panel line; BTT PITFT50 V1.0; Waveshare 4.3 rev1 updated; DSI step hint"
+    "changelog": "1.0.0: Complete rework. The board read from the firmware's revision code; the boot files read as the firmware applies them and repaired after a Volumio update; settings rebuilt from the plugin's own boot files when lost; one root helper in place of twelve sudo grants; a kernel mode for every HDMI row and a generated EDID for panels with their own timings; bundled Waveshare overlays; SPI panels; graphics memory per board; presets database 1.9.0 with 55 more screen names. Before updating from 0.8.x, export presets you authored in the Preset Manager and import them after."
   },
   "engines": {
     "node": ">=20",
