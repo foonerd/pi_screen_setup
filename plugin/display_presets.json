@@ -1,6 +1,6 @@
 {
-  "version": "1.5.9",
-  "last_updated": "2026-03-24",
+  "version": "1.6.0",
+  "last_updated": "2026-11-02",
   "presets": {
     "auto": {
       "name": "Auto Detect (EDID)",
@@ -10,6 +10,47 @@
     },
     "_comment_hdmi": "=== HDMI DISPLAYS ===",
     "_comment_hdmi_bar": "--- Bar/Ultrawide Displays ---",
+    "waveshare-11.6-1768x828-hdmi": {
+      "name": "Waveshare 11.6\" 1768x828 LCD",
+      "type": "hdmi",
+      "description": "Ultrawide bar display, HDMI or Type-C",
+      "native_resolution": "1768x828",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1768 0 80 16 204 828 0 9 6 28 0 0 0 60 0 108000000 0"
+      },
+      "recommended_rotation": 0,
+      "video_mode": "1768x828M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/11.6inch_1768x828_LCD (2026-11-02)"
+    },
+    "waveshare-12.3-hdmi": {
+      "name": "Waveshare 12.3\" HDMI LCD / 1920x720 LCD (1920x720)",
+      "type": "hdmi",
+      "description": "Ultrawide bar display; the 12.3inch HDMI LCD and the 12.3inch 1920x720 LCD share these lines",
+      "native_resolution": "1920x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1920 720 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Vendor lines: waveshare.com/wiki/12.3inch_HDMI_LCD and 12.3inch_1920x720_LCD (2026-11-02); the vendor sets hdmi_drive=2, which the HDMI mode \"screen + audio\" provides"
+    },
+    "waveshare-10.4hp-capqled": {
+      "name": "Waveshare 10.4HP-CAPQLED (1600x720)",
+      "type": "hdmi",
+      "description": "Ultrawide QLED touch monitor",
+      "native_resolution": "1600x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1600 0 80 32 112 720 0 30 3 33 0 0 0 60 0 87000000 0"
+      },
+      "recommended_rotation": 0,
+      "video_mode": "1600x720M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/10.4HP-CAPQLED (2026-11-02)"
+    },
     "waveshare-11.9-hdmi": {
       "name": "Waveshare 11.9\" HDMI LCD (320x1480)",
       "type": "hdmi",
@@ -29,7 +70,7 @@
     "waveshare-8.8-hdmi": {
       "name": "Waveshare 8.8\" HDMI Side Monitor (480x1920)",
       "type": "hdmi",
-      "description": "Portrait native bar display, requires rotation for landscape use",
+      "description": "Portrait native bar display, requires rotation for landscape use (also the 8.8inch Side Monitor, same lines)",
       "native_resolution": "480x1920",
       "rotated_resolution": "1920x480",
       "config": {
@@ -72,6 +113,20 @@
       "notes": "Requires volumio-adaptive plymouth theme for proper boot splash"
     },
     "_comment_hdmi_round": "--- Round/Square Displays ---",
+    "waveshare-3.4-800x800-hdmi": {
+      "name": "Waveshare 3.4\" 800x800 LCD (round)",
+      "type": "hdmi",
+      "description": "Round IPS display, capacitive touch",
+      "native_resolution": "800x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "800 0 68 32 200 800 0 68 32 200 0 0 0 60 0 59400000 0"
+      },
+      "recommended_rotation": 0,
+      "video_mode": "800x800M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/3.4inch_800x800_LCD (2026-11-02); the vendor also sets hdmi_force_hotplug=1"
+    },
     "waveshare-5-1080x1080-hdmi": {
       "name": "Waveshare 5\" Round HDMI (1080x1080)",
       "type": "hdmi",
@@ -100,6 +155,49 @@
       "notes": "Optical bonding for better display quality"
     },
     "_comment_hdmi_small": "--- Small Displays (under 5 inch) ---",
+    "waveshare-3.2-hdmi-h": {
+      "name": "Waveshare 3.2\" HDMI LCD (H) (480x800)",
+      "type": "hdmi",
+      "description": "Portrait native small display",
+      "native_resolution": "480x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "480 0 50 20 50 800 0 19 20 20 0 0 0 60 0 38000000 6"
+      },
+      "recommended_rotation": 90,
+      "rotated_resolution": "800x480",
+      "video_mode": "480x800M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/3.2inch_HDMI_LCD_(H) (2026-11-02)"
+    },
+    "waveshare-3.5-480x800-hdmi": {
+      "name": "Waveshare 3.5\" 480x800 LCD",
+      "type": "hdmi",
+      "description": "Portrait native small display, capacitive touch",
+      "native_resolution": "480x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "480 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 90,
+      "rotated_resolution": "800x480",
+      "notes": "Vendor lines: waveshare.com/wiki/3.5inch_480x800_LCD (2026-11-02); the vendor also sets hdmi_force_hotplug=1 and hdmi_drive=1 (HDMI mode \"screen only\")"
+    },
+    "waveshare-5dp-caplcd": {
+      "name": "Waveshare 5DP-CAPLCD (1024x600)",
+      "type": "hdmi",
+      "description": "5-inch DisplayPort/HDMI capacitive touch display",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 10
+      },
+      "recommended_rotation": 0,
+      "notes": "Vendor lines: waveshare.com/wiki/5DP-CAPLCD (2026-11-02); the vendor also sets hdmi_force_hotplug=1"
+    },
     "waveshare-2.8-hdmi-h": {
       "name": "Waveshare 2.8\" HDMI LCD (H) (480x640)",
       "type": "hdmi",
@@ -208,6 +306,85 @@
       "notes": "5-point capacitive touch, supports HDMI audio with 3.5mm jack"
     },
     "_comment_hdmi_standard": "--- Standard Displays ---",
+    "waveshare-8-768x1024-hdmi": {
+      "name": "Waveshare 8\" / 9.7\" 768x1024 LCD",
+      "type": "hdmi",
+      "description": "Portrait native 4:3 display; the 8inch and the 9.7inch 768x1024 LCD share these lines",
+      "native_resolution": "768x1024",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "768 0 80 32 60 1024 0 10 10 10 0 0 0 60 0 59400000 0"
+      },
+      "recommended_rotation": 90,
+      "rotated_resolution": "1024x768",
+      "video_mode": "768x1024M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/8inch_768x1024_LCD (2026-11-02); the vendor also sets hdmi_force_hotplug=1"
+    },
+    "waveshare-8-1536x2048-hdmi": {
+      "name": "Waveshare 8\" 1536x2048 LCD",
+      "type": "hdmi",
+      "description": "Portrait native high-resolution display; needs the Pi 4 or Pi 5 pixel clock",
+      "native_resolution": "1536x2048",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1536 0 500 66 158 2048 0 60 10 10 0 0 0 60 0 295000000 3",
+        "config_hdmi_boost": 4,
+        "hdmi_pixel_freq_limit": 356000000,
+        "max_framebuffer_width": 1536,
+        "max_framebuffer_height": 2048,
+        "framebuffer_width": 1536,
+        "framebuffer_height": 2048
+      },
+      "recommended_rotation": 90,
+      "rotated_resolution": "2048x1536",
+      "video_mode": "1536x2048M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/8inch_1536x2048_LCD (2026-11-02)"
+    },
+    "waveshare-9hp-capqled": {
+      "name": "Waveshare 9HP-CAPQLED / 10.1HP-CAPQLED (1280x720)",
+      "type": "hdmi",
+      "description": "QLED capacitive touch displays; the 9HP and the 10.1HP share these lines",
+      "native_resolution": "1280x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1280 0 160 32 48 720 0 10 10 12 0 0 0 60 0 77000000 3"
+      },
+      "recommended_rotation": 0,
+      "video_mode": "1280x720M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/9HP-CAPQLED (2026-11-02)"
+    },
+    "waveshare-9hp-capqled-b": {
+      "name": "Waveshare 9HP-CAPQLED-B (1280x720)",
+      "type": "hdmi",
+      "description": "9-inch QLED capacitive touch display, B revision",
+      "native_resolution": "1280x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1280 0 160 32 40 720 0 20 6 30 0 0 0 60 0 70400000 3"
+      },
+      "recommended_rotation": 0,
+      "video_mode": "1280x720M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/9HP-CAPQLED-B (2026-11-02)"
+    },
+    "waveshare-10.1ep-caplcd": {
+      "name": "Waveshare 10.1EP-CAPLCD (1920x1200)",
+      "type": "hdmi",
+      "description": "10.1-inch capacitive touch display, HDMI",
+      "native_resolution": "1920x1200",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_timings": "1920 0 48 32 80 1200 0 3 6 26 0 0 0 60 0 154000000 0",
+        "config_hdmi_boost": 10
+      },
+      "recommended_rotation": 0,
+      "video_mode": "1920x1200M@60",
+      "notes": "Vendor lines: waveshare.com/wiki/10.1EP-CAPLCD (2026-11-02); the vendor also sets hdmi_force_hotplug=1"
+    },
     "waveshare-5-hdmi": {
       "name": "Waveshare 5\" HDMI LCD (800x480)",
       "type": "hdmi",
@@ -698,6 +875,33 @@
       "notes": "Touch via USB. Discontinued product (EBE170011535)"
     },
     "_comment_hdmi_elecrow": "--- Elecrow HDMI Displays ---",
+    "elecrow-7-hdmi-d": {
+      "name": "Elecrow 7\" IPS Touch Screen-D DLH05170B (1024x600)",
+      "type": "hdmi",
+      "description": "7-inch IPS monitor, mini HDMI, USB touch",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "config_hdmi_boost": 7
+      },
+      "recommended_rotation": 0,
+      "notes": "Vendor lines: elecrow.com DLH05170B page (2026-11-02); the vendor also sets hdmi_force_hotplug=1, max_usb_current=1 and hdmi_drive=1"
+    },
+    "elecrow-10.1-hdmi-sf101c": {
+      "name": "Elecrow 10.1\" SF101C (1280x800)",
+      "type": "hdmi",
+      "description": "10.1-inch IPS display with case, USB touch",
+      "native_resolution": "1280x800",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1280 800 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Vendor lines: elecrow.com SF101C (DRD01230D) page (2026-11-02); the vendor also sets max_usb_current=1 and hdmi_drive=1"
+    },
     "elecrow-5-hdmi": {
       "name": "Elecrow 5\" HDMI (800x480)",
       "type": "hdmi",
@@ -714,7 +918,7 @@
     "elecrow-7-hdmi": {
       "name": "Elecrow 7\" HDMI (1024x600)",
       "type": "hdmi",
-      "description": "Standard landscape HDMI display with capacitive touch",
+      "description": "Standard landscape HDMI display with capacitive touch (also RPD10246D)",
       "native_resolution": "1024x600",
       "config": {
         "hdmi_group": 2,
@@ -937,7 +1141,7 @@
     "lcdwiki-3.5-hdmi": {
       "name": "LCDwiki 3.5\" HDMI (480x320)",
       "type": "hdmi",
-      "description": "LCDwiki/Goodtft MPI3508 and similar 3.5 inch displays",
+      "description": "LCDwiki/Goodtft MPI3508 and similar 3.5 inch displays (also MPI3508 \"3.5inch HDMI Display-B\")",
       "native_resolution": "480x320",
       "config": {
         "hdmi_group": 2,
@@ -979,7 +1183,7 @@
     "lcdwiki-7-hdmi-b": {
       "name": "LCDwiki 7\" HDMI-B (800x480)",
       "type": "hdmi",
-      "description": "LCDwiki/Goodtft 7 inch 800x480 display",
+      "description": "LCDwiki/Goodtft 7 inch 800x480 display (also MPI7001)",
       "native_resolution": "800x480",
       "config": {
         "hdmi_group": 2,
@@ -1283,6 +1487,19 @@
       "notes": "Touch via USB, driver-free. Compatible with LCDwiki displays"
     },
     "_comment_hdmi_generic": "--- Generic Resolutions ---",
+    "luckfox-7-hdmi": {
+      "name": "Luckfox 7\" HD Touchscreen (1024x600)",
+      "type": "hdmi",
+      "description": "7-inch HDMI display with USB capacitive touch",
+      "native_resolution": "1024x600",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1024 600 60 6 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "Vendor lines: wiki.luckfox.com 7inch-HD-Touchscreen (2026-11-02); the page writes hdmi_driver=1 (sic) for hdmi_drive=1"
+    },
     "generic-480x320": {
       "name": "Generic 480x320 HDMI",
       "type": "hdmi",
@@ -1508,11 +1725,12 @@
       "config": {
         "hdmi_group": 2,
         "hdmi_mode": 87,
-        "hdmi_cvt": "1024 600 60 6 0 0 0",
+        "hdmi_timings": "1024 1 50 18 50 600 1 15 3 15 0 0 0 60 0 40000000 3",
         "config_hdmi_boost": 7
       },
       "recommended_rotation": 0,
-      "notes": "Touch via USB. OSD controls. External 12V power recommended"
+      "notes": "Touch via USB. OSD controls. External 12V power recommended. Vendor timings (Hosyond MPI1001 page on lcdwiki.com) replace the CVT line in 1.6.0",
+      "video_mode": "1024x600M@60"
     },
     "hosyond-10.1-hdmi-y": {
       "name": "Hosyond 10.1\" HDMI Display-Y (1024x600)",
@@ -1570,6 +1788,19 @@
       "notes": "Touch via USB. Built-in stand. Use with Pi 4 requires Micro-HDMI adapter"
     },
     "_comment_dsi_official": "=== OFFICIAL RASPBERRY PI DSI DISPLAYS ===",
+    "rpi-touch2-10inch": {
+      "name": "Raspberry Pi Touch Display 2 - 10\"",
+      "type": "dsi",
+      "description": "Official 10.1-inch Touch Display 2, 1200x1920 portrait, four DSI lanes: Raspberry Pi 5, CM5 and CM4 IO board DISP1 only",
+      "native_resolution": "1200x1920",
+      "rotated_resolution": "1920x1200",
+      "config": {
+        "dtoverlay": "vc4-kms-dsi-ili79600-10-1inch"
+      },
+      "recommended_rotation": 0,
+      "overlay_rotation_param": true,
+      "notes": "raspberrypi.com/documentation (2026-11-02): needs current firmware and EEPROM (apt full-upgrade, rpi-eeprom-update -a); on CM5 DISP0 add ,dsi0 in the custom parameters"
+    },
     "rpi-touch-7inch": {
       "name": "Raspberry Pi Touch Display 7\" (Original)",
       "type": "dsi",
@@ -1766,28 +1997,28 @@
       "overlay_rotation_param": false
     },
     "waveshare-dsi-5.0c-800x480": {
-      "name": "Waveshare 5\" DSI-C IPS (800x480)",
+      "name": "Waveshare 5\" DSI LCD (C) (1024x600)",
       "type": "dsi",
-      "description": "Waveshare 5-inch C model IPS 800x480 DSI touchscreen",
-      "native_resolution": "800x480",
+      "description": "Waveshare 5-inch DSI LCD (C), IPS 1024x600, five-point capacitive touch",
+      "native_resolution": "1024x600",
       "config": {
-        "dtoverlay": "vc4-kms-dsi-7inch"
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchC"
       },
       "recommended_rotation": 0,
-      "notes": "C variant IPS panel, uses official 7-inch overlay, driver-free",
-      "overlay_rotation_param": false
+      "notes": "Corrected in 1.6.0: the panel is 1024x600 and uses the 7_0_inchC token (waveshare.com/wiki/5inch_DSI_LCD_(C), oldid 109355); earlier entries said 800x480 with the official 7-inch overlay, which cannot drive this panel",
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-5.0d-800x480": {
-      "name": "Waveshare 5\" DSI-D IPS (800x480)",
+      "name": "Waveshare 5\" DSI LCD (D) (720x1280)",
       "type": "dsi",
-      "description": "Waveshare 5-inch D model IPS 800x480 DSI touchscreen",
-      "native_resolution": "800x480",
+      "description": "Waveshare 5-inch DSI LCD (D), IPS 720x1280 portrait, optical bonding, five-point capacitive touch",
+      "native_resolution": "720x1280",
       "config": {
-        "dtoverlay": "vc4-kms-dsi-7inch"
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,5_0_inch"
       },
       "recommended_rotation": 0,
-      "notes": "D variant IPS panel, uses official 7-inch overlay, driver-free",
-      "overlay_rotation_param": false
+      "notes": "Corrected in 1.6.0: the panel is 720x1280 and uses the 5_0_inch token (waveshare.com/wiki/5inch_DSI_LCD_(D), oldid 109352); earlier entries said 800x480 with the official 7-inch overlay, which cannot drive this panel",
+      "overlay_rotation_param": true
     },
     "waveshare-dsi-7.0-800x480": {
       "name": "Waveshare 7\" DSI (800x480)",
@@ -1865,10 +2096,11 @@
       "description": "Waveshare 7.0-inch C model DSI touchscreen",
       "native_resolution": "1024x600",
       "config": {
-        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchC"
+        "dtoverlay": "vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1"
       },
       "recommended_rotation": 0,
-      "overlay_rotation_param": true
+      "overlay_rotation_param": true,
+      "notes": "Touch is wired to I2C1 through the 4-pin cable (waveshare.com/wiki/7inch_DSI_LCD_(C)); the kernel overlay defaults to I2C0, so the i2c1 parameter is required. With the 0 ohm resistor moved to I2C0, remove ,i2c1 in the custom parameters. Corrected in 1.6.0"
     },
     "waveshare-dsi-7.0h": {
       "name": "Waveshare 7.0\" DSI-H (1280x720)",
@@ -2524,6 +2756,40 @@
       "notes": "Requires gt911_btt_tft43_dip overlay for touch from BIGTREETECH GitHub"
     },
     "_comment_dpi_other": "--- Other DPI Displays ---",
+    "adafruit-kippah-7inch": {
+      "name": "Adafruit DPI Kippah + 5\"/7\" 800x480",
+      "type": "dpi",
+      "description": "Adafruit DPI Kippah with the 5-inch or 7-inch 800x480 TTL display (in-tree panel)",
+      "native_resolution": "800x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-panel,kippah-7inch"
+      },
+      "recommended_rotation": 0,
+      "notes": "learn.adafruit.com, Bookworm 2024-04 (2026-11-02): dtoverlay=vc4-kms-dpi-panel,kippah-7inch"
+    },
+    "geekworm-mzp280": {
+      "name": "Geekworm MZP280 2.8\" DPI (480x640)",
+      "type": "dpi",
+      "description": "Geekworm MZP280 2.8-inch DPI display, portrait native (in-tree panel)",
+      "native_resolution": "480x640",
+      "rotated_resolution": "640x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-panel,mzp280"
+      },
+      "recommended_rotation": 90,
+      "notes": "Kernel overlays README (rpi-6.12.y): vc4-kms-dpi-panel,mzp280"
+    },
+    "innolux-at056tn53v1": {
+      "name": "Innolux AT056TN53 5.6\" DPI (640x480)",
+      "type": "dpi",
+      "description": "Innolux AT056TN53 v1 5.6-inch VGA panel on DPI (in-tree panel)",
+      "native_resolution": "640x480",
+      "config": {
+        "dtoverlay": "vc4-kms-dpi-panel,at056tn53v1"
+      },
+      "recommended_rotation": 0,
+      "notes": "Kernel overlays README (rpi-6.12.y): vc4-kms-dpi-panel,at056tn53v1"
+    },
     "owootecc-dpi-4.3": {
       "name": "Owootecc 4.3\" DPI Panel (480x320)",
       "type": "dpi",
