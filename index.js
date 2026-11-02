@@ -153,6 +153,24 @@ function naturalSortCompare(a, b) {
   return 0;
 }
 
+// Management server: a file name parameter is a bare JSON file name, never a path.
+function safeJsonName(name) {
+  if (typeof name !== 'string' || path.basename(name) !== name) return null;
+  return /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/.test(name) ? name : null;
+}
+
+var PRESET_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+
+// Import from a local path is limited to user data and mounted media.
+var IMPORT_ROOTS = ['/data', '/mnt', '/media', '/home/volumio'];
+function resolveImportPath(p) {
+  if (typeof p !== 'string' || !p.endsWith('.json')) return null;
+  var real;
+  try { real = fs.realpathSync(p); } catch (e) { return null; }
+  var allowed = IMPORT_ROOTS.some(function(root) { return real.indexOf(root + '/') === 0; });
+  return allowed ? real : null;
+}
+
 
 function PiScreenSetup(context) {
   var self = this;
@@ -469,17 +487,6 @@ PiScreenSetup.prototype.startManagementServer = function() {
     self.expressApp.use(bodyParser.json({ limit: '10mb' }));
     self.expressApp.use(bodyParser.urlencoded({ extended: true }));
     
-    // CORS headers for local access
-    self.expressApp.use(function(req, res, next) {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-      if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-      }
-      next();
-    });
-    
     // Serve HTML page
     self.expressApp.get('/', function(req, res) {
       res.sendFile(path.join(__dirname, 'presets_admin.html'));
@@ -503,7 +510,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // API: i18n Translations
     // ========================================
     self.expressApp.get('/api/i18n/:lang', function(req, res) {
-      var lang = req.params.lang || 'en';
+      var lang = /^[a-z]{2}(_[A-Z]{2})?$/.test(req.params.lang) ? req.params.lang : 'en';
       var stringsFile = path.join(__dirname, 'i18n', 'strings_' + lang + '.json');
       
       fs.readFile(stringsFile, 'utf8', function(err, data) {
@@ -623,6 +630,9 @@ PiScreenSetup.prototype.startManagementServer = function() {
         
         if (!data.id || !data.name) {
           return res.status(400).json({ error: 'ID and name are required' });
+        }
+        if (!PRESET_ID_RE.test(data.id)) {
+          return res.status(400).json({ error: 'ID may contain letters, digits, dot, dash and underscore only' });
         }
         
         if (!self.draftPresets) {
@@ -780,13 +790,9 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.post('/api/database/import-path', function(req, res) {
       try {
-        var filePath = req.body.path;
+        var filePath = resolveImportPath(req.body.path);
         if (!filePath) {
-          return res.status(400).json({ error: 'Path is required' });
-        }
-        
-        if (!fs.existsSync(filePath)) {
-          return res.status(404).json({ error: 'File not found' });
+          return res.status(400).json({ error: 'Path must be a .json file under /data, /mnt, /media or /home/volumio' });
         }
         
         var data = fs.readJsonSync(filePath);
@@ -1023,9 +1029,10 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.get('/api/backups/:name', function(req, res) {
       try {
-        var backupPath = path.join(self.presetsBackupDir, req.params.name);
+        var name = safeJsonName(req.params.name);
+        var backupPath = name && path.join(self.presetsBackupDir, name);
         
-        if (!fs.existsSync(backupPath)) {
+        if (!backupPath || !fs.existsSync(backupPath)) {
           return res.status(404).json({ error: 'Backup not found' });
         }
         
@@ -1041,9 +1048,10 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.delete('/api/backups/:name', function(req, res) {
       try {
-        var backupPath = path.join(self.presetsBackupDir, req.params.name);
+        var name = safeJsonName(req.params.name);
+        var backupPath = name && path.join(self.presetsBackupDir, name);
         
-        if (!fs.existsSync(backupPath)) {
+        if (!backupPath || !fs.existsSync(backupPath)) {
           return res.status(404).json({ error: 'Backup not found' });
         }
         
@@ -1062,8 +1070,11 @@ PiScreenSetup.prototype.startManagementServer = function() {
     self.expressApp.post('/api/backups/upload', function(req, res) {
       try {
         var data = req.body.data;
-        var name = req.body.name || ('uploaded_' + Date.now() + '.json');
+        var name = safeJsonName(req.body.name || ('uploaded_' + Date.now() + '.json'));
         
+        if (!name) {
+          return res.status(400).json({ error: 'Name must be a bare .json file name' });
+        }
         if (!data || !data.presets) {
           return res.status(400).json({ error: 'Invalid backup data' });
         }
@@ -1085,10 +1096,10 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.post('/api/backups/restore', function(req, res) {
       try {
-        var name = req.body.name;
-        var backupPath = path.join(self.presetsBackupDir, name);
+        var name = safeJsonName(req.body.name);
+        var backupPath = name && path.join(self.presetsBackupDir, name);
         
-        if (!fs.existsSync(backupPath)) {
+        if (!backupPath || !fs.existsSync(backupPath)) {
           return res.status(404).json({ error: 'Backup not found' });
         }
         
@@ -1156,6 +1167,50 @@ PiScreenSetup.prototype.getManagementUrl = function() {
   }
   
   return 'http://' + hostname + ':' + self.MANAGEMENT_PORT;
+};
+
+// GET a presets database over http(s); resolves the parsed object once it has a presets map.
+PiScreenSetup.prototype.fetchRemoteDatabase = function(remoteUrl) {
+  var defer = libQ.defer();
+  var settled = false;
+  var settle = function(err, data) {
+    if (settled) return;
+    settled = true;
+    if (err) defer.reject(err); else defer.resolve(data);
+  };
+  
+  if (typeof remoteUrl !== 'string' || !/^https?:\/\//i.test(remoteUrl)) {
+    settle(new Error('URL must start with http:// or https://'));
+    return defer.promise;
+  }
+  
+  var httpModule = /^https/i.test(remoteUrl) ? require('https') : require('http');
+  var request = httpModule.get(remoteUrl, function(response) {
+    if (response.statusCode !== 200) {
+      response.resume();
+      settle(new Error('HTTP error: ' + response.statusCode));
+      return;
+    }
+    var body = '';
+    response.setEncoding('utf8');
+    response.on('data', function(chunk) {
+      body += chunk;
+      if (body.length > 10 * 1024 * 1024) request.destroy(new Error('Response larger than 10 MB'));
+    });
+    response.on('end', function() {
+      try {
+        var data = JSON.parse(body);
+        if (!data || typeof data.presets !== 'object') throw new Error('Invalid database format');
+        settle(null, data);
+      } catch (e) {
+        settle(e);
+      }
+    });
+  });
+  request.on('error', function(e) { settle(e); });
+  request.setTimeout(30000, function() { request.destroy(new Error('Request timeout')); });
+  
+  return defer.promise;
 };
 
 
@@ -1993,6 +2048,11 @@ PiScreenSetup.prototype.adminAddPreset = function(data) {
   }
   
   presetId = presetId.trim().toLowerCase().replace(/\s+/g, '-');
+  if (!PRESET_ID_RE.test(presetId)) {
+    self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
+      self.getI18n('ADMIN_ERROR_INVALID_ID') || 'Invalid preset ID');
+    return libQ.resolve({});
+  }
   
   // Check for duplicates
   if (self.draftPresets.presets[presetId]) {
