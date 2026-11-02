@@ -1,372 +1,162 @@
-# Pi Screen Setup Plugin for Volumio
+# Pi Screen Setup for Volumio
 
-A comprehensive display configuration plugin for Volumio 4.x (Bookworm) on Raspberry Pi. Provides a guided wizard interface for configuring HDMI, DSI, DPI, and composite video outputs with proper rotation, resolution, and audio routing.
+Display configuration for Volumio 4 (Bookworm) on Raspberry Pi. A guided wizard sets up HDMI, DSI, DPI and SPI panels and composite output — resolution, rotation and HDMI audio — from a database of 228 display configurations, and keeps that configuration across Volumio updates.
 
-## Features
+## What it does
 
-- **Guided Setup Wizard**: 7-step wizard walks through complete display configuration
-- **Display Presets Database**: Over 200 pre-configured settings for popular displays (Waveshare, Adafruit, Elecrow, GeeekPi, UCTRONICS, LCDwiki, Sunfounder, Kuman, Pimoroni, Raspberry Pi Official, Joy-IT, Freenove, Seeed Studio, Spotpear, Longruner, Hosyond, HMTECH, BIGTREETECH/BIQU)
-- **Multiple Output Types**: HDMI, DSI (ribbon), DPI (GPIO), Composite, Custom overlays
-- **Dual HDMI Support**: Full configuration for Pi 4/5 dual HDMI ports
-- **Rotation Support**: 0/90/180/270 degree rotation with proper KMS, fbcon, and plymouth integration
-- **Audio Routing**: Configure HDMI audio independently from video
-- **Migration System**: Automatically detects and migrates existing display settings
-- **Safe Configuration**: Creates backups before changes, validates settings before applying
-- **KMS/DRM Support**: Full vc4-kms-v3d overlay support for Pi 2/3/4/5
-- **Preset Manager**: Web-based interface for managing and contributing display presets
-- **Internationalization**: Available in 6 languages (English, German, French, Spanish, Italian, Dutch)
-- **Database Auto-Update**: Automatic fetching of latest display presets from GitHub
+- A seven-step wizard: output, display model, rotation, graphics driver settings, advanced options, review, apply.
+- A display database of 228 configurations under 285 names (vendor names and known rebrands), fetched from this repository when it changes, so new displays arrive without a plugin update.
+- Every output a Raspberry Pi has: one or two HDMI ports, one or two DSI ports, panels on the GPIO header (DPI and SPI), composite video, a custom overlay line, or headless.
+- Rotation in the place the kernel reads it: the panel overlay's own parameter where it has one, the kernel command line otherwise; the boot splash and the console follow.
+- HDMI under the KMS driver: the mode the kernel needs for every display in the database, and a generated EDID for panels whose timings are not standard.
+- Vendor overlay files bundled for the displays that need them (Waveshare DPI and 3.5" DSI panels); they are installed when such a display is applied and removed when it is not.
+- Settings that survive: the display configuration is kept in Volumio's data partition, rebuilt from the boot files if the settings file is ever lost, and regenerated after a Volumio update rewrites the boot files.
+- Restore points before every change, a reference copy of the boot files as found, and a single button (or command) that takes the plugin's configuration out again.
+- A Preset Manager on port 4567 for authoring, importing and exporting display presets.
+- Six languages: English, German, French, Spanish, Italian, Dutch.
 
-## Preset Manager
+## Supported hardware
 
-The plugin includes a standalone web interface for managing display presets:
+Raspberry Pi 2, 3, 3+, 4, 400, 5, 500; Compute Modules 3, 3+, 4, 5; Zero 2 W. Volumio 4.x on Bookworm. The plugin reads the board from the device tree and offers only the outputs that board has (one or two HDMI ports, one or two DSI ports, composite where it exists).
 
-**Access**: http://volumio.local:4567/
+The Zero 2 W boots without the KMS driver on Volumio; the plugin follows that and does not add one.
 
-**Features**:
-- View and search all display presets
-- Add new presets with full parameter configuration
-- Edit existing presets
-- Import presets from URL, file, or direct upload
-- Export database for backup or GitHub contribution
-- Create and restore backups
-- Revert to bundled database
+## The display database
 
-The Preset Manager is useful for:
-- Adding support for displays not in the default database
-- Testing preset configurations before contributing upstream
-- Managing custom presets for OEM deployments
+`display_presets.json` carries one row per display configuration. Each row names the display, its interface (`hdmi`, `dsi`, `dpi`, `spi`, `composite`), the `config.txt` lines the vendor publishes for it, the resolution, where the lines come from (`provenance`: the vendor page, or community use) and, where it matters, other product names sold with the same panel (`aliases`), the boards it exists for (`boards`), the kernel it needs (`min_kernel`), the vendor overlay files it depends on (`requires_overlay`) and the rotation parameter its overlay takes (`rotation_param`).
 
-## Supported Hardware
+The pickers list every row and every alias under its own name; selecting an alias selects the row. When a row does not fit this player, the picker says why before you apply it: a kernel that is too old for the overlay token (the Waveshare 10.1" DSI LCD (E) needs 6.18.55), a board the panel does not exist for, or a vendor file this release does not ship. Rows for which the plugin installs vendor overlay files or an EDID say so too.
 
-- Raspberry Pi 2, 3, 4, 5
-- Raspberry Pi 400, 500
-- Compute Modules CM3, CM4, CM5
-- Pi Zero 2 W (limited KMS support)
+Vendors covered: Waveshare (HDMI, DSI and DPI families, including the DSI-TOUCH V2 series), the official Raspberry Pi Touch Display and Touch Display 2, Pimoroni HyperPixel, Adafruit (HDMI, the DPI Kippah, the PiTFT SPI family), Hosyond, Seeed Studio, GeeekPi/52Pi, Spotpear, Joy-IT, LCDwiki/goodtft, Elecrow, UCTRONICS, Freenove, BIGTREETECH/BIQU, Sunfounder, Kuman, Longruner, HMTECH, Pollin, Luckfox, DFRobot, Geekworm, Innolux, JDI, OzzMaker, Watterott, the VGA666 adapter, generic HDMI rows by resolution (480x320 to 1920x1200, portrait sizes, 720p, 1080p, 4K) and custom timings for HDMI, DSI and DPI.
 
-## Supported Display Types
+No row is ever removed: your settings name presets by their key, and the repository's checks refuse a database in which a key of any earlier release is missing or has changed type. A row that is superseded stays in place, leaves the picker, and keeps working for the settings that name it.
 
-### HDMI Displays (with presets)
+### Vendor overlay files
 
-**Waveshare:**
-- 2.8", 3.5", 4", 4.3", 5", 7", 7.9", 8.8", 9.3", 10.1", 11.9" HDMI LCD
-- Round (5" 1080x1080) and Square (4" 720x720)
+Eight Waveshare presets (2.8", 3.5", 4" (B), 4" (C), 5" and 7" DPI LCD; 3.5" DSI LCD (E) and (H)) depend on overlay files the vendor publishes and the Raspberry Pi kernel does not carry. The plugin ships them under `overlays/` as `pss-<name>.dtbo` — the vendor's bytes, unchanged — each beside its decompiled source (`.dts`) and listed in `overlays/manifest.json` with its download URL, archive member and SHA-256. When such a preset is applied the plugin installs its files into `/boot/overlays/` before writing the line that names them, and writes `dtoverlay=pss-<name>` with the vendor's parameters. The files are removed when a configuration no longer needs them, by the "remove the plugin's display configuration" button, and at uninstall. Nothing with another prefix is ever written to or removed from `/boot/overlays/`.
 
-**Adafruit:**
-- 5", 7", 10.1" (including IPS and Backpack models)
+### HDMI under the KMS driver
 
-**Elecrow:**
-- 5", 7"
+With the `vc4-kms-v3d` driver the kernel drives the HDMI ports itself and ignores the firmware's `hdmi_group`, `hdmi_mode`, `hdmi_cvt` and `hdmi_timings` lines (the firmware still uses them for the boot splash). The plugin derives the kernel's mode from those lines for every HDMI row and for custom timings and puts it on the kernel command line as `video=HDMI-A-1:<width>x<height>M@<rate>`.
 
-**GeeekPi/52Pi:**
-- 5", 7", 11.6"
+A panel whose timings are not standard (`hdmi_timings`) gets an EDID generated from that line: a VESA E-EDID 1.3 block carrying the one detailed timing and, when the port carries audio, a CTA-861 extension declaring an HDMI sink with two-channel PCM. It is installed as `/lib/firmware/edid/pss-<preset>.bin` and named on the kernel line with `drm.edid_firmware=`. The kernel then uses the panel's exact timing, and HDMI audio works on panels that have no EDID of their own. The file follows the configuration, is put back if a Volumio update has removed it, and goes with the plugin's configuration. Three rows have porches or a pixel clock the EDID format cannot hold; they use the computed mode.
 
-**UCTRONICS:**
-- 3.5", 5", 7"
+### SPI panels
 
-**LCDwiki/Goodtft:**
-- 3.5", 4", 5", 7" (Miuzei/Kuman rebrands)
-
-**Sunfounder:**
-- 7", 10.1"
-
-**Kuman:**
-- 7"
-
-**Joy-IT:**
-- 5", 7", 10", 10.1" HDMI LCD
-
-**Freenove:**
-- 7" HDMI
-
-**Seeed Studio:**
-- 5" (720x1280), 7" (720x1280, 1024x600, 1280x800), 10.1" (1280x800, 1200x1920, 1366x768)
-
-**Spotpear:**
-- 4", 5", 7", 10.1", 5" Round (1080x1080)
-
-**Longruner:**
-- 5", 7" HDMI
-
-**Hosyond:**
-- 5", 7", 8.8" bar, 10.1" HDMI
-
-**HMTECH:**
-- 7", 10.1" HDMI
-
-**Generic/Standard:**
-- Generic resolutions (480x320, 800x480, 1024x600, 1280x800, 1366x768)
-- Standard resolutions (720p, 1080p, 4K 30Hz, 4K 60Hz)
-- Custom timing support (hdmi_timings and hdmi_cvt)
-
-### DSI Displays
-
-**Official Raspberry Pi:**
-- Raspberry Pi Touch Display 7" (Original, 800x480)
-- Raspberry Pi Touch Display 2 - 7" (720x1280)
-- Raspberry Pi Touch Display 2 - 5" (720x1280)
-
-**Waveshare DSI (vc4-kms-dsi-waveshare-panel):**
-- 2.8" (480x640)
-- 3.4" Round (800x800)
-- 4.0" (480x800)
-- 4.0" C (720x720)
-- 4.3" (800x480)
-- 5.0" (720x1280)
-- 6.25" (720x1560)
-- 7.0" C (1024x600)
-- 7.0" H (1280x720)
-- 7.9" (400x1280)
-- 8.0" (1280x800)
-- 8.8" (480x1920)
-- 10.1" (1280x800)
-- 11.9" (320x1480)
-- 13.3" 2-lane/4-lane (1920x1080)
-
-**Waveshare DSI-TOUCH V2 Series:**
-- 3.4" C, 4.0" C, 5.0" A, 5.5" A
-- 7.0" A/B/C, 8.0" A (2-lane/4-lane)
-- 8.8" A, 9.0" B (2-lane/4-lane)
-- 10.1" A/B (2-lane/4-lane)
-- 12.3" A (4-lane)
-
-**BIGTREETECH/BIQU DSI:**
-- PI TFT43 V2.0 (4.3", 800x480)
-- PI TFT50 V1.0/V2.0 (5", 800x480)
-- PI TFT70 V2.1 (7", 800x480)
-- HDMI5/HDMI7 V1.0/V1.1/V1.2 (DSI-compatible models)
-
-**Freenove DSI:**
-- 4.3" (800x480)
-- 5" (800x480)
-- 7" (800x480)
-
-**Hosyond DSI:**
-- 5" (800x480)
-- 7" (800x480)
-
-**Other DSI:**
-- JDI LT070ME05000 / V2 (Compute Module only)
-- Generic DSI panel (custom timings)
-
-### DPI Displays
-
-**Pimoroni:**
-- HyperPixel 4.0 (800x480)
-- HyperPixel 4.0 Square (720x720)
-- HyperPixel 2.1 Round (480x480)
-
-**Waveshare DPI:**
-- 2.8" (480x640)
-- 3.5" (640x480)
-- 4" B (480x800)
-- 4" C (720x720)
-- 5" (800x480)
-- 7" (1024x600)
-
-**BIGTREETECH DPI:**
-- TFT43-DIP (4.3", 800x480)
-
-**Other DPI:**
-- VGA666 adapter
-- Waveshare 3.5" DPI (640x480)
-- Waveshare 4" DPI-C (720x720)
-- Owootecc 4.3" DPI (480x320)
-- Custom/Generic DPI panel
-
-### Other
-- Composite video (PAL/NTSC/PAL-M/PAL-N)
-- Custom device tree overlays
+Panels on the SPI bus with an in-tree kernel overlay that offers a KMS path (Adafruit PiTFT 2.2", 2.8"/2.4"/3.2" resistive, 2.8" capacitive and 3.5" resistive; OzzMaker PiScreen; Watterott RPi-Display) are offered under the GPIO output beside the DPI panels. They are experimental: to the kernel such a panel is a display device of its own (connector `SPI-1`), and Volumio's screen may have to be pointed at it. Touch orientation parameters are not managed.
 
 ## Installation
 
-### Prerequisites
-- Volumio 4.x (Bookworm) running on Raspberry Pi
-- SSH access enabled
+### From the plugin store
 
-### Install from GitHub (outside plugin store)
+When listed, install Pi Screen Setup from Volumio's plugin store (Settings → Plugins → Search Plugins, category System Hardware) and enable it.
 
-If you have a previous version installed, uninstall it first via Volumio UI.
+### From a release
 
-Connect via SSH and run:
+Each release on GitHub carries `pi_screen_setup-<version>.zip`, the plugin as the store would ship it. Over SSH:
 
 ```
-cd ~
-rm -rf pi_screen_setup
-git clone --depth=1 https://github.com/foonerd/pi_screen_setup.git
-cd pi_screen_setup
+wget https://github.com/foonerd/pi_screen_setup/releases/download/v<version>/pi_screen_setup-<version>.zip
+mkdir pi_screen_setup && cd pi_screen_setup
+miniunzip ../pi_screen_setup-<version>.zip
 volumio plugin install
 ```
 
-After installation, enable the plugin in Volumio Settings > Plugins > Installed Plugins.
+Then enable the plugin in Settings → Plugins → Installed Plugins. To update, run the same steps with the new version in a fresh directory and `volumio plugin update` in place of `volumio plugin install`.
 
-### Update Existing Installation
+### From source
 
 ```
-cd ~
-rm -rf pi_screen_setup
 git clone --depth=1 https://github.com/foonerd/pi_screen_setup.git
-cd pi_screen_setup
-volumio plugin update
+cd pi_screen_setup/plugin
+npm install --omit=dev
+volumio plugin install
 ```
 
-## Usage
+### Updating from a release before 1.0
 
-### Setup Wizard
+Releases before 1.0 kept the presets you authored or fetched inside the plugin folder, which Volumio deletes when it updates a plugin. If you authored presets in the Preset Manager on such a release, export them first (Preset Manager → Export, or `GET http://<player>:4567/api/database/export`) and import them after the update. From 1.0 on they live under `/data/INTERNAL/pi_screen_setup/`, which a plugin update leaves alone.
 
-1. **Step 0 - Detection**: Choose auto-detect or manual configuration
-2. **Step 1 - Output Selection**: Select primary display output type
-3. **Step 2 - Display Configuration**: Configure resolution/preset and settings
-4. **Step 3 - Rotation**: Set display rotation (0/90/180/270 degrees)
-5. **Step 4 - KMS Settings**: Configure GPU memory allocation
-6. **Step 5 - Advanced**: Additional options and custom parameters
-7. **Step 6 - Review**: Confirm settings before applying
-8. **Step 7 - Apply**: Write configuration and optionally reboot
+## Using the wizard
 
-### Display Presets
+The wizard opens with a choice: let the plugin detect the connected display, or configure by hand. Then:
 
-The plugin includes a presets database for common displays. When selecting a preset, the plugin automatically configures:
+1. **Output** — the port the display is on: HDMI 0/1, DSI 0/1, DPI / SPI (GPIO), composite, a custom overlay line, or headless.
+2. **Display** — the display model from the database, or custom timings; for HDMI also screen/audio mode, force hotplug, ignore EDID and signal boost, and the second port's role. The picker notes anything the database knows that matters on this player.
+3. **Rotation** — 0, 90, 180 or 270 degrees. The plugin chooses the mechanism: the panel overlay's own parameter where it has one, otherwise the kernel command line (`video=…,rotate=`, `plymouth=`, `fbcon=rotate:`); each kernel-line switch can be turned off.
+4. **Graphics memory** — the KMS driver on or off, and the CMA size: the kernel's default for the board, a preset, or a custom value.
+5. **After a Volumio update** — notify, ask, or regenerate silently.
+6. **Review and apply** — a summary of what will be written; apply creates a restore point, writes the files and offers a reboot.
 
-- hdmi_group and hdmi_mode
-- hdmi_timings (raw timing for displays without EDID)
-- hdmi_cvt (calculated timing)
-- max_framebuffer_height (for tall portrait displays)
-- Recommended rotation
-- Kernel command line video mode parameter
+Once applied, the plugin shows the current configuration, its summary and the effective boot files, and offers Edit, the restore points, the diagnostics report, the database update check and the removal of its configuration.
 
-For displays not in the presets database, use "Custom Timings" to enter manual hdmi_timings or hdmi_cvt values, or add them via the Preset Manager.
+## What the plugin writes
 
-### Database Updates
+| File | What |
+|---|---|
+| `/boot/videoconfig.txt` | The display configuration, generated from your settings; the only file the plugin owns. |
+| `/boot/config.txt` | One line, `include videoconfig.txt`. |
+| `/boot/cmdline.txt` | The kernel's display mode, rotation switches and EDID reference; nothing else on the line is touched. |
+| `/boot/volumioconfig.txt`, `/boot/userconfig.txt` | Display lines are removed while the plugin manages the display, so they cannot fight with `videoconfig.txt`; the original and a digest of the result are kept so the lines can be put back. |
+| `/boot/overlays/pss-*.dtbo` | Vendor overlay files, for the presets that need them. |
+| `/lib/firmware/edid/pss-*.bin` | Generated EDID files, for HDMI panels with their own timings. |
 
-The plugin can automatically fetch the latest display presets database from GitHub:
+Every write goes through one root helper, `/usr/local/bin/pi-screen-setup-root`, installed by the plugin and the only command its sudoers entry names. It writes the five boot files by name (atomically, never empty), removes `videoconfig.txt`, installs and removes the plugin's `pss-` files, and performs the removal described below. The plugin itself runs as the `volumio` user.
 
-**Automatic Updates**: When enabled in plugin settings, the database is checked for updates periodically. New presets become available without plugin reinstallation.
+Lines in `userconfig.txt` that the plugin leaves alone but that act on the display (another plugin's `display_lcd_rotate`, for example) are pointed out in the hardware section and in the diagnostics report.
 
-**Manual Updates**: Use the Preset Manager at http://volumio.local:4567/ to import updated databases from URL or file.
+## Backup and restore
 
-**OTA Behavior**: Configure how the plugin handles system updates that may overwrite display settings.
+**Where things are kept.** Restore points, the reference copies of the boot files, the record of what was removed from Volumio's files, and the presets you authored or fetched live under `/data/INTERNAL/pi_screen_setup/` (the Internal Storage share). That directory survives a plugin update and an uninstall.
 
-### Configuration Files
+**Restore points.** Each apply saves `videoconfig.txt`, `config.txt` and `cmdline.txt` as they were. The last ten are kept and can be restored from the plugin UI.
 
-The plugin manages these files:
+**The boot files as found.** On first install `config.txt`, `cmdline.txt`, `volumioconfig.txt` and `userconfig.txt` are saved as they were under `backups/factory/`, for reference. They are not written back: after a Volumio update they describe an older system.
 
-- `/boot/videoconfig.txt` - Display configuration (included by config.txt)
-- `/boot/config.txt` - Adds include line for videoconfig.txt
-- `/boot/cmdline.txt` - Kernel parameters for rotation and video mode
+**Settings.** The configuration lives in Volumio's settings store. If it is ever lost — a settings file restored from an older backup, or reset — the plugin rebuilds it from its own `videoconfig.txt` and `cmdline.txt` at the next start and says so.
 
-Original files are backed up before modification.
+**Removing the plugin's display configuration.** The button in the Edit section, and uninstalling the plugin, take the plugin's lines out of `config.txt`, `videoconfig.txt` and `cmdline.txt`, remove its `pss-` files, and put back the lines removed from `volumioconfig.txt` and `userconfig.txt` when those files are still as the plugin left them (a file edited since is left alone and reported). The display then boots as Volumio ships it. From SSH the same is `sudo pi-screen-setup-root clean-exit`.
 
-### Backup and Restore
+## After a Volumio update
 
-**Where things are kept**
-Backups, restore points, the reference copies of the boot files taken at each apply, the record of what the plugin removed from Volumio's own files, and the presets you authored or fetched (the draft, the downloaded database, the preset backups and exports) live in `/data/INTERNAL/pi_screen_setup/`, the Internal Storage share. That directory survives a plugin update and an uninstall; the plugin's own folder does not — Volumio removes it on every update.
+A Volumio update rewrites the boot files. At the next start the plugin recognises the update (the OS version changed), and does what you chose in the wizard: shows a notice, asks, or regenerates the configuration silently and offers a reboot. A changed boot file without an OS update is reported as such. The vendor overlay and EDID files are reinstalled as part of the regeneration.
 
-**Updating from a release before 1.0**
-Releases before 1.0 kept the presets cache inside the plugin folder, which Volumio deletes when it updates a plugin, before the new release can run. If you authored presets in the Preset Manager on such a release, export them first (Preset Manager → Export, or `GET http://<player>:4567/api/database/export`) and import them after the update. A cache that is still in the old place when 1.0 first starts (a manual install over the same folder) is carried over.
+## Preset Manager and API
 
-**No preset is ever removed from the database**
-Your settings name presets by their key. The repository's check refuses a database in which a key of any earlier release is missing or has changed type (`test/db-keys.json`); a preset that is superseded stays in place and is marked as such.
-
-**Restore Points**
-Each time you apply a configuration, a restore point is created containing `videoconfig.txt`, `config.txt` and `cmdline.txt`. The last 10 are kept and can be selected from the plugin UI.
-
-**The boot files as found**
-On the first install the plugin saves `config.txt`, `cmdline.txt`, `volumioconfig.txt` and `userconfig.txt` as they were, under `backups/factory/`, for reference. They are not written back by the plugin: after a Volumio update they describe an older system.
-
-**Volumio's own files**
-Display lines in `volumioconfig.txt` (and lines the wizard takes over from `userconfig.txt`) are removed while the plugin manages the display, so that they cannot fight with `videoconfig.txt`. Before each removal the plugin keeps the original and a digest of what it left; the removal is repeated after a Volumio update rewrites the file. Lines in `userconfig.txt` that the plugin leaves alone but that act on the display (the Touch Display plugin's `display_lcd_rotate`, for example) are listed in the hardware section and in the diagnostics report.
-
-**Remove the plugin's display configuration**
-The Edit Configuration section offers this button. It takes the plugin's lines out of `config.txt`, `videoconfig.txt` and `cmdline.txt`, and puts back the lines it removed from `volumioconfig.txt` and `userconfig.txt` — when those files are still as the plugin left them; a file edited since is left alone and said so. The plugin's settings are reset; the display then boots as Volumio ships it. Uninstalling the plugin does the same.
-
-**How the plugin writes to /boot**
-Through one root helper, `/usr/local/bin/pi-screen-setup-root`, installed by the plugin and the only command its sudoers entry names. It writes the five boot files by name (atomically, never empty), removes `videoconfig.txt`, performs the removal above, and installs the plugin's own overlay and EDID files under a `pss-` prefix. Nothing else.
-
-## Waveshare Portrait Display Notes
-
-For Waveshare 11.9" and 7.9" HDMI displays (portrait native):
-
-1. Select the appropriate Waveshare preset in Step 2
-2. Set rotation to 90 degrees in Step 3 for landscape orientation
-3. The plugin will configure:
-   - hdmi_timings with correct values
-   - max_framebuffer_height (11.9" only)
-   - video= parameter with resolution and rotation
-   - plymouth= parameter for boot splash rotation
-
-Note: Proper boot splash rotation requires the volumio-adaptive plymouth theme.
+The Preset Manager at `http://<player>:4567/` lists the database, lets you add, edit, import and export presets, back up and restore the database, and revert to the bundled one. Presets you add there are used by the wizard at once. The same server exposes a REST API, documented in [API.md](API.md).
 
 ## Troubleshooting
 
-### Display not detected
-- Enable "Force Hotplug" in HDMI settings
-- Try "Ignore EDID" if display reports incorrect capabilities
+**No picture after a reboot.** Over SSH, `sudo pi-screen-setup-root clean-exit` followed by `sudo reboot` returns the display to Volumio's own configuration. The restore points under `/data/INTERNAL/pi_screen_setup/backups/restore_points/` hold every `videoconfig.txt` that was applied.
 
-### No picture after reboot
-- Connect via SSH
-- Check `/boot/videoconfig.txt` for configuration
-- Use plugin UI to restore a previous restore point, or
-- Remove the plugin's display configuration from the plugin UI, or
-- From SSH: `sudo pi-screen-setup-root clean-exit` does the same removal
+**The display is not detected.** Enable Force Hotplug in the HDMI settings; if the display reports wrong capabilities, Ignore EDID.
 
-### Rotation not working
-- Ensure KMS is enabled (required for rotation)
-- Check cmdline.txt contains video= and fbcon= parameters
-- Some displays require specific rotation values
+**Rotation has no effect.** Rotation needs the KMS driver. Check the picker note for the preset: some overlays take the rotation themselves, and the kernel line then carries none.
 
-### Audio issues
-- Verify hdmi_drive=2 is set (HDMI mode with audio)
-- Check audio output is set to HDMI in Volumio playback settings
+**No HDMI audio.** The port mode must be Screen + Audio. On a panel without its own EDID, the generated EDID declares audio only in that mode.
 
-### Restoring after failed configuration
-If you cannot access the Volumio UI:
-1. Connect via SSH
-2. Remove the plugin's display configuration and reboot:
-```
-sudo pi-screen-setup-root clean-exit
-sudo reboot
-```
-This takes the plugin's lines out of the boot files and puts back what it removed from Volumio's files. The restore points under `/data/INTERNAL/pi_screen_setup/backups/restore_points/` hold every `videoconfig.txt` that was applied, should you want one back by hand.
+**A picker entry carries a note.** The note says what is missing: a newer kernel, a board the panel exists for, or a vendor file. The configuration can still be applied; it will take effect when the condition is met.
 
-## Technical Details
+**Diagnostics.** The Diagnostics button writes `/tmp/pi-screen-setup-diagnostics.txt`: the board, the boot files as they are, what the firmware applied, the connectors the kernel sees, and the plugin's state. Attach it to an issue.
 
-### KMS Overlay Selection
-- Pi 2/3: vc4-kms-v3d
-- Pi 4/400/CM4: vc4-kms-v3d-pi4
-- Pi 5/500/CM5: vc4-kms-v3d-pi5
+## Technical reference
 
-### Rotation Implementation
-- KMS: video=CONNECTOR:rotate=DEGREES in cmdline.txt
-- Framebuffer console: fbcon=rotate:N in cmdline.txt
-- Plymouth boot splash: plymouth=DEGREES in cmdline.txt
-
-### Port Suffixes
-- HDMI0: No suffix (hdmi_group=2)
-- HDMI1: :1 suffix (hdmi_group:1=2)
-
-### Management API
-The Preset Manager runs on port 4567 and exposes a REST API for programmatic access. See API.md for full documentation.
+- KMS overlay by board: `vc4-kms-v3d` (Pi 2/3), `vc4-kms-v3d-pi4` (Pi 4/400/CM4), `vc4-kms-v3d-pi5` (Pi 5/500/CM5). CMA sizes as `cma-<MB>`; the kernel's defaults are 256 MB, 508 MB and 64 MB respectively.
+- Connector names on the kernel line: `HDMI-A-1`, `HDMI-A-2`, `DSI-1` (and `DSI-2` for the second port on the Pi 5 family), `DPI-1`, `SPI-1`.
+- HDMI port 1 settings carry the `:1` suffix in `videoconfig.txt` (`hdmi_group:1=…`).
+- The kernel-line mode: `video=<connector>:<w>x<h>M@<rate>` (`M`: timings computed by CVT, `R`: reduced blanking, `e`: treat as connected); for an EDID panel the size alone, so the EDID's timing is taken.
+- Rotation parameters: `rotation=` on the official and Waveshare DSI panel overlays, `rotate=` on the HyperPixels, `vc4-kms-dpi-panel` and the SPI panels; `video=…,rotate=`, `plymouth=` and `fbcon=rotate:` on the kernel line for the rest.
+- Database channel: `https://raw.githubusercontent.com/foonerd/pi_screen_setup/refs/heads/main/display_presets.json`, checked every 24 hours when enabled.
 
 ## Contributing
 
-Display preset contributions welcome. There are two ways to contribute:
+Display presets are the most useful contribution. In the Preset Manager, add the preset, test it on the display, and use "Export for PR"; open a pull request with the exported file, or edit `display_presets.json` directly. Each row needs a name, a type, the vendor's lines and where they come from. The repository's checks run on every pull request: the database against the schema and the kernel's overlay list, the key snapshot, i18n parity, the shell scripts, the test suite, and the plugin zip.
 
-### Via Preset Manager (Recommended)
-1. Open http://volumio.local:4567/
-2. Add or edit presets using the web interface
-3. Test your configuration
-4. Use "Export for PR" to generate a properly formatted database file
-5. Submit pull request with the exported file
+## Licence
 
-### Manual Method
-1. Fork the repository
-2. Edit `display_presets.json`
-3. Add preset with name, config parameters, and recommended rotation
-4. Submit pull request
+MIT. See [LICENSE](LICENSE).
 
-## License
-
-MIT
+The vendor overlay files under `plugin/overlays/` are Waveshare's, redistributed unchanged as published on the product pages listed in `overlays/manifest.json`, each with its SHA-256 and its decompiled source alongside. The EDID files are generated by the plugin from the timing lines in the database.
 
 ## Support
 

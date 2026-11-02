@@ -2,7 +2,11 @@
 
 All notable changes to Pi Screen Setup are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The presets database (`display_presets.json`) carries its own version and is updated on players independently of the plugin.
 
-## [Unreleased]
+## [1.0.0] - 2026-11-02
+
+**Before updating from a 0.8.x release:** if you authored presets in the Preset Manager, export them first (Preset Manager → Export, or `GET http://<player>:4567/api/database/export`) and import them after the update. Those releases kept the presets cache inside the plugin folder, which Volumio deletes when it updates a plugin; from 1.0 on it lives under `/data/INTERNAL/pi_screen_setup/`, which an update leaves alone. Your display settings themselves are kept — and if the settings file is lost, the plugin rebuilds them from its own boot files at the next start.
+
+This release is published as a pre-release for bench testing. Install it from the zip attached below (see the README, "From a release").
 
 ### Added
 

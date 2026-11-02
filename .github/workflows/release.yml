@@ -26,8 +26,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 20
+      - run: sudo apt-get install -y --no-install-recommends edid-decode
       - run: npm test
-      - run: shellcheck -S warning plugin/install.sh plugin/uninstall.sh scripts/*.sh
+      - run: shellcheck -S warning plugin/install.sh plugin/uninstall.sh plugin/scripts/*.sh scripts/*.sh
       - run: scripts/package.sh
       - name: The zip names the commit it was built from and carries the modules and the database
         run: |
