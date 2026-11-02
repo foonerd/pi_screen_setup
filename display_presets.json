@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "version": "1.8.0",
+  "version": "1.9.0",
   "last_updated": "2026-11-02",
   "presets": {
     "auto": {
@@ -3391,9 +3391,11 @@
         "dtoverlay": "piscreen,speed=16000000,drm,xohms=100"
       },
       "recommended_rotation": 0,
-      "notes": "Uses piscreen overlay with DRM support",
+      "notes": "The PiScreen overlay under a name no product matches; see ozzmaker-piscreen. Kept so settings that name it keep working.",
       "rotation_param": "rotate",
-      "provenance": "community"
+      "provenance": "community",
+      "deprecated": true,
+      "superseded_by": "ozzmaker-piscreen"
     },
     "custom-dpi": {
       "name": "Custom/Generic DPI Panel",
@@ -3407,6 +3409,88 @@
       "notes": "Use overlay parameters to configure timings",
       "rotation_param": "rotate",
       "provenance": "community"
+    },
+    "adafruit-pitft22": {
+      "name": "Adafruit PiTFT 2.2\" (320x240)",
+      "type": "spi",
+      "description": "ILI9341 over SPI, no touch; lines from adafruit-pitft.py with the drm option",
+      "native_resolution": "320x240",
+      "config": {
+        "dtoverlay": "pitft22,speed=64000000,fps=30,drm"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/adafruit/Raspberry-Pi-Installer-Scripts/blob/main/adafruit-pitft.py",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here."
+    },
+    "adafruit-pitft28-resistive": {
+      "name": "Adafruit PiTFT 2.8\"/2.4\"/3.2\" resistive (320x240)",
+      "type": "spi",
+      "description": "ILI9341 over SPI, STMPE resistive touch; lines from adafruit-pitft.py with the drm option",
+      "native_resolution": "320x240",
+      "config": {
+        "dtoverlay": "pitft28-resistive,speed=64000000,fps=30,drm"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/adafruit/Raspberry-Pi-Installer-Scripts/blob/main/adafruit-pitft.py",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here.",
+      "aliases": [
+        "Adafruit PiTFT 2.4\" resistive",
+        "Adafruit PiTFT 3.2\" resistive"
+      ]
+    },
+    "adafruit-pitft28-capacitive": {
+      "name": "Adafruit PiTFT 2.8\" capacitive (320x240)",
+      "type": "spi",
+      "description": "ILI9341 over SPI, FocalTech capacitive touch; lines from adafruit-pitft.py with the drm option",
+      "native_resolution": "320x240",
+      "config": {
+        "dtoverlay": "pitft28-capacitive,speed=64000000,fps=30,drm"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/adafruit/Raspberry-Pi-Installer-Scripts/blob/main/adafruit-pitft.py",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here."
+    },
+    "adafruit-pitft35-resistive": {
+      "name": "Adafruit PiTFT 3.5\" resistive (480x320)",
+      "type": "spi",
+      "description": "HX8357D over SPI, STMPE resistive touch; lines from adafruit-pitft.py with the drm option",
+      "native_resolution": "480x320",
+      "config": {
+        "dtoverlay": "pitft35-resistive,speed=20000000,fps=20,drm"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/adafruit/Raspberry-Pi-Installer-Scripts/blob/main/adafruit-pitft.py",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here."
+    },
+    "ozzmaker-piscreen": {
+      "name": "OzzMaker PiScreen 3.5\" (480x320)",
+      "type": "spi",
+      "description": "ILI9486 over SPI, ADS7846 resistive touch; the piscreen overlay with its drm option",
+      "native_resolution": "480x320",
+      "config": {
+        "dtoverlay": "piscreen,speed=16000000,drm,xohms=100"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/raspberrypi/linux/blob/rpi-6.12.y/arch/arm/boot/dts/overlays/README",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here."
+    },
+    "watterott-rpi-display": {
+      "name": "Watterott RPi-Display 2.8\" (320x240)",
+      "type": "spi",
+      "description": "ILI9341 over SPI, ADS7846 resistive touch; the watterott-display overlay with its drm option",
+      "native_resolution": "320x240",
+      "config": {
+        "dtoverlay": "watterott-display,drm"
+      },
+      "recommended_rotation": 0,
+      "rotation_param": "rotate",
+      "provenance": "https://github.com/raspberrypi/linux/blob/rpi-6.12.y/arch/arm/boot/dts/overlays/README",
+      "notes": "KMS connector SPI-1, a display device of its own beside the HDMI/DSI one; the UI may need Volumio's screen pointed at it. Touch orientation parameters are not set here."
     }
   }
 }

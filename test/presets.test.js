@@ -14,7 +14,7 @@ const P = db.presets;
 test('the shipped database is schema 2 and valid against the kernel list', () => {
     assert.equal(db.schema, 2);
     assert.deepEqual(presets.validate(db, tokens), []);
-    assert.ok(presets.count(P) >= 218);
+    assert.ok(presets.count(P) >= 228);
     assert.ok(presets.nameCount(P) > presets.count(P) + 40, 'aliases add names');
     assert.equal(presets.count({ a: {}, _comment_x: 'x' }), 1);
 });
@@ -39,6 +39,11 @@ test('picker options carry the canonical name and every alias, pointing at the k
     assert.ok(alias.some((x) => /Luckfox 7-DSI-TOUCH-A \(as /.test(x.label)));
     assert.equal(presets.options(P, 'dsi', (p, a) => a + '!').some((x) => x.label === 'Luckfox 7-DSI-TOUCH-A!'), true);
     assert.equal(o.some((x) => x.value === 'auto'), false);
+    const gpio = presets.options(P, ['dpi', 'spi']);
+    assert.ok(gpio.some((x) => x.value === 'hyperpixel4') && gpio.some((x) => x.value === 'adafruit-pitft35-resistive'), 'one picker over two types');
+    assert.equal(presets.options(P, 'spi').every((x) => P[x.value].type === 'spi'), true);
+    assert.equal(presets.rotationParam(P['ozzmaker-piscreen']), 'rotate');
+    assert.ok(presets.TYPES.indexOf('spi') !== -1);
     const dep = { x: { name: 'X', type: 'hdmi', config: {}, deprecated: true, superseded_by: 'y' }, y: { name: 'Y', type: 'hdmi', config: {} } };
     assert.deepEqual(presets.options(dep, 'hdmi').map((x) => x.value), ['y'], 'a deprecated row is not offered');
 });

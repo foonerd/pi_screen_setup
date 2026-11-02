@@ -17,7 +17,7 @@
 //   experimental     true: works in the field for some, not verified by the vendor
 //   edid             name of a shipped EDID binary for a panel that reports none
 
-const TYPES = ['hdmi', 'dsi', 'dpi', 'composite'];
+const TYPES = ['hdmi', 'dsi', 'dpi', 'spi', 'composite'];
 const BOARDS = ['pi0', 'pi0w', 'pi02', 'pi1', 'pi2', 'pi3', 'pi3+', 'pi4', 'pi400', 'pi5', 'pi500', 'cm1', 'cm3', 'cm3+', 'cm4', 'cm4s', 'cm5', 'cm0'];
 const ROTATION_PARAMS = ['rotation', 'rotate'];
 const KEY = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -63,10 +63,11 @@ function nameCount(presets) {
 // key. `label(preset, alias)` renders an alias; the default reads "<alias> (as <name>)".
 function options(presets, type, label) {
     const out = [];
+    const types = Array.isArray(type) ? type : [type];
     const render = label || ((p, alias) => alias + ' (as ' + p.name + ')');
     Object.keys(presets || {}).filter(isPresetKey).forEach((key) => {
         const p = presets[key];
-        if (!p || p.type !== type || p.deprecated) return;
+        if (!p || types.indexOf(p.type) === -1 || p.deprecated) return;
         out.push({ value: key, label: p.name });
         (p.aliases || []).forEach((alias) => out.push({ value: key, label: render(p, alias) }));
     });

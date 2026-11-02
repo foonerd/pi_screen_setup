@@ -124,7 +124,7 @@ if (db.schema !== 2) fail('display_presets.json: schema must be 2');
 for (const [id, p] of Object.entries(db.presets || {})) {
     if (id.startsWith('_comment') || !p || typeof p !== 'object') continue;
     if (!p.provenance) fail(`presets.${id}: no provenance`);
-    if ((p.type === 'dsi' || p.type === 'dpi') && !('rotation_param' in p)) fail(`presets.${id}: no rotation_param`);
+    if ((p.type === 'dsi' || p.type === 'dpi' || p.type === 'spi') && !('rotation_param' in p)) fail(`presets.${id}: no rotation_param`);
 }
 
 // The vendor overlay files (plugin/overlays, from scripts/vendor-overlays.js): the

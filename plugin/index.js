@@ -246,6 +246,7 @@ PiScreenSetup.prototype.presetNotes = function(presetId) {
   var parts = [];
   if (preset.emit_dsi_overlay === false) parts.push(self.getI18n('DSI_PRESET_EMIT_HINT'));
   var applicability = self.presetApplicability(preset);
+  if (preset.type === 'spi') parts.push(self.getI18n('PRESET_NOTE_SPI'));
   if (preset.type === 'hdmi' && preset.config && preset.config.hdmi_timings && hdmi.fits(preset.config.hdmi_timings)) {
     parts.push(self.getI18n('PRESET_NOTE_EDID').replace('{file}', hdmi.edidName(presetId) + '.bin'));
   }
@@ -1486,7 +1487,7 @@ PiScreenSetup.prototype.getHardwareCapabilities = function() {
 
   // DPI always available on Pi (uses GPIO)
   if (hw.is_pi) {
-    outputs.push({ id: 'dpi', label: 'DPI (GPIO)', type: 'dpi' });
+    outputs.push({ id: 'dpi', label: 'DPI / SPI (GPIO)', type: 'dpi' });
   }
 
   // Composite
@@ -2865,7 +2866,7 @@ PiScreenSetup.prototype.findDpiPresetByOverlays = function(overlayList) {
   for (var presetId in self.displayPresets) {
     if (presetId.startsWith('_comment')) continue;
     var preset = self.displayPresets[presetId];
-    if (preset.type !== 'dpi' || !preset.config || !preset.config.dtoverlay) continue;
+    if ((preset.type !== 'dpi' && preset.type !== 'spi') || !preset.config || !preset.config.dtoverlay) continue;
     var list = [preset.config.dtoverlay];
     for (var i = 2; i <= 10 && preset.config['dtoverlay_' + i]; i++) list.push(preset.config['dtoverlay_' + i]);
     if (list.length === overlayList.length && list.every(function(o, k) { return o.toLowerCase() === String(overlayList[k]).toLowerCase(); })) return presetId;
@@ -4153,7 +4154,9 @@ PiScreenSetup.prototype.updateCmdline = function() {
       // Pi 5 family exposes both ports: dsi1 is DSI-2 there, DSI-1 everywhere else
       connectorName = board.dsiConnector(self.hardwareInfo && self.hardwareInfo.board, 'dsi1');
     } else if (primaryOutput === 'dpi') {
-      connectorName = 'DPI-1';
+      // An SPI panel with the drm option is its own KMS device, connector SPI-1
+      var gpioPreset = self.getDisplayPreset(self.getConfigValue('dpi.overlay', ''));
+      connectorName = gpioPreset && gpioPreset.type === 'spi' ? 'SPI-1' : 'DPI-1';
     }
 
     // DRM-style video=/plymouth= assume vc4-kms-v3d; skip when KMS driver is disabled for this config
@@ -6315,7 +6318,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         // DPI overlay - read from display_presets.json filtered by type === 'dpi'
         var dpiOverlaySelect = self.findContentItem(step4Section, 'dpi_overlay');
         if (dpiOverlaySelect) {
-          var dpiOptions = self.presetOptions('dpi');
+          var dpiOptions = self.presetOptions(['dpi', 'spi']);
           // Log warning if no presets loaded (database issue)
           if (dpiOptions.length === 0) {
             self.logger.warn('pi_screen_setup: No DPI presets found in database');

@@ -428,6 +428,7 @@ const ROUND_TRIPS = [
     { name: 'Pi 4, DPI preset with several overlays, rotation 90, timing line', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90, 'dpi.custom_timing': 'dpi_timings=480 0 26 16 10 640 0 25 10 15 0 0 0 60 0 32000000 1' }, expect: { 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90 } },
     { name: 'Pi 4, DPI single overlay, no rotation', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 0 }, expect: { 'dpi.overlay': 'hyperpixel4' } },
     { name: 'Pi 4, DPI panel that takes rotate= itself', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 270 }, expect: { 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 270 } },
+    { name: 'Pi 4, SPI panel under the GPIO output: the overlay takes rotate=, nothing on the kernel line', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'adafruit-pitft28-resistive', 'dpi.rotation': 90 }, expect: { 'dpi.overlay': 'adafruit-pitft28-resistive', 'dpi.rotation': 90 } },
     { name: 'Pi 4, DPI custom overlay', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'custom', 'dpi.custom_timing': 'vc4-kms-dpi-generic,hactive=800,vactive=480' }, expect: { 'dpi.overlay': 'custom' } },
     { name: 'Pi 3B+, composite PAL 16:9', board: 'pi3bplus', settings: { primary_output: 'composite', 'composite.enabled': true, 'composite.mode': 'pal', 'composite.aspect': '16:9' }, expect: { 'composite.mode': 'pal', 'composite.aspect': '16:9' } },
     { name: 'Pi 4, a custom overlay line as the output', board: 'pi4', settings: { primary_output: 'custom', 'custom_overlay.enabled': true, 'custom_overlay.line': 'dtoverlay=example-panel,bar=1' }, expect: { 'custom_overlay.line': 'dtoverlay=example-panel,bar=1' } },
@@ -1245,6 +1246,29 @@ test('schema 2: aliases in the pickers, notes for kernel, board and vendor overl
     assert.equal(/plymouth=90/.test(H.readBoot('cmdline.txt')), false);
     ui = await env.p.getUIConfig();
     await stop(env);
+    // An SPI panel (P4): offered under the GPIO output, rotated by its overlay, its own KMS device
+    H.seed({ board: 'pi4' });
+    env = H.plugin();
+    await env.start();
+    env.p.saveStep1({ primary_output: { value: 'dpi' } });
+    env.p.step2ShowAudioCache = false;
+    ui = await env.p.getUIConfig();
+    assert.ok(uiItem(ui, 'section_step1_output', 'primary_output').options.some((o) => o.value === 'dpi' && /DPI \/ SPI/.test(o.label)), 'the GPIO output names both');
+    const gpioOptions = uiItem(ui, 'section_step2_dpi', 'dpi_overlay').options;
+    assert.ok(gpioOptions.some((o) => o.value === 'adafruit-pitft28-resistive'));
+    assert.ok(gpioOptions.some((o) => o.value === 'ozzmaker-piscreen'));
+    assert.equal(gpioOptions.some((o) => o.value === 'owootecc-dpi-4.3'), false, 'the superseded row leaves the picker');
+    assert.ok(env.p.getDisplayPreset('owootecc-dpi-4.3'), 'but a setting that names it still resolves');
+    assert.match(env.p.presetNotes('owootecc-dpi-4.3'), /Superseded by OzzMaker PiScreen/);
+    env.p.saveStep2Dpi({ dpi_overlay: { value: 'adafruit-pitft28-resistive' } });
+    env.p.step2ShowAudioCache = false;
+    ui = await env.p.getUIConfig();
+    assert.match(uiItem(ui, 'section_step2_dpi', 'dpi_preset_hint').value, /SPI-1/);
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'adafruit-pitft28-resistive', 'dpi.rotation': 90 });
+    assert.ok(/^dtoverlay=pitft28-resistive,speed=64000000,fps=30,drm,rotate=90$/m.test(H.readBoot('videoconfig.txt')), H.readBoot('videoconfig.txt'));
+    assert.equal(/video=|plymouth=/.test(H.readBoot('cmdline.txt')), false, 'the overlay turns the panel');
+    await stop(env);
+
     // The Waveshare 2.8" DPI rows keep the vendor's sequence; vc4-kms-v3d takes no rotate, so cmdline.txt carries it
     H.seed({ board: 'pi4' });
     env = H.plugin();
