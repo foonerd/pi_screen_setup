@@ -350,6 +350,16 @@
           "options": []
         },
         {
+          "id": "hdmi_preset_hint",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.HDMI_PRESET_HINT_LABEL",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.HDMI_PRESET_HINT_DOC",
+          "value": "",
+          "readonly": true,
+          "hidden": true
+        },
+        {
           "id": "hdmi_custom_timings",
           "element": "input",
           "type": "text",
@@ -556,6 +566,16 @@
             "label": ""
           },
           "options": []
+        },
+        {
+          "id": "dpi_preset_hint",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.PI_SCREEN_SETUP.DPI_PRESET_HINT_LABEL",
+          "doc": "TRANSLATE.PI_SCREEN_SETUP.DPI_PRESET_HINT_DOC",
+          "value": "",
+          "readonly": true,
+          "hidden": true
         },
         {
           "id": "dpi_custom_timing",

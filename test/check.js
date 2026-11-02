@@ -111,18 +111,23 @@ const dbShipped = read('display_presets.json');
 const dbRoot = fs.readFileSync(path.join(repo, 'display_presets.json'), 'utf8');
 if (dbShipped !== dbRoot) fail('display_presets.json differs between the repository root and plugin/ (cp display_presets.json plugin/)');
 const db = JSON.parse(dbShipped);
-if (!/^\d+\.\d+\.\d+$/.test(String(db.version))) fail('display_presets.json: version ' + db.version + ' is not X.Y.Z');
-if (!db.presets || typeof db.presets !== 'object') fail('display_presets.json: no presets object');
-const TYPES = new Set(['hdmi', 'dsi', 'dpi', 'composite']);
+// Every row against the schema (lib/presets) and every dtoverlay line against the kernel's
+// overlay README (test/overlay-tokens.json, from scripts/overlay-tokens.js): a token the
+// kernel does not know cannot reach a player unless the row names the overlay it depends
+// on (requires_overlay) or the kernel that brings the token (min_kernel).
+const presetsLib = require(path.join(root, 'lib', 'presets.js'));
+const tokensFile = path.join(repo, 'test', 'overlay-tokens.json');
+const tokens = fs.existsSync(tokensFile) ? JSON.parse(fs.readFileSync(tokensFile, 'utf8')).overlays : null;
+if (!tokens) fail('test/overlay-tokens.json missing (scripts/overlay-tokens.js)');
+presetsLib.validate(db, tokens).forEach((e) => fail('display_presets.json: ' + e));
+if (db.schema !== 2) fail('display_presets.json: schema must be 2');
 for (const [id, p] of Object.entries(db.presets || {})) {
-    if (id.startsWith('_comment')) { if (typeof p !== 'string') fail(`presets.${id}: a _comment entry must be a string`); continue; }
-    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(id)) fail(`presets.${id}: id not in [A-Za-z0-9._-]`);
-    if (!p || typeof p !== 'object') { fail(`presets.${id}: not an object`); continue; }
-    if (typeof p.name !== 'string' || !p.name.trim()) fail(`presets.${id}: no name`);
-    if (!TYPES.has(p.type)) fail(`presets.${id}: type ${p.type}`);
-    if (!p.config || typeof p.config !== 'object') fail(`presets.${id}: no config object`);
-    for (const k of ['vc4_kms', 'emit_dsi_overlay', 'overlay_rotation_param']) {
-        if (k in p && typeof p[k] !== 'boolean') fail(`presets.${id}: ${k} must be boolean`);
+    if (id.startsWith('_comment') || !p || typeof p !== 'object') continue;
+    if (!p.provenance) fail(`presets.${id}: no provenance`);
+    if ((p.type === 'dsi' || p.type === 'dpi') && !('rotation_param' in p)) fail(`presets.${id}: no rotation_param`);
+    for (const name of p.requires_overlay || []) {
+        const shipped = path.join(root, 'overlays', 'pss-' + name + '.dtbo');
+        if (fs.existsSync(shipped) && !fs.existsSync(shipped.replace(/\.dtbo$/, '.dts'))) fail(`presets.${id}: overlays/pss-${name}.dtbo ships without its .dts source`);
     }
 }
 

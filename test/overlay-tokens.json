@@ -1,0 +1,2311 @@
+{
+ "source": "https://raw.githubusercontent.com/raspberrypi/linux/rpi-6.12.y/arch/arm/boot/dts/overlays/README",
+ "fetched": "2026-11-02",
+ "overlays": {
+  "<The": [
+   "act_led_trigger",
+   "act_led_activelow",
+   "act_led_gpio",
+   "ant1",
+   "ant2",
+   "noant",
+   "noanthogs",
+   "audio",
+   "axiperf",
+   "bdaddr",
+   "button_debounce",
+   "cam0_reg",
+   "cam0_reg_gpio",
+   "cam1_reg",
+   "cam1_reg_gpio",
+   "cam0_sync",
+   "cam0_sync_inverted",
+   "cam1_sync",
+   "cam1_sync_inverted",
+   "cooling_fan",
+   "drm_fb0_rp1_dpi",
+   "drm_fb0_rp1_dsi0",
+   "drm_fb0_rp1_dsi1",
+   "drm_fb0_vc4",
+   "drm_fb1_rp1_dpi",
+   "drm_fb1_rp1_dsi0",
+   "drm_fb1_rp1_dsi1",
+   "drm_fb1_vc4",
+   "drm_fb2_rp1_dpi",
+   "drm_fb2_rp1_dsi0",
+   "drm_fb2_rp1_dsi1",
+   "drm_fb2_vc4",
+   "eee",
+   "enable_eeprom",
+   "eth_downshift_after",
+   "eth_led0",
+   "eth_led1",
+   "eth_max_speed",
+   "fan_temp0",
+   "fan_temp0_hyst",
+   "fan_temp0_speed",
+   "fan_temp1",
+   "fan_temp1_hyst",
+   "fan_temp1_speed",
+   "fan_temp2",
+   "fan_temp2_hyst",
+   "fan_temp2_speed",
+   "fan_temp3",
+   "fan_temp3_hyst",
+   "fan_temp3_speed",
+   "hdmi",
+   "i2c",
+   "i2c_arm",
+   "i2c_arm_baudrate",
+   "i2c_baudrate",
+   "i2c_csi_dsi",
+   "i2c_csi_dsi0",
+   "i2c_csi_dsi1",
+   "i2c_vc",
+   "i2c_vc_baudrate",
+   "i2s",
+   "i2s_dma4",
+   "krnbt",
+   "krnbt_baudrate",
+   "nvme",
+   "nvmem_cust_rw",
+   "nvmem_mac_rw",
+   "nvmem_priv_rw",
+   "pcie",
+   "pcie_tperst_clk_ms",
+   "pciex1",
+   "pciex1_gen",
+   "pciex1_no_l0s",
+   "pciex1_tperst_clk_ms",
+   "pwr_led_trigger",
+   "pwr_led_activelow",
+   "pwr_led_gpio",
+   "random",
+   "rtc",
+   "rtc_bbat_vchg",
+   "sd",
+   "sd_cqe",
+   "sd_overclock",
+   "sd_poll_once",
+   "sd_force_pio",
+   "sd_pio_limit",
+   "sd_debug",
+   "sdio_overclock",
+   "spi",
+   "spi_dma4",
+   "strict_gpiod",
+   "suspend",
+   "tx_lpi_timer",
+   "uart0",
+   "uart0_console",
+   "uart0_dma",
+   "uart1",
+   "watchdog",
+   "wifiaddr",
+   "N.B.",
+   "Leaving",
+   "interfering",
+   "Note",
+   "interfaces",
+   "but",
+   "revisions.",
+   "and"
+  ],
+  "act-led": [
+   "activelow",
+   "gpio"
+  ],
+  "adafruit-st7735r": [
+   "128x128",
+   "rotate",
+   "speed",
+   "dc_pin",
+   "reset_pin",
+   "led_pin"
+  ],
+  "adafruit18": [
+   "green",
+   "rotate",
+   "speed",
+   "fps",
+   "bgr",
+   "debug",
+   "dc_pin",
+   "reset_pin",
+   "led_pin"
+  ],
+  "adau1977-adc": [],
+  "adau7002-simple": [
+   "card-name"
+  ],
+  "ads1015": [
+   "addr",
+   "cha_enable",
+   "cha_cfg",
+   "cha_datarate",
+   "cha_gain",
+   "Channel",
+   "A",
+   "For"
+  ],
+  "ads1115": [
+   "addr",
+   "i2c-bus",
+   "cha_enable",
+   "cha_cfg",
+   "cha_datarate",
+   "cha_gain",
+   "Channel",
+   "A",
+   "For"
+  ],
+  "ads7846": [
+   "cs",
+   "speed",
+   "penirq",
+   "penirq_pull",
+   "swapxy",
+   "xmin",
+   "ymin",
+   "xmax",
+   "ymax",
+   "pmin",
+   "pmax",
+   "xohms",
+   "invx",
+   "invy",
+   "Apart",
+   "The",
+   "Device"
+  ],
+  "adv7282m": [
+   "addr",
+   "media-controller"
+  ],
+  "adv728x-m": [
+   "addr",
+   "adv7280m",
+   "adv7281m",
+   "adv7281ma",
+   "media-controller"
+  ],
+  "akkordion-iqdacplus": [
+   "24db_digital_gain"
+  ],
+  "allo-boss-dac-pcm512x-audio": [
+   "24db_digital_gain",
+   "slave"
+  ],
+  "allo-boss2-dac-audio": [],
+  "allo-digione": [],
+  "allo-katana-dac-audio": [],
+  "allo-piano-dac-pcm512x-audio": [
+   "24db_digital_gain"
+  ],
+  "allo-piano-dac-plus-pcm512x-audio": [
+   "24db_digital_gain",
+   "glb_mclk"
+  ],
+  "anyspi": [
+   "dev",
+   "speed"
+  ],
+  "apds9960": [
+   "gpiopin",
+   "noints"
+  ],
+  "applepi-dac": [],
+  "arducam-64mp": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm"
+  ],
+  "arducam-pivariety": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0"
+  ],
+  "at86rf233": [
+   "interrupt",
+   "reset",
+   "sleep",
+   "speed",
+   "trim"
+  ],
+  "audioinjector-addons": [
+   "non-stop-clocks"
+  ],
+  "audioinjector-bare-i2s": [],
+  "audioinjector-isolated-soundcard": [],
+  "audioinjector-ultra": [],
+  "audioinjector-wm8731-audio": [],
+  "audiosense-pi": [],
+  "audremap": [
+   "swap_lr",
+   "enable_jack",
+   "pins_12_13",
+   "pins_18_19",
+   "pins_40_41",
+   "pins_40_45",
+   "pins_none"
+  ],
+  "audremap-pi5": [
+   "swap_lr",
+   "pins_12_13",
+   "pins_18_19",
+   "pins_40_41",
+   "pins_40_45"
+  ],
+  "balena-fin": [],
+  "bcm2712d0": [],
+  "bmp085_i2c-sensor": [],
+  "camera-mux-2port": [
+   "cam0-arducam-64mp",
+   "cam0-imx219",
+   "cam0-imx258",
+   "cam0-imx290",
+   "cam0-imx477",
+   "cam0-imx519",
+   "cam0-imx708",
+   "cam0-ov2311",
+   "cam0-ov5647",
+   "cam0-ov64a40",
+   "cam0-ov7251",
+   "cam0-ov9281",
+   "cam0-imx290-clk-freq",
+   "cam1-arducam-64mp",
+   "cam1-imx219",
+   "cam1-imx258",
+   "cam1-imx290",
+   "cam1-imx477",
+   "cam1-imx519",
+   "cam1-imx708",
+   "cam1-ov2311",
+   "cam1-ov5647",
+   "cam1-ov64a40",
+   "cam1-ov7251",
+   "cam1-ov9281",
+   "cam1-imx290-clk-freq",
+   "cam0-sync-source",
+   "cam0-sync-sink",
+   "cam1-sync-source",
+   "cam1-sync-sink",
+   "cam0"
+  ],
+  "camera-mux-4port": [
+   "cam0-arducam-64mp",
+   "cam0-imx219",
+   "cam0-imx258",
+   "cam0-imx290",
+   "cam0-imx477",
+   "cam0-imx519",
+   "cam0-imx708",
+   "cam0-ov2311",
+   "cam0-ov5647",
+   "cam0-ov64a40",
+   "cam0-ov7251",
+   "cam0-ov9281",
+   "cam0-imx290-clk-freq",
+   "cam1-arducam-64mp",
+   "cam1-imx219",
+   "cam1-imx258",
+   "cam1-imx290",
+   "cam1-imx477",
+   "cam1-imx519",
+   "cam1-imx708",
+   "cam1-ov2311",
+   "cam1-ov5647",
+   "cam1-ov64a40",
+   "cam1-ov7251",
+   "cam1-ov9281",
+   "cam1-imx290-clk-freq",
+   "cam2-arducam-64mp",
+   "cam2-imx219",
+   "cam2-imx258",
+   "cam2-imx290",
+   "cam2-imx477",
+   "cam2-imx519",
+   "cam2-imx708",
+   "cam2-ov2311",
+   "cam2-ov5647",
+   "cam2-ov64a40",
+   "cam2-ov7251",
+   "cam2-ov9281",
+   "cam2-imx290-clk-freq",
+   "cam3-arducam-64mp",
+   "cam3-imx219",
+   "cam3-imx258",
+   "cam3-imx290",
+   "cam3-imx477",
+   "cam3-imx519",
+   "cam3-imx708",
+   "cam3-ov2311",
+   "cam3-ov5647",
+   "cam3-ov64a40",
+   "cam3-ov7251",
+   "cam3-ov9281",
+   "cam3-imx290-clk-freq",
+   "cam0-sync-source",
+   "cam0-sync-sink",
+   "cam1-sync-source",
+   "cam1-sync-sink",
+   "cam2-sync-source",
+   "cam2-sync-sink",
+   "cam3-sync-source",
+   "cam3-sync-sink",
+   "cam0"
+  ],
+  "cap1106": [
+   "int_pin"
+  ],
+  "chipcap2": [
+   "ready_pin",
+   "low_pin",
+   "high_pin",
+   "reg_pin"
+  ],
+  "chipdip-dac": [],
+  "cirrus-wm5102": [],
+  "cm-swap-i2c0": [
+   "i2c0-gpio0",
+   "i2c0-gpio28",
+   "i2c0-gpio44",
+   "i2c10-gpio0",
+   "i2c10-gpio28",
+   "i2c10-gpio44"
+  ],
+  "cma": [
+   "cma-512",
+   "cma-448",
+   "cma-384",
+   "cma-320",
+   "cma-256",
+   "cma-192",
+   "cma-128",
+   "cma-96",
+   "cma-64",
+   "cma-size",
+   "cma-default"
+  ],
+  "crystalfontz-cfa050_pi_m": [
+   "captouch",
+   "cm5"
+  ],
+  "cutiepi-panel": [],
+  "dacberry400": [],
+  "dht11": [
+   "gpiopin"
+  ],
+  "dionaudio-kiwi": [],
+  "dionaudio-loco": [],
+  "dionaudio-loco-v2": [
+   "24db_digital_gain"
+  ],
+  "disable-bt": [],
+  "disable-bt-pi5": [],
+  "disable-emmc2": [],
+  "disable-wifi": [],
+  "disable-wifi-pi5": [],
+  "dpi18": [],
+  "dpi18cpadhi": [],
+  "dpi24": [],
+  "draws": [
+   "draws_adc_ch4_gain",
+   "draws_adc_ch4_datarate",
+   "draws_adc_ch5_gain",
+   "draws_adc_ch5_datarate",
+   "draws_adc_ch6_gain",
+   "draws_adc_ch6_datarate",
+   "draws_adc_ch7_gain",
+   "draws_adc_ch7_datarate",
+   "alsaname"
+  ],
+  "dwc-otg": [],
+  "dwc-otg-deprecated": [],
+  "dwc2": [
+   "dr_mode",
+   "g-rx-fifo-size",
+   "g-np-tx-fifo-size"
+  ],
+  "edt-ft5406": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "addr",
+   "i2c-bus"
+  ],
+  "enc28j60": [
+   "int_pin",
+   "speed"
+  ],
+  "enc28j60-spi2": [
+   "int_pin",
+   "speed"
+  ],
+  "exc3000": [
+   "interrupt",
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy"
+  ],
+  "ezsound-6x8iso": [],
+  "fbtft": [
+   "speed",
+   "cpha",
+   "cpol",
+   "adafruit18",
+   "adafruit22",
+   "adafruit22a",
+   "adafruit28",
+   "adafruit13m",
+   "admatec_c-berry28",
+   "dogs102",
+   "er_tftm050_2",
+   "er_tftm070_5",
+   "ew24ha0",
+   "ew24ha0_9bit",
+   "freetronicsoled128",
+   "hy28a",
+   "hy28b",
+   "itdb28_spi",
+   "mi0283qt-2",
+   "mi0283qt-9a",
+   "nokia3310",
+   "nokia3310a",
+   "nokia5110",
+   "piscreen",
+   "pitft",
+   "pioled",
+   "rpi-display",
+   "sainsmart18",
+   "sainsmart32_spi",
+   "tinylcd35",
+   "tm022hdh26",
+   "tontec35_9481",
+   "tontec35_9486",
+   "waveshare32b",
+   "waveshare22",
+   "bd663474",
+   "hx8340bn",
+   "hx8347d",
+   "hx8353d",
+   "hx8357d",
+   "ili9163",
+   "ili9320",
+   "ili9325",
+   "ili9340",
+   "ili9341",
+   "ili9481",
+   "ili9486",
+   "pcd8544",
+   "ra8875",
+   "s6d02a1",
+   "s6d1121",
+   "seps525",
+   "sh1106",
+   "ssd1289",
+   "ssd1305",
+   "ssd1306",
+   "ssd1325",
+   "ssd1331",
+   "ssd1351",
+   "st7735r",
+   "st7789v",
+   "tls8204",
+   "uc1611",
+   "uc1701",
+   "upd161704",
+   "width",
+   "height",
+   "regwidth",
+   "buswidth",
+   "debug",
+   "rotate",
+   "bgr",
+   "fps",
+   "txbuflen",
+   "startbyte",
+   "gamma",
+   "reset_pin",
+   "dc_pin",
+   "led_pin"
+  ],
+  "fe-pi-audio": [],
+  "fsm-demo": [
+   "fsm_debug"
+  ],
+  "gc9a01": [
+   "speed",
+   "rotate",
+   "width",
+   "height",
+   "fps",
+   "debug"
+  ],
+  "ghost-amp": [
+   "fsm_debug"
+  ],
+  "goodix": [
+   "addr",
+   "interrupt",
+   "reset",
+   "i2c-path"
+  ],
+  "googlevoicehat-soundcard": [],
+  "gpio-charger": [
+   "gpio",
+   "active_low",
+   "gpio_pull",
+   "type"
+  ],
+  "gpio-fan": [
+   "gpiopin",
+   "temp",
+   "hyst"
+  ],
+  "gpio-hog": [
+   "gpio",
+   "active_low"
+  ],
+  "gpio-ir": [
+   "gpio_pin",
+   "gpio_pull",
+   "invert",
+   "rc-map-name"
+  ],
+  "gpio-ir-tx": [
+   "gpio_pin",
+   "invert"
+  ],
+  "gpio-key": [
+   "gpio",
+   "active_low",
+   "gpio_pull",
+   "label",
+   "keycode",
+   "autorepeat"
+  ],
+  "gpio-led": [
+   "gpio",
+   "label",
+   "trigger",
+   "active_low"
+  ],
+  "gpio-no-bank0-irq": [],
+  "gpio-no-irq": [],
+  "gpio-poweroff": [
+   "gpiopin",
+   "active_low",
+   "input",
+   "export",
+   "active_delay_ms",
+   "inactive_delay_ms",
+   "timeout_ms"
+  ],
+  "gpio-shutdown": [
+   "gpio_pin",
+   "active_low",
+   "gpio_pull",
+   "debounce"
+  ],
+  "hd44780-i2c-lcd": [
+   "addr",
+   "pin_d4",
+   "pin_d5",
+   "pin_d6",
+   "pin_d7",
+   "pin_en",
+   "pin_rs",
+   "pin_rw",
+   "pin_bl",
+   "display_height",
+   "display_width",
+   "i2c-path"
+  ],
+  "hd44780-lcd": [
+   "pin_d4",
+   "pin_d5",
+   "pin_d6",
+   "pin_d7",
+   "pin_en",
+   "pin_rs",
+   "pin_bl",
+   "display_height",
+   "display_width"
+  ],
+  "hdmi-backlight-hwhack-gpio": [
+   "gpio_pin",
+   "active_low"
+  ],
+  "hifiberry-adc": [
+   "leds_off"
+  ],
+  "hifiberry-adc8x": [],
+  "hifiberry-amp": [],
+  "hifiberry-amp100": [
+   "24db_digital_gain",
+   "slave",
+   "leds_off",
+   "auto_mute",
+   "mute_ext_ctl"
+  ],
+  "hifiberry-amp3": [],
+  "hifiberry-amp4pro": [
+   "24db_digital_gain",
+   "slave",
+   "leds_off",
+   "auto_mute",
+   "mute_ext_ctl"
+  ],
+  "hifiberry-dac": [],
+  "hifiberry-dac8x": [],
+  "hifiberry-dacplus": [
+   "24db_digital_gain",
+   "slave",
+   "leds_off"
+  ],
+  "hifiberry-dacplus-pro": [
+   "24db_digital_gain",
+   "leds_off"
+  ],
+  "hifiberry-dacplus-std": [
+   "24db_digital_gain",
+   "leds_off"
+  ],
+  "hifiberry-dacplusadc": [
+   "24db_digital_gain",
+   "leds_off"
+  ],
+  "hifiberry-dacplusadcpro": [
+   "24db_digital_gain",
+   "slave",
+   "leds_off"
+  ],
+  "hifiberry-dacplusdsp": [],
+  "hifiberry-dacplushd": [],
+  "hifiberry-digi": [],
+  "hifiberry-digi-pro": [],
+  "hifiberry-studio-dac8x": [],
+  "hifiberry-studio-dac8x-pro": [],
+  "highperi": [],
+  "hy28a": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms",
+   "resetgpio",
+   "ledgpio"
+  ],
+  "hy28b": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms",
+   "resetgpio",
+   "ledgpio"
+  ],
+  "hy28b-2017": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms",
+   "resetgpio",
+   "ledgpio"
+  ],
+  "i-sabre-q2m": [],
+  "i2c-bcm2708": [],
+  "i2c-bus": [
+   "i2c0",
+   "i2c1",
+   "i2c2",
+   "i2c3",
+   "i2c4",
+   "i2c5",
+   "i2c6",
+   "i2c_csi_dsi",
+   "i2c_csi_dsi0",
+   "i2c-path"
+  ],
+  "i2c-fan": [
+   "addr",
+   "i2c-bus",
+   "minpwm",
+   "maxpwm",
+   "midtemp",
+   "midtemp_hyst",
+   "maxtemp",
+   "maxtemp_hyst",
+   "emc2301"
+  ],
+  "i2c-gpio": [
+   "i2c_gpio_sda",
+   "i2c_gpio_scl",
+   "i2c_gpio_delay_us",
+   "bus"
+  ],
+  "i2c-mux": [
+   "pca9542",
+   "pca9545",
+   "pca9548",
+   "addr",
+   "i2c-bus",
+   "base",
+   "disconnect_on_idle"
+  ],
+  "i2c-pwm-pca9685a": [
+   "addr",
+   "i2c-bus"
+  ],
+  "i2c-rtc": [
+   "abx80x",
+   "bq32000",
+   "ds1307",
+   "ds1339",
+   "ds1340",
+   "ds3231",
+   "m41t62",
+   "m41t80",
+   "mcp7940x",
+   "mcp7941x",
+   "pcf2127",
+   "pcf2129",
+   "pcf2131",
+   "pcf85063",
+   "pcf85063a",
+   "pcf8523",
+   "pcf85363",
+   "pcf8563",
+   "rv1805",
+   "rv3028",
+   "rv3032",
+   "rv8803",
+   "sd3078",
+   "s35390a",
+   "i2c-bus",
+   "addr",
+   "trickle-diode-disable",
+   "trickle-diode-type",
+   "trickle-resistor-ohms",
+   "trickle-voltage-mv",
+   "wakeup-source",
+   "backup-switchover-mode"
+  ],
+  "i2c-rtc-gpio": [
+   "abx80x",
+   "bq32000",
+   "ds1307",
+   "ds1339",
+   "ds1340",
+   "ds3231",
+   "m41t62",
+   "m41t80",
+   "mcp7940x",
+   "mcp7941x",
+   "pcf2127",
+   "pcf2129",
+   "pcf2131",
+   "pcf85063",
+   "pcf85063a",
+   "pcf8523",
+   "pcf85363",
+   "pcf8563",
+   "rv1805",
+   "rv3028",
+   "rv3032",
+   "rv8803",
+   "sd3078",
+   "s35390a",
+   "addr",
+   "trickle-diode-disable",
+   "trickle-diode-type",
+   "trickle-resistor-ohms",
+   "trickle-voltage-mv",
+   "wakeup-source",
+   "backup-switchover-mode",
+   "i2c_gpio_sda",
+   "i2c_gpio_scl",
+   "i2c_gpio_delay_us"
+  ],
+  "i2c-sensor": [
+   "addr",
+   "i2c-bus",
+   "ad7991",
+   "ad7992",
+   "ad7993",
+   "ad7994",
+   "ad7995",
+   "ad7997",
+   "ad7998",
+   "ad7999",
+   "ads7828",
+   "ads7830",
+   "adt7410",
+   "adxl345",
+   "adxl355",
+   "aht10",
+   "aht20",
+   "as73211",
+   "as7331",
+   "bh1750",
+   "bme280",
+   "bme680",
+   "bmp085",
+   "bmp180",
+   "bmp280",
+   "bmp380",
+   "bmp58x",
+   "bno055",
+   "ccs811",
+   "ds1621",
+   "gain",
+   "hdc100x",
+   "hdc3020",
+   "hts221",
+   "htu21",
+   "ina238",
+   "int_pin",
+   "jc42",
+   "label",
+   "lm75",
+   "lm75addr",
+   "max17040",
+   "max30102",
+   "mcp980x",
+   "mpu6050",
+   "mpu9250",
+   "ms5637",
+   "ms5803",
+   "ms5805",
+   "ms5837",
+   "ms8607",
+   "no_timeout",
+   "reset_pin",
+   "shunt_resistor",
+   "scd4x",
+   "sht3x",
+   "sht4x",
+   "shtc3",
+   "si7020",
+   "sps30",
+   "sgp30",
+   "tcs3472",
+   "tmp102",
+   "tmp117",
+   "tsl4531",
+   "veml6030",
+   "veml6040",
+   "veml6070",
+   "veml6075"
+  ],
+  "i2c0": [
+   "pins_0_1",
+   "pins_28_29",
+   "pins_44_45",
+   "pins_46_47",
+   "combine"
+  ],
+  "i2c0-bcm2708": [],
+  "i2c0-pi5": [
+   "pins_0_1",
+   "pins_8_9",
+   "baudrate"
+  ],
+  "i2c1": [
+   "pins_2_3",
+   "pins_44_45",
+   "combine"
+  ],
+  "i2c1-bcm2708": [],
+  "i2c1-pi5": [
+   "pins_2_3",
+   "pins_10_11",
+   "baudrate"
+  ],
+  "i2c2-pi5": [
+   "pins_4_5",
+   "pins_12_13",
+   "baudrate"
+  ],
+  "i2c3": [
+   "pins_2_3",
+   "pins_4_5",
+   "baudrate"
+  ],
+  "i2c3-pi5": [
+   "pins_6_7",
+   "pins_14_15",
+   "pins_22_23",
+   "baudrate"
+  ],
+  "i2c4": [
+   "pins_6_7",
+   "pins_8_9",
+   "baudrate"
+  ],
+  "i2c5": [
+   "pins_10_11",
+   "pins_12_13",
+   "baudrate"
+  ],
+  "i2c6": [
+   "pins_0_1",
+   "pins_22_23",
+   "baudrate"
+  ],
+  "i2s-dac": [],
+  "i2s-gpio28-31": [],
+  "i2s-master-dac": [],
+  "ilitek-ts-i2c": [
+   "interrupt",
+   "invx",
+   "invy",
+   "swapxy",
+   "i2c-path"
+  ],
+  "ilitek251x": [
+   "interrupt",
+   "sizex",
+   "sizey",
+   "i2c-path"
+  ],
+  "imx219": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm",
+   "4lane"
+  ],
+  "imx258": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm",
+   "4lane"
+  ],
+  "imx283": [
+   "rotation",
+   "orientation",
+   "clock-frequency",
+   "link-frequency",
+   "media-controller",
+   "cam0"
+  ],
+  "imx290": [
+   "4lane",
+   "clock-frequency",
+   "mono",
+   "orientation",
+   "rotation",
+   "media-controller",
+   "cam0"
+  ],
+  "imx296": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "clock-frequency",
+   "always-on",
+   "sync-sink"
+  ],
+  "imx327": [
+   "4lane",
+   "clock-frequency",
+   "mono",
+   "orientation",
+   "rotation",
+   "media-controller",
+   "cam0"
+  ],
+  "imx335": [
+   "orientation",
+   "rotation",
+   "media-controller",
+   "link-frequency",
+   "cam0",
+   "4lane"
+  ],
+  "imx378": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "always-on",
+   "sync-source",
+   "sync-sink",
+   "link-frequency"
+  ],
+  "imx415": [
+   "addr",
+   "4lane",
+   "clock-frequency",
+   "link-frequency",
+   "orientation",
+   "rotation",
+   "media-controller",
+   "cam0",
+   "vcm",
+   "clk-37125"
+  ],
+  "imx462": [
+   "4lane",
+   "clock-frequency",
+   "mono",
+   "orientation",
+   "rotation",
+   "media-controller",
+   "cam0"
+  ],
+  "imx477": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "always-on",
+   "sync-source",
+   "sync-sink",
+   "link-frequency"
+  ],
+  "imx500": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "bypass-cache"
+  ],
+  "imx500-pi5": [],
+  "imx519": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm"
+  ],
+  "imx708": [
+   "rotation",
+   "orientation",
+   "vcm",
+   "media-controller",
+   "cam0",
+   "link-frequency"
+  ],
+  "interludeaudio-analog": [
+   "gpiopin"
+  ],
+  "interludeaudio-digital": [],
+  "iqaudio-codec": [],
+  "iqaudio-dac": [
+   "24db_digital_gain"
+  ],
+  "iqaudio-dacplus": [
+   "24db_digital_gain",
+   "auto_mute_amp",
+   "unmute_amp"
+  ],
+  "iqaudio-digi-wm8804-audio": [
+   "card_name",
+   "dai_name",
+   "dai_stream_name"
+  ],
+  "iqs550": [
+   "interrupt",
+   "reset",
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy"
+  ],
+  "irs1125": [
+   "media-controller",
+   "cam0"
+  ],
+  "jedec-spi-nor": [
+   "fastr",
+   "speed"
+  ],
+  "justboom-both": [
+   "24db_digital_gain"
+  ],
+  "justboom-dac": [
+   "24db_digital_gain"
+  ],
+  "justboom-digi": [],
+  "lirc-rpi": [],
+  "ltc294x": [
+   "ltc2941",
+   "ltc2942",
+   "ltc2943",
+   "ltc2944",
+   "resistor-sense",
+   "prescaler-exponent"
+  ],
+  "max98357a": [
+   "no-sdmode",
+   "sdmode-pin"
+  ],
+  "maxtherm": [
+   "max6675",
+   "max31855",
+   "max31855e",
+   "max31855j",
+   "max31855k",
+   "max31855n",
+   "max31855r",
+   "max31855s",
+   "max31855t",
+   "max31856",
+   "type_b",
+   "type_e",
+   "type_j",
+   "type_k",
+   "type_n",
+   "type_r",
+   "type_s",
+   "type_t"
+  ],
+  "mbed-dac": [],
+  "mcp23017": [
+   "gpiopin",
+   "addr",
+   "i2c-bus",
+   "mcp23008",
+   "noints"
+  ],
+  "mcp23s17": [],
+  "mcp2515": [
+   "oscillator",
+   "speed",
+   "interrupt"
+  ],
+  "mcp2515-can0": [
+   "oscillator",
+   "spimaxfrequency",
+   "interrupt"
+  ],
+  "mcp2515-can1": [
+   "oscillator",
+   "spimaxfrequency",
+   "interrupt"
+  ],
+  "mcp251xfd": [
+   "oscillator",
+   "speed",
+   "interrupt",
+   "rx_interrupt",
+   "xceiver_enable",
+   "xceiver_active_high"
+  ],
+  "mcp3008": [],
+  "mcp3202": [],
+  "mcp342x": [
+   "addr",
+   "mcp3421",
+   "mcp3422",
+   "mcp3423",
+   "mcp3424",
+   "mcp3425",
+   "mcp3426",
+   "mcp3427",
+   "mcp3428"
+  ],
+  "media-center": [
+   "speed",
+   "rotate",
+   "fps",
+   "xohms",
+   "swapxy",
+   "backlight",
+   "debug"
+  ],
+  "merus-amp": [],
+  "midi-uart0": [],
+  "midi-uart0-pi5": [],
+  "midi-uart1": [],
+  "midi-uart1-pi5": [],
+  "midi-uart2": [],
+  "midi-uart2-pi5": [],
+  "midi-uart3": [],
+  "midi-uart3-pi5": [],
+  "midi-uart4": [],
+  "midi-uart4-pi5": [],
+  "midi-uart5": [],
+  "minipitft13": [
+   "speed",
+   "rotate",
+   "width",
+   "height",
+   "fps",
+   "debug"
+  ],
+  "miniuart-bt": [
+   "krnbt"
+  ],
+  "mipi-dbi-spi": [
+   "compatible",
+   "speed",
+   "cpha",
+   "cpol",
+   "write-only",
+   "width",
+   "height",
+   "width-mm",
+   "height-mm",
+   "x-offset",
+   "y-offset",
+   "clock-frequency",
+   "reset-gpio",
+   "dc-gpio",
+   "backlight-gpio",
+   "backlight-pwm",
+   "backlight-pwm-chan",
+   "backlight-pwm-gpio",
+   "backlight-pwm-func",
+   "backlight-def-brightness"
+  ],
+  "mira220": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0"
+  ],
+  "mlx90640": [],
+  "mmc": [
+   "overclock_50"
+  ],
+  "mpu6050": [],
+  "mz61581": [
+   "speed",
+   "rotate",
+   "fps",
+   "txbuflen",
+   "debug",
+   "xohms"
+  ],
+  "nospi10": [],
+  "ov2311": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0"
+  ],
+  "ov5647": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm"
+  ],
+  "ov64a40": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "vcm",
+   "link-frequency"
+  ],
+  "ov7251": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0"
+  ],
+  "ov9281": [
+   "rotation",
+   "orientation",
+   "media-controller",
+   "cam0",
+   "arducam",
+   "clk-continuous",
+   "trigger-mode"
+  ],
+  "papirus": [
+   "panel",
+   "speed"
+  ],
+  "pca953x": [
+   "addr",
+   "i2c-bus",
+   "pca6416",
+   "pca9505",
+   "pca9535",
+   "pca9536",
+   "pca9537",
+   "pca9538",
+   "pca9539",
+   "pca9554",
+   "pca9555",
+   "pca9556",
+   "pca9557",
+   "pca9574",
+   "pca9575",
+   "pca9698",
+   "pcal6416",
+   "pcal6524",
+   "pcal9555a",
+   "max7310",
+   "max7312",
+   "max7313",
+   "max7315",
+   "pca6107",
+   "tca6408",
+   "tca6416",
+   "tca6424",
+   "tca9539",
+   "tca9554",
+   "cat9554",
+   "pca9654",
+   "xra1202"
+  ],
+  "pcf857x": [
+   "addr",
+   "i2c-bus",
+   "pcf8574",
+   "pcf8574a",
+   "pcf8575",
+   "pca8574"
+  ],
+  "pcie-32bit-dma": [],
+  "pcie-32bit-dma-pi5": [],
+  "pciex1-compat-pi5": [
+   "l1ss",
+   "no-l0s",
+   "no-mip",
+   "mmio-hi"
+  ],
+  "pi3-act-led": [],
+  "pi3-disable-bt": [],
+  "pi3-disable-wifi": [],
+  "pi3-miniuart-bt": [],
+  "pibell": [
+   "alsaname"
+  ],
+  "pifacedigital": [
+   "spi-present-mask"
+  ],
+  "pifi-40": [],
+  "pifi-dac-hd": [],
+  "pifi-dac-zero": [],
+  "pifi-mini-210": [],
+  "piglow": [],
+  "pimidi": [
+   "sel"
+  ],
+  "pineboards-hat-ai": [],
+  "pineboards-hatdrive-poe-plus": [],
+  "piscreen": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms",
+   "drm",
+   "invx",
+   "invy",
+   "swapxy"
+  ],
+  "piscreen2r": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms"
+  ],
+  "pisound": [],
+  "pisound-micro": [
+   "input-mode",
+   "hp-out-mode",
+   "line-out-mode",
+   "mono-out-mode"
+  ],
+  "pisound-pi5": [],
+  "pitft22": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "drm"
+  ],
+  "pitft28-capacitive": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "drm",
+   "touch-sizex",
+   "touch-sizey",
+   "touch-invx",
+   "touch-invy",
+   "touch-swapxy"
+  ],
+  "pitft28-resistive": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "drm",
+   "touch-invx",
+   "touch-invy",
+   "touch-swapxy"
+  ],
+  "pitft35-resistive": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "drm",
+   "touch-invx",
+   "touch-invy",
+   "touch-swapxy"
+  ],
+  "pivision": [],
+  "pps-gpio": [
+   "gpiopin",
+   "assert_falling_edge",
+   "capture_clear",
+   "pull"
+  ],
+  "pps-rp1": [
+   "pin",
+   "pull-none",
+   "pull-up",
+   "pull-down",
+   "schmitt-trigger",
+   "echo-pin",
+   "echo-ms",
+   "echo",
+   "capture-clear",
+   "assert-falling-edge"
+  ],
+  "proto-codec": [],
+  "pwm": [
+   "pin",
+   "func",
+   "clock"
+  ],
+  "pwm-2chan": [
+   "pin",
+   "pin2",
+   "func",
+   "func2",
+   "clock"
+  ],
+  "pwm-gpio": [
+   "gpio"
+  ],
+  "pwm-gpio-fan": [
+   "fan_gpio",
+   "fan_temp0",
+   "fan_temp1",
+   "fan_temp2",
+   "fan_temp3",
+   "fan_temp0_hyst",
+   "fan_temp1_hyst",
+   "fan_temp2_hyst",
+   "fan_temp3_hyst",
+   "fan_temp0_speed",
+   "fan_temp1_speed",
+   "fan_temp2_speed",
+   "fan_temp3_speed"
+  ],
+  "pwm-ir-tx": [
+   "gpio_pin",
+   "func"
+  ],
+  "pwm-pio": [
+   "gpio"
+  ],
+  "pwm1": [
+   "clock",
+   "pins_40",
+   "pins_41",
+   "pins_40_41",
+   "pull_up",
+   "pull_down",
+   "pull_off"
+  ],
+  "qca7000": [
+   "int_pin",
+   "speed"
+  ],
+  "qca7000-uart0": [
+   "baudrate"
+  ],
+  "ramoops": [
+   "base-addr",
+   "total-size",
+   "record-size",
+   "console-size"
+  ],
+  "ramoops-pi4": [
+   "base-addr",
+   "total-size",
+   "record-size",
+   "console-size"
+  ],
+  "rootmaster": [],
+  "rotary-encoder": [
+   "pin_a",
+   "pin_b",
+   "relative_axis",
+   "linux_axis",
+   "rollover",
+   "steps-per-period",
+   "steps",
+   "wakeup",
+   "encoding"
+  ],
+  "rpi-backlight": [],
+  "rpi-cirrus-wm5102": [],
+  "rpi-codeczero": [],
+  "rpi-dac": [],
+  "rpi-dacplus": [
+   "24db_digital_gain"
+  ],
+  "rpi-dacpro": [
+   "24db_digital_gain"
+  ],
+  "rpi-digiampplus": [
+   "24db_digital_gain",
+   "auto_mute_amp",
+   "unmute_amp"
+  ],
+  "rpi-display": [],
+  "rpi-ft5406": [
+   "touchscreen-size-x",
+   "touchscreen-size-y",
+   "touchscreen-inverted-x",
+   "touchscreen-inverted-y",
+   "touchscreen-swapped-x-y"
+  ],
+  "rpi-fw-uart": [
+   "txd0_pin",
+   "rxd0_pin"
+  ],
+  "rpi-poe": [
+   "poe_fan_temp0",
+   "poe_fan_temp0_hyst",
+   "poe_fan_temp1",
+   "poe_fan_temp1_hyst",
+   "poe_fan_temp2",
+   "poe_fan_temp2_hyst",
+   "poe_fan_temp3",
+   "poe_fan_temp3_hyst",
+   "i2c"
+  ],
+  "rpi-poe-plus": [
+   "poe_fan_temp0",
+   "poe_fan_temp0_hyst",
+   "poe_fan_temp1",
+   "poe_fan_temp1_hyst",
+   "poe_fan_temp2",
+   "poe_fan_temp2_hyst",
+   "poe_fan_temp3",
+   "poe_fan_temp3_hyst",
+   "i2c"
+  ],
+  "rpi-power-hat-b": [],
+  "rpi-power-hat-t": [],
+  "rpi-proto": [],
+  "rpi-sense": [],
+  "rpi-sense-v2": [],
+  "rpi-tv": [],
+  "rpivid-v4l2": [],
+  "rra-digidac1-wm8741-audio": [],
+  "sainsmart18": [
+   "rotate",
+   "speed",
+   "fps",
+   "bgr",
+   "debug",
+   "dc_pin",
+   "reset_pin"
+  ],
+  "sc16is750-i2c": [
+   "int_pin",
+   "addr",
+   "i2c-bus",
+   "xtal"
+  ],
+  "sc16is750-spi0": [],
+  "sc16is752-i2c": [
+   "int_pin",
+   "addr",
+   "i2c-bus",
+   "xtal"
+  ],
+  "sc16is752-spi0": [],
+  "sc16is752-spi1": [],
+  "sc16is75x-spi": [
+   "sc16is750",
+   "sc16is752",
+   "int_pin",
+   "xtal",
+   "spi1-1cs"
+  ],
+  "sdhost": [
+   "overclock_50",
+   "force_pio",
+   "pio_limit",
+   "debug"
+  ],
+  "sdio": [
+   "sdio_overclock",
+   "poll_once",
+   "bus_width",
+   "gpios_22_25",
+   "gpios_34_37",
+   "gpios_34_39"
+  ],
+  "sdio-1bit": [],
+  "sdio-pi5": [],
+  "sdtweak": [],
+  "seeed-can-fd-hat-v1": [],
+  "seeed-can-fd-hat-v2": [],
+  "sh1106-spi": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "dc_pin",
+   "reset_pin",
+   "height"
+  ],
+  "si446x-spi0": [
+   "speed",
+   "int_pin",
+   "reset_pin"
+  ],
+  "smi": [],
+  "smi-dev": [],
+  "smi-nand": [],
+  "spi-gpio35-39": [],
+  "spi-gpio40-45": [],
+  "spi-rtc": [
+   "ds3232",
+   "ds3234",
+   "pcf2123",
+   "spi0_0",
+   "spi0_1",
+   "spi1_0",
+   "spi1_1",
+   "spi2_0",
+   "spi2_1",
+   "cs_high"
+  ],
+  "spi0-0cs": [
+   "no_miso"
+  ],
+  "spi0-1cs": [
+   "cs0_pin",
+   "no_miso"
+  ],
+  "spi0-1cs-inverted": [
+   "cs0_pin",
+   "no_miso"
+  ],
+  "spi0-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "no_miso"
+  ],
+  "spi0-cs": [],
+  "spi0-hw-cs": [],
+  "spi1-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi1-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi1-3cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs2_pin",
+   "cs0_spidev",
+   "cs1_spidev",
+   "cs2_spidev"
+  ],
+  "spi2-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi2-1cs-pi5": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi2-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi2-2cs-pi5": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi2-3cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs2_pin",
+   "cs0_spidev",
+   "cs1_spidev",
+   "cs2_spidev"
+  ],
+  "spi3-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi3-1cs-pi5": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi3-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi3-2cs-pi5": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi4-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi4-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi5-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi5-1cs-pi5": [],
+  "spi5-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "spi5-2cs-pi5": [],
+  "spi6-1cs": [
+   "cs0_pin",
+   "cs0_spidev"
+  ],
+  "spi6-2cs": [
+   "cs0_pin",
+   "cs1_pin",
+   "cs0_spidev",
+   "cs1_spidev"
+  ],
+  "ssd1306": [
+   "address",
+   "width",
+   "height",
+   "offset",
+   "normal",
+   "sequential",
+   "remapped",
+   "inverted",
+   "Typical",
+   "supported",
+   "For"
+  ],
+  "ssd1306-spi": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "dc_pin",
+   "reset_pin",
+   "height",
+   "inverted"
+  ],
+  "ssd1327-spi": [
+   "speed",
+   "dc_pin",
+   "reset_pin"
+  ],
+  "ssd1331-spi": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "dc_pin",
+   "reset_pin"
+  ],
+  "ssd1351-spi": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "dc_pin",
+   "reset_pin"
+  ],
+  "sunfounder-pipower3": [
+   "poweroff_pin"
+  ],
+  "sunfounder-pironman5": [
+   "ir",
+   "ir_pins"
+  ],
+  "superaudioboard": [
+   "gpiopin"
+  ],
+  "sx150x": [],
+  "tc358743": [
+   "4lane",
+   "link-frequency",
+   "media-controller",
+   "cam0"
+  ],
+  "tc358743-audio": [
+   "card-name"
+  ],
+  "tc358743-pi5": [
+   "4lane",
+   "link-frequency",
+   "cam0"
+  ],
+  "tinylcd35": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "touch",
+   "touchgpio",
+   "xohms",
+   "rtc-pcf",
+   "rtc-ds",
+   "keypad"
+  ],
+  "tpm-slb9670": [],
+  "tpm-slb9673": [],
+  "uart0": [
+   "txd0_pin",
+   "rxd0_pin",
+   "pin_func"
+  ],
+  "uart0-pi5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart1": [
+   "txd1_pin",
+   "rxd1_pin"
+  ],
+  "uart1-pi5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart2": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart2-pi5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart3": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart3-pi5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart4": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart4-pi5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "uart5": [
+   "ctsrts",
+   "rs485",
+   "rs485_full_duplex",
+   "rs485_invert_rts",
+   "rs485_rts_on_delay",
+   "rs485_rts_off_delay"
+  ],
+  "udrc": [
+   "alsaname"
+  ],
+  "ugreen-dabboard": [
+   "card-name"
+  ],
+  "upstream": [],
+  "upstream-aux-interrupt": [],
+  "upstream-pi4": [],
+  "vc4-fkms-v3d": [
+   "cma-512",
+   "cma-448",
+   "cma-384",
+   "cma-320",
+   "cma-256",
+   "cma-192",
+   "cma-128",
+   "cma-96",
+   "cma-64",
+   "cma-size",
+   "cma-default"
+  ],
+  "vc4-fkms-v3d-pi4": [
+   "cma-512",
+   "cma-448",
+   "cma-384",
+   "cma-320",
+   "cma-256",
+   "cma-192",
+   "cma-128",
+   "cma-96",
+   "cma-64",
+   "cma-size",
+   "cma-default"
+  ],
+  "vc4-kms-dpi-at056tn53v1": [],
+  "vc4-kms-dpi-generic": [
+   "clock-frequency",
+   "hactive",
+   "hfp",
+   "hsync",
+   "hbp",
+   "vactive",
+   "vfp",
+   "vsync",
+   "vbp",
+   "hsync-invert",
+   "vsync-invert",
+   "de-invert",
+   "pixclk-invert",
+   "interlaced",
+   "width-mm",
+   "height-mm",
+   "rgb565",
+   "rgb565-padhi",
+   "bgr666",
+   "bgr666-padhi",
+   "rgb666-padhi",
+   "bgr888",
+   "rgb888",
+   "bus-format",
+   "backlight-gpio",
+   "backlight-pwm",
+   "backlight-pwm-chan",
+   "backlight-pwm-gpio",
+   "backlight-pwm-func",
+   "backlight-def-brightness",
+   "rotate",
+   "rgb-order"
+  ],
+  "vc4-kms-dpi-hyperpixel2r": [
+   "disable-touch",
+   "touchscreen-inverted-x",
+   "touchscreen-inverted-y",
+   "touchscreen-swapped-x-y",
+   "rotate"
+  ],
+  "vc4-kms-dpi-hyperpixel4": [
+   "disable-touch",
+   "touchscreen-inverted-x",
+   "touchscreen-inverted-y",
+   "touchscreen-swapped-x-y",
+   "rotate"
+  ],
+  "vc4-kms-dpi-hyperpixel4sq": [
+   "disable-touch",
+   "touchscreen-inverted-x",
+   "touchscreen-inverted-y",
+   "touchscreen-swapped-x-y",
+   "rotate"
+  ],
+  "vc4-kms-dpi-panel": [
+   "at056tn53v1",
+   "kippah-7inch",
+   "mzp280",
+   "backlight-gpio",
+   "backlight-pwm",
+   "backlight-pwm-chan",
+   "backlight-pwm-gpio",
+   "backlight-pwm-func",
+   "backlight-def-brightness",
+   "rotate"
+  ],
+  "vc4-kms-dsi-7inch": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "disable_touch",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-generic": [
+   "clock-frequency",
+   "hactive",
+   "hfp",
+   "hsync",
+   "hbp",
+   "vactive",
+   "vfp",
+   "vsync",
+   "vbp",
+   "width-mm",
+   "height-mm",
+   "rgb565",
+   "rgb666",
+   "rgb666p",
+   "rgb888",
+   "one-lane",
+   "two-lane",
+   "three-lane",
+   "four-lane",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-ili79600-10-1inch": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "disable_touch",
+   "rotation",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-ili9881-5inch": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "disable_touch",
+   "rotation",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-ili9881-7inch": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "disable_touch",
+   "rotation",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-lt070me05000": [
+   "reset",
+   "enable",
+   "dcdc-en"
+  ],
+  "vc4-kms-dsi-lt070me05000-v2": [],
+  "vc4-kms-dsi-waveshare-800x480": [
+   "sizex",
+   "sizey",
+   "invx",
+   "invy",
+   "swapxy",
+   "disable_touch",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-waveshare-panel": [
+   "2_8_inch",
+   "3_4_inch",
+   "4_0_inch",
+   "4_0_inchC",
+   "5_0_inch",
+   "6_25_inch",
+   "8_8_inch",
+   "7_0_inchC",
+   "7_0_inchH",
+   "7_9_inch",
+   "8_0_inch",
+   "10_1_inch",
+   "11_9_inch",
+   "13_3_inch_4lane",
+   "13_3_inch_2lane",
+   "i2c1",
+   "disable_touch",
+   "rotation",
+   "invx",
+   "invy",
+   "swapxy",
+   "dsi0"
+  ],
+  "vc4-kms-dsi-waveshare-panel-v2": [
+   "3_4_inch_c",
+   "4_0_inch_c",
+   "5_0_inch_a",
+   "5_5_inch_a",
+   "7_0_inch_a",
+   "7_0_inch_b",
+   "7_0_inch_c",
+   "8_0_inch_a",
+   "8_0_inch_a_4lane",
+   "8_8_inch_a",
+   "9_0_inch_b",
+   "9_0_inch_b_4lane",
+   "10_1_inch_a",
+   "10_1_inch_a_4lane",
+   "10_1_inch_b",
+   "10_1_inch_b_4lane",
+   "12_3_inch_a_4lane",
+   "disable_touch",
+   "invx",
+   "invy",
+   "swapxy",
+   "dsi0"
+  ],
+  "vc4-kms-kippah-7inch": [],
+  "vc4-kms-v3d": [
+   "cma-512",
+   "cma-448",
+   "cma-384",
+   "cma-320",
+   "cma-256",
+   "cma-192",
+   "cma-128",
+   "cma-96",
+   "cma-64",
+   "cma-size",
+   "cma-default",
+   "audio",
+   "noaudio",
+   "composite",
+   "nohdmi"
+  ],
+  "vc4-kms-v3d-pi4": [
+   "cma-512",
+   "cma-448",
+   "cma-384",
+   "cma-320",
+   "cma-256",
+   "cma-192",
+   "cma-128",
+   "cma-96",
+   "cma-64",
+   "cma-size",
+   "cma-default",
+   "audio",
+   "audio1",
+   "noaudio",
+   "composite",
+   "nohdmi",
+   "nohdmi0",
+   "nohdmi1"
+  ],
+  "vc4-kms-v3d-pi5": [],
+  "vc4-kms-vga666": [
+   "ddc"
+  ],
+  "vec-gpio-pi5": [
+   "clk",
+   "gpio27"
+  ],
+  "vga666": [],
+  "vl805": [],
+  "w1-gpio": [
+   "gpiopin",
+   "pullup"
+  ],
+  "w1-gpio-pi5": [],
+  "w1-gpio-pullup": [
+   "gpiopin",
+   "extpullup",
+   "pullup"
+  ],
+  "w1-gpio-pullup-pi5": [],
+  "w5500": [
+   "int_pin",
+   "speed",
+   "cs"
+  ],
+  "watterott-display": [
+   "speed",
+   "rotate",
+   "fps",
+   "debug",
+   "xohms",
+   "swapxy",
+   "backlight",
+   "drm",
+   "backlight-pwm"
+  ],
+  "waveshare-can-fd-hat-mode-a": [],
+  "waveshare-can-fd-hat-mode-b": [],
+  "wifimac": [
+   "wifiaddr"
+  ],
+  "wittypi": [
+   "led_gpio",
+   "led_trigger"
+  ],
+  "wm8960-soundcard": [
+   "alsaname",
+   "compatible"
+  ],
+  "ws2812-pio": [
+   "brightness",
+   "dev_name",
+   "gpio",
+   "num_leds",
+   "rgbw"
+  ]
+ }
+}

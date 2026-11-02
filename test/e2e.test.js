@@ -421,6 +421,7 @@ const ROUND_TRIPS = [
     { name: 'Pi 5, DSI0 panel without its own overlay line and without KMS', board: 'pi5', settings: { primary_output: 'dsi0', 'dsi0.enabled': true, 'dsi0.overlay': 'btt-pitft50-v1.0', 'kms.mode': 'preset' }, expect: { 'dsi0.overlay': 'btt-pitft50-v1.0', 'kms.mode': 'preset' } },
     { name: 'Pi 4, DPI preset with several overlays, rotation 90, timing line', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90, 'dpi.custom_timing': 'dpi_timings=480 0 26 16 10 640 0 25 10 15 0 0 0 60 0 32000000 1' }, expect: { 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90 } },
     { name: 'Pi 4, DPI single overlay, no rotation', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 0 }, expect: { 'dpi.overlay': 'hyperpixel4' } },
+    { name: 'Pi 4, DPI panel that takes rotate= itself', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 270 }, expect: { 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 270 } },
     { name: 'Pi 4, DPI custom overlay', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'custom', 'dpi.custom_timing': 'vc4-kms-dpi-generic,hactive=800,vactive=480' }, expect: { 'dpi.overlay': 'custom' } },
     { name: 'Pi 3B+, composite PAL 16:9', board: 'pi3bplus', settings: { primary_output: 'composite', 'composite.enabled': true, 'composite.mode': 'pal', 'composite.aspect': '16:9' }, expect: { 'composite.mode': 'pal', 'composite.aspect': '16:9' } },
     { name: 'Pi 4, a custom overlay line as the output', board: 'pi4', settings: { primary_output: 'custom', 'custom_overlay.enabled': true, 'custom_overlay.line': 'dtoverlay=example-panel,bar=1' }, expect: { 'custom_overlay.line': 'dtoverlay=example-panel,bar=1' } },
@@ -687,7 +688,7 @@ test('the presets database: bundled, checked, downloaded, cached across restarts
     assert.ok(env.lastToast().message.includes('99.0.0'), 'up to date now');
     let ui = await env.p.getUIConfig();
     assert.equal(uiItem(ui, 'section_database', 'db_active_version').value, '99.0.0');
-    assert.equal(uiItem(ui, 'section_database', 'db_preset_count').value, String(Object.keys(newer.presets).filter((k) => !k.startsWith('_comment')).length), 'section markers are not presets');
+    assert.ok(uiItem(ui, 'section_database', 'db_preset_count').value.startsWith(Object.keys(newer.presets).filter((k) => !k.startsWith('_comment')).length + ' configurations'), 'section markers are not presets: ' + uiItem(ui, 'section_database', 'db_preset_count').value);
     assert.equal(uiItem(ui, 'section_database', 'db_revert_btn').hidden, false);
 
     env = await restart(env);
@@ -1168,6 +1169,73 @@ test('an OS update is named as such; lines in userconfig.txt that act on the dis
     assert.equal(env.p.driftKind, 'changed');
     await waitFor(() => env.modal(), 'reboot modal');
     assert.equal(env.toasts.find((t) => t.type === 'warning').message, env.p.getI18n('CONFIG_DRIFT_DETECTED'));
+    await stop(env);
+});
+
+test('schema 2: aliases in the pickers, notes for kernel, board and vendor overlays, the overlay takes the rotation', async () => {
+    H.seed({ board: 'pi4' });
+    let env = H.plugin();
+    env.p.kernelVersion = '6.12.75-v7l+';
+    await env.start();
+    env.p.saveStep1({ primary_output: { value: 'dsi1' } });
+    let ui = await env.p.getUIConfig();
+    const dsiOptions = uiItem(ui, 'section_step2_dsi', 'dsi_overlay').options;
+    const alias = dsiOptions.find((o) => /Luckfox 7-DSI-TOUCH-A/.test(o.label));
+    assert.ok(alias, 'an alias is offered under the vendor name');
+    assert.equal(alias.value, 'waveshare-dsi-v2-7.0a', 'and selects the row it belongs to');
+    assert.ok(dsiOptions.some((o) => o.value === 'waveshare-dsi-10.1e-4lane'));
+    assert.equal(dsiOptions.filter((o) => o.value === 'custom').length, 1);
+    env.p.saveStep2Dsi({ dsi_overlay: { value: 'waveshare-dsi-10.1e-4lane' } });
+    ui = await env.p.getUIConfig();
+    env.p.step2ShowAudioCache = false;
+    ui = await env.p.getUIConfig();
+    const note = uiItem(ui, 'section_step2_dsi', 'dsi_preset_hint');
+    assert.equal(note.hidden, false);
+    assert.ok(note.value.includes('6.18.55') && note.value.includes('6.12.75-v7l+'), note.value);
+    assert.ok(/pi5, cm4, cm5/.test(note.value), note.value);
+    assert.ok(/6\.18\.55/.test(env.p.generateConfigSummary()), 'the summary carries the note');
+    assert.deepEqual(env.p.presetApplicability(env.p.getDisplayPreset('waveshare-dsi-10.1e-4lane')).notes.map((n) => n.code), ['MIN_KERNEL', 'BOARD']);
+
+    env.p.saveStep1({ primary_output: { value: 'dpi' } });
+    env.p.saveStep2Dpi({ dpi_overlay: { value: 'waveshare-2.8dpi' } });
+    env.p.step2ShowAudioCache = false;
+    ui = await env.p.getUIConfig();
+    const dpiNote = uiItem(ui, 'section_step2_dpi', 'dpi_preset_hint');
+    assert.equal(dpiNote.hidden, false);
+    assert.ok(/vc4-kms-dpi-2inch8\.dtbo/.test(dpiNote.value), dpiNote.value);
+    assert.ok(/waveshare-touch-28dpi\.dtbo/.test(dpiNote.value));
+    env.p.saveStep2Dpi({ dpi_overlay: { value: 'hyperpixel4' } });
+    env.p.step2ShowAudioCache = false;
+    ui = await env.p.getUIConfig();
+    assert.equal(uiItem(ui, 'section_step2_dpi', 'dpi_preset_hint').hidden, true, 'an in-tree panel has nothing to say');
+    const hdmi = await (async () => { env.p.saveStep1({ primary_output: { value: 'hdmi0' } }); return env.p.getUIConfig(); })();
+    const hdmiOptions = uiItem(hdmi, 'section_step2_hdmi', 'hdmi_display_preset').options;
+    assert.equal(hdmiOptions.filter((o) => o.value === 'auto').length, 1, 'one Auto Detect');
+    assert.ok(hdmiOptions.some((o) => /70H-1024600/.test(o.label) && o.value === 'waveshare-7-hdmi-c'));
+    assert.equal(uiItem(hdmi, 'section_step2_hdmi', 'hdmi_preset_hint').hidden, true);
+    await stop(env);
+
+    // The HyperPixel takes rotate= on its own line; cmdline.txt then carries no rotation
+    H.seed({ board: 'pi4' });
+    env = H.plugin();
+    await env.start();
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 90 });
+    assert.ok(/^dtoverlay=vc4-kms-dpi-hyperpixel4,rotate=90$/m.test(H.readBoot('videoconfig.txt')));
+    assert.equal(/video=DPI-1/.test(H.readBoot('cmdline.txt')), false, 'no second rotation on the kernel line');
+    assert.equal(/plymouth=90/.test(H.readBoot('cmdline.txt')), false);
+    ui = await env.p.getUIConfig();
+    await stop(env);
+    // The Waveshare 2.8" DPI rows keep the vendor's sequence; vc4-kms-v3d takes no rotate, so cmdline.txt carries it
+    H.seed({ board: 'pi4' });
+    env = H.plugin();
+    await env.start();
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90 });
+    const vc = H.readBoot('videoconfig.txt');
+    assert.ok(/^dtoverlay=vc4-kms-v3d$/m.test(vc), vc);
+    assert.ok(/^dtoverlay=vc4-kms-dpi-2inch8$/m.test(vc));
+    assert.ok(/^dtoverlay=waveshare-28dpi-3b-4b$/m.test(vc));
+    assert.ok(/^dtoverlay=waveshare-touch-28dpi$/m.test(vc));
+    assert.ok(/ video=DPI-1:rotate=90/.test(H.readBoot('cmdline.txt')));
     await stop(env);
 });
 

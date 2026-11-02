@@ -1,6 +1,6 @@
 {
-  "database": "1.6.0",
-  "count": 216,
+  "database": "1.7.0",
+  "count": 218,
   "keys": {
     "adafruit-10.1-1280x800": "hdmi",
     "adafruit-5-800x480": "hdmi",
@@ -171,6 +171,8 @@
     "waveshare-9hp-capqled-b": "hdmi",
     "waveshare-dsi-10.1": "dsi",
     "waveshare-dsi-10.1c": "dsi",
+    "waveshare-dsi-10.1e-2lane": "dsi",
+    "waveshare-dsi-10.1e-4lane": "dsi",
     "waveshare-dsi-11.9": "dsi",
     "waveshare-dsi-13.3-2lane": "dsi",
     "waveshare-dsi-13.3-4lane": "dsi",

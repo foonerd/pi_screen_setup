@@ -18,6 +18,7 @@ var recover = require('./lib/recover');
 var privileged = require('./lib/privileged');
 var strip = require('./lib/strip');
 var drift = require('./lib/drift');
+var presets = require('./lib/presets');
 
 module.exports = PiScreenSetup;
 
@@ -89,8 +90,8 @@ var COMPOSITE_MODES = {
 var MIGRATION_PATTERNS = strip.PATTERNS;
 
 // The presets in a database object: the _comment_* section markers are not presets.
-function countPresets(presets) {
-  return Object.keys(presets || {}).filter(function(k) { return !k.startsWith('_comment'); }).length;
+function countPresets(obj) {
+  return presets.count(obj);
 }
 
 /**
@@ -218,7 +219,52 @@ function PiScreenSetup(context) {
 
   // Boot partition writer: sudo in production, direct when relocated to another root
   self.priv = ROOT ? privileged.direct(ROOT) : privileged.sudo;
+
+  // What a preset's notes are judged against (tests set the kernel)
+  self.kernelVersion = os.release();
+  self.shippedOverlays = new Set();
+  try {
+    fs.readdirSync(path.join(__dirname, 'overlays')).forEach(function(f) {
+      var m = f.match(/^pss-(.+)\.dtbo$/);
+      if (m) self.shippedOverlays.add(m[1]);
+    });
+  } catch (e) { /* no overlays shipped */ }
 }
+
+// Whether a preset applies to this board and kernel, and the notes to show for it.
+PiScreenSetup.prototype.presetApplicability = function(preset) {
+  var self = this;
+  var b = self.hardwareInfo && self.hardwareInfo.board;
+  return presets.applicable(preset, { kernel: self.kernelVersion, boardFilters: b ? b.filters : [], shippedOverlays: self.shippedOverlays });
+};
+
+// The notes of a preset as one line of text, empty when there is nothing to say.
+PiScreenSetup.prototype.presetNotes = function(presetId) {
+  var self = this;
+  var preset = self.getDisplayPreset(presetId);
+  if (!preset) return '';
+  var parts = [];
+  if (preset.emit_dsi_overlay === false) parts.push(self.getI18n('DSI_PRESET_EMIT_HINT'));
+  self.presetApplicability(preset).notes.forEach(function(note) {
+    if (note.code === 'MIN_KERNEL') parts.push(self.getI18n('PRESET_NOTE_MIN_KERNEL').replace('{kernel}', note.detail).replace('{running}', note.running || '?'));
+    else if (note.code === 'BOARD') parts.push(self.getI18n('PRESET_NOTE_BOARD').replace('{boards}', note.detail));
+    else if (note.code === 'NEEDS_OVERLAY') parts.push(self.getI18n('PRESET_NOTE_NEEDS_OVERLAY').replace('{name}', note.detail));
+    else if (note.code === 'DEPRECATED') parts.push(self.getI18n('PRESET_NOTE_DEPRECATED').replace('{name}', (self.getDisplayPreset(note.detail) || {}).name || note.detail));
+    else if (note.code === 'EXPERIMENTAL') parts.push(self.getI18n('PRESET_NOTE_EXPERIMENTAL'));
+  });
+  return parts.join(' ');
+};
+
+// Picker options of one type: every preset and every alias, sorted by name.
+PiScreenSetup.prototype.presetOptions = function(type) {
+  var self = this;
+  var asAlias = self.getI18n('ALIAS_AS');
+  var list = presets.options(self.displayPresets, type, function(preset, alias) {
+    return asAlias.replace('{alias}', alias).replace('{name}', preset.name);
+  });
+  list.sort(function(a, b) { return naturalSortCompare(a.label, b.label); });
+  return list;
+};
 
 // Helper to get config value - checks cache first, then v-conf, then default
 PiScreenSetup.prototype.getConfigValue = function(key, defaultValue) {
@@ -681,6 +727,8 @@ PiScreenSetup.prototype.startManagementServer = function() {
           localVersion: self.displayPresetsVersion || '-',
           remoteVersion: remoteVersion,
           presetCount: countPresets(self.displayPresets),
+          nameCount: presets.nameCount(self.displayPresets),
+          schema: self.displayPresetsSchema || 1,
           source: self.config.get('database.active_source', 'bundled')
         });
       } catch (e) {
@@ -1613,6 +1661,7 @@ PiScreenSetup.prototype.loadDisplayPresetsWithCache = function() {
   }
   
   self.displayPresets = presetsData.presets || {};
+  self.displayPresetsSchema = presetsData.schema || 1;
   self.displayPresetsVersion = presetsData.version || 'unknown';
   self.displayPresetsDate = presetsData.last_updated || '';
   self.config.set('database.active_source', activeSource);
@@ -2251,35 +2300,18 @@ PiScreenSetup.prototype.adminDeletePreset = function(data) {
 /**
  * Validate preset data structure
  */
-PiScreenSetup.prototype.validatePresetData = function(preset) {
+PiScreenSetup.prototype.validatePresetData = function(preset, presetId) {
   var self = this;
-  
   if (!preset || typeof preset !== 'object') {
     return { valid: false, error: self.getI18n('ADMIN_ERROR_INVALID_DATA') || 'Invalid preset data' };
   }
-  
-  if (!preset.name || typeof preset.name !== 'string' || preset.name.trim() === '') {
-    return { valid: false, error: self.getI18n('ADMIN_ERROR_NO_NAME') || 'Preset must have a name' };
-  }
-  
-  var validTypes = ['hdmi', 'dsi', 'dpi', 'composite'];
-  if (!preset.type || validTypes.indexOf(preset.type) === -1) {
-    return { valid: false, error: self.getI18n('ADMIN_ERROR_INVALID_TYPE') || 'Invalid type. Must be: hdmi, dsi, dpi, or composite' };
-  }
-  
-  if (!preset.config || typeof preset.config !== 'object') {
-    return { valid: false, error: self.getI18n('ADMIN_ERROR_NO_CONFIG') || 'Preset must have a config object' };
-  }
-
-  if (preset.vc4_kms !== undefined && typeof preset.vc4_kms !== 'boolean') {
-    return { valid: false, error: self.getI18n('ADMIN_ERROR_VC4_KMS') || 'vc4_kms must be a boolean when set' };
-  }
-
-  if (preset.emit_dsi_overlay !== undefined && typeof preset.emit_dsi_overlay !== 'boolean') {
-    return { valid: false, error: self.getI18n('ADMIN_ERROR_EMIT_DSI') || 'emit_dsi_overlay must be a boolean when set' };
-  }
-  
-  return { valid: true };
+  var errors = presets.validateOne(presetId || 'preset', preset, null, Object.keys((self.draftPresets && self.draftPresets.presets) || self.displayPresets || {}));
+  if (!errors.length) return { valid: true };
+  var first = errors[0].replace(/^presets\.[^:]+: /, '');
+  if (/^no name/.test(first)) first = self.getI18n('ADMIN_ERROR_NO_NAME');
+  else if (/^type /.test(first)) first = self.getI18n('ADMIN_ERROR_INVALID_TYPE');
+  else if (/^no config/.test(first)) first = self.getI18n('ADMIN_ERROR_NO_CONFIG');
+  return { valid: false, error: first };
 };
 
 /**
@@ -3355,7 +3387,7 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       var dsiParams = self.getConfigValue(portKey + '.custom_params', '');
       var dsiRotation = self.getConfigValue(portKey + '.rotation', 0);
       var dsiLine = 'dtoverlay=' + dsiOverlay;
-      if (dsiRotation !== 0 && dsiPreset && dsiPreset.overlay_rotation_param === true) {
+      if (dsiRotation !== 0 && presets.rotationParam(dsiPreset) === 'rotation') {
         dsiLine += ',rotation=' + dsiRotation;
       }
       if (dsiParams) {
@@ -3387,7 +3419,7 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
         // Write primary dtoverlay
         if (dpiPreset.config.dtoverlay) {
           var dpiLine = 'dtoverlay=' + dpiPreset.config.dtoverlay;
-          if (dpiRotation !== 0) {
+          if (dpiRotation !== 0 && presets.rotationParam(dpiPreset) === 'rotate') {
             dpiLine += ',rotate=' + dpiRotation;
           }
           lines.push(dpiLine);
@@ -3619,9 +3651,6 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     var dsiPreset = self.getDisplayPreset(dsiPresetId);
     var dsiLabel = dsiPreset && dsiPreset.name ? dsiPreset.name : dsiPresetId;
     parts.push('DSI: ' + dsiLabel);
-    if (dsiPreset && dsiPreset.emit_dsi_overlay === false) {
-      parts.push(self.getI18n('DSI_SUMMARY_NO_PANEL_OVERLAY'));
-    }
   } else if (primaryOutput === 'dpi') {
     var dpiPresetId = self.getConfigValue('dpi.overlay', '');
     var dpiPreset = self.getDisplayPreset(dpiPresetId);
@@ -3636,6 +3665,11 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     parts.push('Headless (no display)');
   }
   
+  var chosenPreset = primaryOutput.startsWith('hdmi') ? self.getConfigValue(primaryOutput + '.display_preset', 'auto')
+    : (primaryOutput.startsWith('dsi') ? self.getConfigValue(primaryOutput + '.overlay', '') : (primaryOutput === 'dpi' ? self.getConfigValue('dpi.overlay', '') : ''));
+  var presetNotes = chosenPreset ? self.presetNotes(chosenPreset) : '';
+  if (presetNotes) parts.push(presetNotes);
+
   // Rotation
   var rotation = 0;
   if (primaryOutput.startsWith('hdmi')) {
@@ -3938,14 +3972,14 @@ PiScreenSetup.prototype.updateCmdline = function() {
     var applyCmdlineFbcon = self.getConfigValue('cmdline_rotation.fbcon', true);
     var applyCmdlinePlymouth = self.getConfigValue('cmdline_rotation.plymouth', true);
 
-    // Check if DSI overlay handles rotation internally
+    // An overlay with its own rotation parameter turns the panel itself; cmdline.txt then stays out of it
     var overlayHandlesRotation = false;
-    if (primaryOutput.startsWith('dsi')) {
-      var dsiPresetId = self.getConfigValue(primaryOutput + '.overlay', '');
-      var dsiPreset = self.getDisplayPreset(dsiPresetId);
-      if (dsiPreset && dsiPreset.overlay_rotation_param === true) {
+    if (primaryOutput.startsWith('dsi') || primaryOutput === 'dpi') {
+      var panelPresetId = self.getConfigValue(primaryOutput === 'dpi' ? 'dpi.overlay' : primaryOutput + '.overlay', '');
+      var panelPreset = self.getDisplayPreset(panelPresetId);
+      if (panelPreset && presets.rotationParam(panelPreset) && rotation !== 0) {
         overlayHandlesRotation = true;
-        self.logger.info('pi_screen_setup: DSI overlay handles rotation internally');
+        self.logger.info('pi_screen_setup: the panel overlay takes the rotation (' + presets.rotationParam(panelPreset) + '=)');
       }
     }
 
@@ -5079,9 +5113,10 @@ PiScreenSetup.prototype.recoverSettings = function() {
     self.primaryOutputCache = primary;
 
     // Rotation and the cmdline switches for outputs that rotate through cmdline.txt
-    var dsiPreset = primary.indexOf('dsi') === 0 ? self.getDisplayPreset(self.getConfigValue(primary + '.overlay', '')) : null;
-    var viaCmdline = primary === 'hdmi0' || primary === 'hdmi1' || primary === 'dpi'
-      || (primary.indexOf('dsi') === 0 && !(dsiPreset && dsiPreset.overlay_rotation_param === true));
+    var panelPreset = (primary.indexOf('dsi') === 0 || primary === 'dpi') ? self.getDisplayPreset(self.getConfigValue(primary === 'dpi' ? 'dpi.overlay' : primary + '.overlay', '')) : null;
+    var viaCmdline = primary === 'hdmi0' || primary === 'hdmi1'
+      || (primary.indexOf('dsi') === 0 && presets.rotationParam(panelPreset) !== 'rotation')
+      || (primary === 'dpi' && presets.rotationParam(panelPreset) !== 'rotate');
     if (viaCmdline) {
       var rot = fileRotation || (cmd.video && cmd.video.rotate !== null ? cmd.video.rotate
         : (cmd.plymouth !== null ? cmd.plymouth : (cmd.fbcon !== null ? cmd.fbcon * 90 : 0)));
@@ -5649,7 +5684,7 @@ PiScreenSetup.prototype.getUIConfig = function() {
       if (showDatabaseSections) {
         // Populate values
         self.setUIValue(dbSection, 'db_active_version', self.displayPresetsVersion || 'unknown');
-        self.setUIValue(dbSection, 'db_preset_count', countPresets(self.displayPresets).toString());
+        self.setUIValue(dbSection, 'db_preset_count', self.getI18n('DB_COUNT_VALUE').replace('{configs}', countPresets(self.displayPresets)).replace('{names}', presets.nameCount(self.displayPresets)));
         
         // Control Revert button visibility - only show when NOT using bundled
         var activeSource = self.config.get('database.active_source', 'bundled');
@@ -5954,21 +5989,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         // Display preset selector - filter by type === 'hdmi'
         var presetSelect = self.findContentItem(step2Section, 'hdmi_display_preset');
         if (presetSelect) {
-          var presetOptions = [];
-          if (self.displayPresets) {
-            for (var presetKey in self.displayPresets) {
-              var preset = self.displayPresets[presetKey];
-              // Skip comment entries, non-HDMI presets and the auto entry added below
-              if (presetKey.startsWith('_comment') || preset.type !== 'hdmi' || presetKey === 'auto') {
-                continue;
-              }
-              presetOptions.push({ value: presetKey, label: preset.name });
-            }
-          }
-          // Sort using natural sort (handles numeric values properly)
-          presetOptions.sort(function(a, b) {
-            return naturalSortCompare(a.label, b.label);
-          });
+          var presetOptions = self.presetOptions('hdmi').filter(function(o) { return o.value !== 'auto'; });
           // Add Auto Detect at start and Off at end
           presetOptions.unshift({ value: 'auto', label: 'Auto Detect (EDID)' });
           presetOptions.push({ value: 'off', label: 'Off' });
@@ -5986,6 +6007,12 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
           var chosen = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto');
           var isCustom = chosen === 'custom' || chosen === 'custom-hdmi';
           customTimings.hidden = !isCustom;
+        }
+
+        var hdmiHint = self.findContentItem(step2Section, 'hdmi_preset_hint');
+        if (hdmiHint) {
+          hdmiHint.value = self.presetNotes(self.getConfigValue(hdmiPrefix + '.display_preset', 'auto'));
+          hdmiHint.hidden = hdmiHint.value === '';
         }
 
         // Custom params (shown only when preset is 'custom')
@@ -6101,21 +6128,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         // DSI overlay - read from display_presets.json filtered by type === 'dsi'
         var overlaySelect = self.findContentItem(step3Section, 'dsi_overlay');
         if (overlaySelect) {
-          var dsiOptions = [];
-          if (self.displayPresets) {
-            for (var presetKey in self.displayPresets) {
-              var preset = self.displayPresets[presetKey];
-              // Skip comment entries and non-DSI presets
-              if (presetKey.startsWith('_comment') || preset.type !== 'dsi') {
-                continue;
-              }
-              dsiOptions.push({ value: presetKey, label: preset.name });
-            }
-          }
-          // Sort using natural sort (handles numeric values properly)
-          dsiOptions.sort(function(a, b) {
-            return naturalSortCompare(a.label, b.label);
-          });
+          var dsiOptions = self.presetOptions('dsi');
           // Log warning if no presets loaded (database issue)
           if (dsiOptions.length === 0) {
             self.logger.warn('pi_screen_setup: No DSI presets found in database');
@@ -6134,15 +6147,8 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
 
         var dsiHint = self.findContentItem(step3Section, 'dsi_preset_hint');
         if (dsiHint) {
-          var selId = self.getConfigValue(dsiPrefix + '.overlay', '');
-          var selPreset = selId && selId !== 'custom' ? self.getDisplayPreset(selId) : null;
-          if (selPreset && selPreset.emit_dsi_overlay === false) {
-            dsiHint.value = self.getI18n('DSI_PRESET_EMIT_HINT');
-            dsiHint.hidden = false;
-          } else {
-            dsiHint.value = '';
-            dsiHint.hidden = true;
-          }
+          dsiHint.value = self.presetNotes(self.getConfigValue(dsiPrefix + '.overlay', ''));
+          dsiHint.hidden = dsiHint.value === '';
         }
       }
     }
@@ -6159,21 +6165,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         // DPI overlay - read from display_presets.json filtered by type === 'dpi'
         var dpiOverlaySelect = self.findContentItem(step4Section, 'dpi_overlay');
         if (dpiOverlaySelect) {
-          var dpiOptions = [];
-          if (self.displayPresets) {
-            for (var presetKey in self.displayPresets) {
-              var preset = self.displayPresets[presetKey];
-              // Skip comment entries and non-DPI presets
-              if (presetKey.startsWith('_comment') || preset.type !== 'dpi') {
-                continue;
-              }
-              dpiOptions.push({ value: presetKey, label: preset.name });
-            }
-          }
-          // Sort using natural sort (handles numeric values properly)
-          dpiOptions.sort(function(a, b) {
-            return naturalSortCompare(a.label, b.label);
-          });
+          var dpiOptions = self.presetOptions('dpi');
           // Log warning if no presets loaded (database issue)
           if (dpiOptions.length === 0) {
             self.logger.warn('pi_screen_setup: No DPI presets found in database');
@@ -6188,6 +6180,12 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         var timingInput = self.findContentItem(step4Section, 'dpi_custom_timing');
         if (timingInput) {
           timingInput.value = self.getConfigValue('dpi.custom_timing', '');
+        }
+
+        var dpiHint = self.findContentItem(step4Section, 'dpi_preset_hint');
+        if (dpiHint) {
+          dpiHint.value = self.presetNotes(self.getConfigValue('dpi.overlay', ''));
+          dpiHint.hidden = dpiHint.value === '';
         }
       }
     }
@@ -6328,8 +6326,10 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         var cmdlineFbconSwitch = self.findContentItem(step7Section, 'cmdline_fbcon');
         var cmdlinePlymouthSwitch = self.findContentItem(step7Section, 'cmdline_plymouth');
 
-        if (primaryOutput.startsWith('hdmi') || primaryOutput === 'dpi' || primaryOutput === 'composite' || primaryOutput === 'custom') {
-          // HDMI, DPI, composite, custom always need cmdline rotation
+        if (primaryOutput === 'dpi') {
+          showCmdlineOptions = presets.rotationParam(self.getDisplayPreset(self.getConfigValue('dpi.overlay', ''))) !== 'rotate';
+        } else if (primaryOutput.startsWith('hdmi') || primaryOutput === 'composite' || primaryOutput === 'custom') {
+          // HDMI, composite, custom always need cmdline rotation
           showCmdlineOptions = true;
         } else if (primaryOutput.startsWith('dsi')) {
           // DSI - check if overlay handles rotation
@@ -6337,13 +6337,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
           var dsiPresetId = self.getConfigValue(dsiPrefix + '.overlay', '');
           var dsiPreset = self.getDisplayPreset(dsiPresetId);
           
-          if (dsiPreset && dsiPreset.overlay_rotation_param === true) {
-            // Overlay handles rotation - no cmdline needed
-            showCmdlineOptions = false;
-          } else {
-            // Overlay doesn't handle rotation or unknown - show cmdline options
-            showCmdlineOptions = true;
-          }
+          showCmdlineOptions = presets.rotationParam(dsiPreset) !== 'rotation';
         }
 
         // Show/hide cmdline rotation options
