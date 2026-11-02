@@ -87,6 +87,11 @@ var COMPOSITE_MODES = {
 // install.sh's detection grep.
 var MIGRATION_PATTERNS = strip.PATTERNS;
 
+// The presets in a database object: the _comment_* section markers are not presets.
+function countPresets(presets) {
+  return Object.keys(presets || {}).filter(function(k) { return !k.startsWith('_comment'); }).length;
+}
+
 /**
  * Natural sort comparator for display preset names
  * Handles numeric values properly: "2.8 inch" < "10.1 inch"
@@ -646,7 +651,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
         res.json({
           localVersion: self.displayPresetsVersion || '-',
           remoteVersion: remoteVersion,
-          presetCount: Object.keys(self.displayPresets || {}).length,
+          presetCount: countPresets(self.displayPresets),
           source: self.config.get('database.active_source', 'bundled')
         });
       } catch (e) {
@@ -857,7 +862,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
           self.displayPresets = JSON.parse(JSON.stringify(data.presets));
           self.displayPresetsVersion = data.version;
           
-          res.json({ success: true, version: data.version, count: Object.keys(data.presets).length });
+          res.json({ success: true, version: data.version, count: countPresets(data.presets) });
         })
         .fail(function(err) {
           res.status(500).json({ error: err.message || 'Failed to fetch URL' });
@@ -887,7 +892,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
         self.displayPresets = JSON.parse(JSON.stringify(data.presets));
         self.displayPresetsVersion = data.version;
         
-        res.json({ success: true, version: data.version, count: Object.keys(data.presets).length });
+        res.json({ success: true, version: data.version, count: countPresets(data.presets) });
       } catch (e) {
         self.logger.error('pi_screen_setup: API error (import-path) - ' + e);
         res.status(500).json({ error: e.message });
@@ -912,7 +917,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
         self.displayPresets = JSON.parse(JSON.stringify(data.presets));
         self.displayPresetsVersion = data.version;
         
-        res.json({ success: true, version: data.version, count: Object.keys(data.presets).length });
+        res.json({ success: true, version: data.version, count: countPresets(data.presets) });
       } catch (e) {
         self.logger.error('pi_screen_setup: API error (import-data) - ' + e);
         res.status(500).json({ error: e.message });
@@ -1584,7 +1589,7 @@ PiScreenSetup.prototype.loadDisplayPresetsWithCache = function() {
   self.config.set('database.active_source', activeSource);
   
   self.logger.info('pi_screen_setup: Active presets source: ' + activeSource + 
-    ', ' + Object.keys(self.displayPresets).length + ' presets loaded');
+    ', ' + countPresets(self.displayPresets) + ' presets loaded');
 };
 
 /**
@@ -1637,7 +1642,7 @@ PiScreenSetup.prototype.checkDatabaseUpdate = function() {
           available: updateAvailable,
           remote_version: remoteVersion,
           remote_date: remoteData.last_updated || '',
-          remote_preset_count: Object.keys(remoteData.presets || {}).length,
+          remote_preset_count: countPresets(remoteData.presets),
           current_version: currentVersion,
           current_source: self.config.get('database.active_source', 'bundled')
         });
@@ -1717,7 +1722,7 @@ PiScreenSetup.prototype.downloadDatabaseUpdate = function() {
         self.displayPresetsDate = remoteData.last_updated || '';
         self.config.set('database.active_source', 'cached');
         
-        var presetCount = Object.keys(remoteData.presets).length;
+        var presetCount = countPresets(remoteData.presets);
         self.logger.info('pi_screen_setup: Database updated to v' + remoteData.version + 
           ' with ' + presetCount + ' presets');
         
@@ -2362,7 +2367,7 @@ PiScreenSetup.prototype.adminImportFromUrl = function(data) {
         self.config.set('admin.draft_dirty', true);
         self.saveDraftPresets();
         
-        var presetCount = Object.keys(importData.presets).length;
+        var presetCount = countPresets(importData.presets);
         self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
           (self.getI18n('ADMIN_IMPORT_SUCCESS') || 'Imported v{version} ({count} presets) into draft')
             .replace('{version}', importData.version || 'unknown')
@@ -2656,7 +2661,7 @@ PiScreenSetup.prototype.adminImportFromFile = function(data) {
     self.config.set('admin.draft_dirty', true);
     self.saveDraftPresets();
     
-    var presetCount = Object.keys(importData.presets).length;
+    var presetCount = countPresets(importData.presets);
     self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', 
       (self.getI18n('ADMIN_IMPORT_SUCCESS') || 'Imported v{version} ({count} presets) into draft')
         .replace('{version}', importData.version || 'unknown')
@@ -5615,7 +5620,7 @@ PiScreenSetup.prototype.getUIConfig = function() {
       if (showDatabaseSections) {
         // Populate values
         self.setUIValue(dbSection, 'db_active_version', self.displayPresetsVersion || 'unknown');
-        self.setUIValue(dbSection, 'db_preset_count', Object.keys(self.displayPresets || {}).length.toString());
+        self.setUIValue(dbSection, 'db_preset_count', countPresets(self.displayPresets).toString());
         
         // Control Revert button visibility - only show when NOT using bundled
         var activeSource = self.config.get('database.active_source', 'bundled');

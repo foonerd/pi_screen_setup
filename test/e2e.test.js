@@ -687,6 +687,7 @@ test('the presets database: bundled, checked, downloaded, cached across restarts
     assert.ok(env.lastToast().message.includes('99.0.0'), 'up to date now');
     let ui = await env.p.getUIConfig();
     assert.equal(uiItem(ui, 'section_database', 'db_active_version').value, '99.0.0');
+    assert.equal(uiItem(ui, 'section_database', 'db_preset_count').value, String(Object.keys(newer.presets).filter((k) => !k.startsWith('_comment')).length), 'section markers are not presets');
     assert.equal(uiItem(ui, 'section_database', 'db_revert_btn').hidden, false);
 
     env = await restart(env);
@@ -892,6 +893,7 @@ test('the admin draft: list, load, add, update, delete, version, export, import,
 });
 
 test('the management API over HTTP', async () => {
+    const bundledDb = fs.readJsonSync(path.join(H.PLUGIN_DIR, 'display_presets.json'));
     H.seed({ board: 'pi4', lang: 'de' });
     const env = H.plugin({ lang: 'de' });
     await env.start();
@@ -906,7 +908,7 @@ test('the management API over HTTP', async () => {
     assert.equal((await get('/api/i18n/zz-bad')).body.PLUGIN_NAME, 'Pi Screen Setup', 'malformed code is treated as English');
     const info = (await get('/api/database/info')).body;
     assert.equal(info.source, 'bundled');
-    assert.ok(info.presetCount > 100);
+    assert.equal(info.presetCount, Object.keys(bundledDb.presets).filter((k) => !k.startsWith('_comment')).length, 'the count leaves out the section markers');
 
     const all = (await get('/api/presets')).body;
     assert.ok(all.presets['rpi-touch2-7inch']);
