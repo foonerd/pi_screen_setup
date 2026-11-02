@@ -67,6 +67,7 @@
     "PRESET_NOTE_MIN_KERNEL": "Vereist kernel {kernel}; deze speler draait {running}, waar de regel nog niets doet.",
     "PRESET_NOTE_BOARD": "Bedoeld voor deze borden: {boards}.",
     "PRESET_NOTE_NEEDS_OVERLAY": "Vereist het overlaybestand {name}.dtbo van de fabrikant in /boot/overlays, dat deze versie niet installeert.",
+    "PRESET_NOTE_SHIPPED_OVERLAY": "De plugin installeert de overlaybestanden van de fabrikant in /boot/overlays bij het toepassen: {files}.",
     "PRESET_NOTE_DEPRECATED": "Vervangen door {name}.",
     "PRESET_NOTE_EXPERIMENTAL": "Werkt bij sommigen; niet door de fabrikant bevestigd.",
     "DSI_SUMMARY_NO_PANEL_OVERLAY": "geen vc4-kms-dsi panel overlay-regel in videoconfig",

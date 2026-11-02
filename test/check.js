@@ -125,9 +125,35 @@ for (const [id, p] of Object.entries(db.presets || {})) {
     if (id.startsWith('_comment') || !p || typeof p !== 'object') continue;
     if (!p.provenance) fail(`presets.${id}: no provenance`);
     if ((p.type === 'dsi' || p.type === 'dpi') && !('rotation_param' in p)) fail(`presets.${id}: no rotation_param`);
+}
+
+// The vendor overlay files (plugin/overlays, from scripts/vendor-overlays.js): the
+// manifest describes every file and every file is the manifest's; each ships with dtc's
+// reading of it carrying the same hash; no row depends on a file the plugin does not
+// ship; no shipped name is one the kernel has, so a kernel overlay is never shadowed.
+const overlaysLib = require(path.join(root, 'lib', 'overlays.js'));
+const overlaysDir = path.join(root, 'overlays');
+const shipped = overlaysLib.load(overlaysDir);
+shipped.problems.forEach((e) => fail('overlays: ' + e));
+if (shipped.count === 0) fail('overlays: nothing shipped (node scripts/vendor-overlays.js)');
+const manifest = JSON.parse(read('overlays/manifest.json'));
+for (const [vendor, entry] of Object.entries(manifest.overlays)) {
+    const dts = path.join(overlaysDir, entry.file + '.dts');
+    if (!fs.existsSync(dts)) fail(`overlays: ${entry.file}.dtbo ships without ${entry.file}.dts`);
+    else if (!fs.readFileSync(dts, 'utf8').includes('// sha256: ' + entry.sha256)) fail(`overlays: ${entry.file}.dts is not the reading of the shipped ${entry.file}.dtbo (hash in the header differs)`);
+    if (!entry.source || !/^https:\/\//.test(entry.source)) fail(`overlays: ${vendor} names no https source`);
+    if (tokens && tokens[vendor.toLowerCase()]) fail(`overlays: ${vendor} is a kernel overlay name; the plugin must not shadow it`);
+}
+for (const f of fs.readdirSync(overlaysDir)) {
+    const m = f.match(/^(pss-[a-z0-9-]+)\.(dtbo|dts)$/);
+    if (f === 'manifest.json') continue;
+    if (!m) fail(`overlays: ${f} is not a pss-*.dtbo/.dts file`);
+    else if (!Object.values(manifest.overlays).some((e) => e.file === m[1])) fail(`overlays: ${f} is not in the manifest`);
+}
+for (const [id, p] of Object.entries(db.presets || {})) {
+    if (id.startsWith('_comment') || !p || typeof p !== 'object') continue;
     for (const name of p.requires_overlay || []) {
-        const shipped = path.join(root, 'overlays', 'pss-' + name + '.dtbo');
-        if (fs.existsSync(shipped) && !fs.existsSync(shipped.replace(/\.dtbo$/, '.dts'))) fail(`presets.${id}: overlays/pss-${name}.dtbo ships without its .dts source`);
+        if (!shipped.fileFor(name)) fail(`presets.${id}: requires ${name}, which the plugin does not ship`);
     }
 }
 

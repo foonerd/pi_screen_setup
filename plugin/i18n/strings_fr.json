@@ -67,6 +67,7 @@
     "PRESET_NOTE_MIN_KERNEL": "Nécessite le noyau {kernel} ; ce lecteur tourne en {running}, où la ligne ne fait encore rien.",
     "PRESET_NOTE_BOARD": "Prévu pour ces cartes : {boards}.",
     "PRESET_NOTE_NEEDS_OVERLAY": "Nécessite le fichier d’overlay du fabricant {name}.dtbo dans /boot/overlays, que cette version n’installe pas.",
+    "PRESET_NOTE_SHIPPED_OVERLAY": "Le plugin installe les fichiers d’overlay du fabricant dans /boot/overlays lors de l’application : {files}.",
     "PRESET_NOTE_DEPRECATED": "Remplacé par {name}.",
     "PRESET_NOTE_EXPERIMENTAL": "Fonctionne chez certains ; non vérifié par le fabricant.",
     "DSI_SUMMARY_NO_PANEL_OVERLAY": "pas de ligne overlay panneau vc4-kms-dsi dans videoconfig",

@@ -67,6 +67,7 @@
     "PRESET_NOTE_MIN_KERNEL": "Braucht Kernel {kernel}; dieser Player läuft mit {running}, dort bewirkt die Zeile noch nichts.",
     "PRESET_NOTE_BOARD": "Für diese Boards: {boards}.",
     "PRESET_NOTE_NEEDS_OVERLAY": "Braucht die Overlay-Datei {name}.dtbo des Herstellers in /boot/overlays, die diese Version nicht installiert.",
+    "PRESET_NOTE_SHIPPED_OVERLAY": "Die Overlay-Dateien des Herstellers installiert das Plugin beim Anwenden nach /boot/overlays: {files}.",
     "PRESET_NOTE_DEPRECATED": "Ersetzt durch {name}.",
     "PRESET_NOTE_EXPERIMENTAL": "Funktioniert bei manchen im Feld; vom Hersteller nicht bestätigt.",
     "DSI_SUMMARY_NO_PANEL_OVERLAY": "keine vc4-kms-dsi-Panel-Overlay-Zeile in videoconfig",

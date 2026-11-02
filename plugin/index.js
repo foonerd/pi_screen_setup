@@ -19,6 +19,7 @@ var privileged = require('./lib/privileged');
 var strip = require('./lib/strip');
 var drift = require('./lib/drift');
 var presets = require('./lib/presets');
+var overlays = require('./lib/overlays');
 
 module.exports = PiScreenSetup;
 
@@ -222,13 +223,10 @@ function PiScreenSetup(context) {
 
   // What a preset's notes are judged against (tests set the kernel)
   self.kernelVersion = os.release();
-  self.shippedOverlays = new Set();
-  try {
-    fs.readdirSync(path.join(__dirname, 'overlays')).forEach(function(f) {
-      var m = f.match(/^pss-(.+)\.dtbo$/);
-      if (m) self.shippedOverlays.add(m[1]);
-    });
-  } catch (e) { /* no overlays shipped */ }
+  // The vendor overlay files the plugin ships (plugin/overlays/manifest.json)
+  self.shipped = overlays.load(path.join(__dirname, 'overlays'));
+  self.shipped.problems.forEach(function(problem) { self.logger.warn('pi_screen_setup: overlays: ' + problem); });
+  self.shippedOverlays = self.shipped.names();
 }
 
 // Whether a preset applies to this board and kernel, and the notes to show for it.
@@ -245,7 +243,11 @@ PiScreenSetup.prototype.presetNotes = function(presetId) {
   if (!preset) return '';
   var parts = [];
   if (preset.emit_dsi_overlay === false) parts.push(self.getI18n('DSI_PRESET_EMIT_HINT'));
-  self.presetApplicability(preset).notes.forEach(function(note) {
+  var applicability = self.presetApplicability(preset);
+  if ((preset.requires_overlay || []).length && !applicability.notes.some(function(n) { return n.code === 'NEEDS_OVERLAY'; })) {
+    parts.push(self.getI18n('PRESET_NOTE_SHIPPED_OVERLAY').replace('{files}', preset.requires_overlay.map(function(n) { return self.shipped.fileFor(n) + '.dtbo'; }).join(', ')));
+  }
+  applicability.notes.forEach(function(note) {
     if (note.code === 'MIN_KERNEL') parts.push(self.getI18n('PRESET_NOTE_MIN_KERNEL').replace('{kernel}', note.detail).replace('{running}', note.running || '?'));
     else if (note.code === 'BOARD') parts.push(self.getI18n('PRESET_NOTE_BOARD').replace('{boards}', note.detail));
     else if (note.code === 'NEEDS_OVERLAY') parts.push(self.getI18n('PRESET_NOTE_NEEDS_OVERLAY').replace('{name}', note.detail));
@@ -405,6 +407,8 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
       drift_kind: self.driftKind || null,
       os_version: drift.osVersion(ROOT),
       userconfig_conflicts: boot.conflicts,
+      shipped_overlays: self.shipped.count,
+      installed_overlays: overlays.installed(OVERLAYS_PATH),
       strip_record: { volumioconfig: strip.readRecord(self.stripDir, 'volumioconfig.txt') !== null, userconfig: strip.readRecord(self.stripDir, 'userconfig.txt') !== null },
       database: { source: self.config.get('database.active_source', ''), version: self.displayPresetsVersion }
     };
@@ -2836,7 +2840,7 @@ PiScreenSetup.prototype.findDsiPresetByOverlay = function(overlayName, type) {
   for (var presetId in self.displayPresets) {
     if (presetId.startsWith('_comment')) continue;
     var preset = self.displayPresets[presetId];
-    if (preset.type === wanted && preset.config && preset.config.dtoverlay === overlayName) {
+    if (preset.type === wanted && preset.config && String(preset.config.dtoverlay).toLowerCase() === String(overlayName).toLowerCase()) {
       return presetId;
     }
   }
@@ -2847,16 +2851,16 @@ PiScreenSetup.prototype.findDsiPresetByOverlay = function(overlayName, type) {
 
 
 // The DPI preset whose overlay list (dtoverlay, dtoverlay_2, ...) is exactly `overlays`, or null.
-PiScreenSetup.prototype.findDpiPresetByOverlays = function(overlays) {
+PiScreenSetup.prototype.findDpiPresetByOverlays = function(overlayList) {
   var self = this;
-  if (!self.displayPresets || !overlays || !overlays.length) return null;
+  if (!self.displayPresets || !overlayList || !overlayList.length) return null;
   for (var presetId in self.displayPresets) {
     if (presetId.startsWith('_comment')) continue;
     var preset = self.displayPresets[presetId];
     if (preset.type !== 'dpi' || !preset.config || !preset.config.dtoverlay) continue;
     var list = [preset.config.dtoverlay];
     for (var i = 2; i <= 10 && preset.config['dtoverlay_' + i]; i++) list.push(preset.config['dtoverlay_' + i]);
-    if (list.length === overlays.length && list.every(function(o, k) { return o === overlays[k]; })) return presetId;
+    if (list.length === overlayList.length && list.every(function(o, k) { return o.toLowerCase() === String(overlayList[k]).toLowerCase(); })) return presetId;
   }
   return null;
 };
@@ -3380,7 +3384,7 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       }
       var dsiOverlay = '';
       if (dsiPreset && dsiPreset.config && dsiPreset.config.dtoverlay) {
-        dsiOverlay = dsiPreset.config.dtoverlay;
+        dsiOverlay = self.shipped.toShipped(dsiPreset.config.dtoverlay);
       } else {
         dsiOverlay = presetId;
       }
@@ -3393,7 +3397,14 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       if (dsiParams) {
         dsiLine += ',' + dsiParams;
       }
-      lines.push(dsiLine);
+      var dsiLines = [dsiLine];
+      // The preset's further overlay lines (dtoverlay_2, ...), as the DPI presets have them
+      for (var d = 2; d <= 10 && dsiPreset && dsiPreset.config && dsiPreset.config['dtoverlay_' + d]; d++) {
+        dsiLines.push('dtoverlay=' + self.shipped.toShipped(dsiPreset.config['dtoverlay_' + d]));
+      }
+      var dsiShipped = self.shipped.needed(dsiLines.join('\n'));
+      if (dsiShipped.length) lines.push('# Vendor overlay files installed by the plugin: ' + dsiShipped.map(function(f) { return f + '.dtbo'; }).join(' '));
+      lines = lines.concat(dsiLines);
       lines.push('');
     } else if (presetId === 'custom') {
       var customLine = self.getConfigValue(portKey + '.custom_params', '');
@@ -3416,24 +3427,28 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
       var dpiRotation = self.getConfigValue('dpi.rotation', 0);
       
       if (dpiPreset && dpiPreset.config) {
+        var dpiLines = [];
         // Write primary dtoverlay
         if (dpiPreset.config.dtoverlay) {
-          var dpiLine = 'dtoverlay=' + dpiPreset.config.dtoverlay;
+          var dpiLine = 'dtoverlay=' + self.shipped.toShipped(dpiPreset.config.dtoverlay);
           if (dpiRotation !== 0 && presets.rotationParam(dpiPreset) === 'rotate') {
             dpiLine += ',rotate=' + dpiRotation;
           }
-          lines.push(dpiLine);
+          dpiLines.push(dpiLine);
         }
         
         // Write additional overlays (dtoverlay_2, dtoverlay_3, etc.)
         for (var i = 2; i <= 10; i++) {
           var overlayKey = 'dtoverlay_' + i;
           if (dpiPreset.config[overlayKey]) {
-            lines.push('dtoverlay=' + dpiPreset.config[overlayKey]);
+            dpiLines.push('dtoverlay=' + self.shipped.toShipped(dpiPreset.config[overlayKey]));
           } else {
             break; // Stop at first missing numbered overlay
           }
         }
+        var dpiShipped = self.shipped.needed(dpiLines.join('\n'));
+        if (dpiShipped.length) lines.push('# Vendor overlay files installed by the plugin: ' + dpiShipped.map(function(f) { return f + '.dtbo'; }).join(' '));
+        lines = lines.concat(dpiLines);
       } else {
         // Fallback: assume preset ID is the overlay name (backward compat)
         var dpiLine = 'dtoverlay=' + dpiPresetId;
@@ -3703,6 +3718,39 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
   return parts.join(', ');
 };
 
+// The vendor overlay files a videoconfig.txt names, installed into /boot/overlays before
+// the file that refers to them is written. A file that cannot be installed is an error:
+// a dtoverlay line naming a file that is not there boots with no panel.
+PiScreenSetup.prototype.installShippedOverlays = function(videoconfigText) {
+  var self = this;
+  var installed = overlays.installed(OVERLAYS_PATH);
+  self.shipped.needed(videoconfigText).forEach(function(file) {
+    var rec = self.shipped.record(file);
+    if (installed.indexOf(file) !== -1) {
+      try {
+        if (overlays.sha256(fs.readFileSync(path.join(OVERLAYS_PATH, file + '.dtbo'))) === rec.sha256) return;
+      } catch (e) { /* unreadable: write it */ }
+    }
+    self.priv.installOverlay(file, rec.bytes);
+    self.logger.info('pi_screen_setup: installed ' + file + '.dtbo (vendor file ' + rec.vendor + ') into ' + OVERLAYS_PATH);
+  });
+};
+
+// The plugin's overlay files that the current videoconfig.txt no longer names.
+PiScreenSetup.prototype.removeStaleOverlays = function(videoconfigText) {
+  var self = this;
+  var needed = self.shipped.needed(videoconfigText);
+  overlays.installed(OVERLAYS_PATH).forEach(function(file) {
+    if (needed.indexOf(file) !== -1) return;
+    try {
+      self.priv.removeOverlay(file);
+      self.logger.info('pi_screen_setup: removed ' + file + '.dtbo, no longer used');
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: could not remove ' + file + '.dtbo - ' + e.message);
+    }
+  });
+};
+
 PiScreenSetup.prototype.writeVideoConfig = function() {
   var self = this;
   var defer = libQ.defer();
@@ -3713,7 +3761,9 @@ PiScreenSetup.prototype.writeVideoConfig = function() {
     // Create backup of existing file
     self.createBackup(VIDEOCONFIG_TXT)
       .then(function() {
+        self.installShippedOverlays(content);
         if (self.writeBootFile(VIDEOCONFIG_TXT, content)) {
+          self.removeStaleOverlays(content);
           defer.resolve();
         } else {
           defer.reject(new Error('Failed to write videoconfig.txt'));
@@ -5050,10 +5100,17 @@ PiScreenSetup.prototype.recoverSettings = function() {
       set(port + '.mode', h.drive === 1 ? 'screen' : (!hasVideo && ph.force_hotplug && primary !== port ? 'audio' : 'screen_audio'));
     });
 
+    var dsiKnown = Object.keys(self.displayPresets || {}).map(function(id) {
+      var pr = self.displayPresets[id];
+      return pr && pr.type === 'dsi' && pr.config ? pr.config.dtoverlay : null;
+    }).filter(Boolean);
+    var asVendor = function(l) { return l.startsWith('dtoverlay=') ? 'dtoverlay=' + self.shipped.toVendor(l.slice('dtoverlay='.length)) : l; };
     ['DSI0', 'DSI1'].forEach(function(name) {
       var port = name.toLowerCase();
       if (parsed.sections[name]) {
-        var d = recover.dsi(parsed.sections[name]);
+        var dsiLinesRead = parsed.sections[name].map(asVendor);
+        dsiLinesRead.noPanelOverlay = parsed.sections[name].noPanelOverlay;
+        var d = recover.dsi(dsiLinesRead, dsiKnown);
         enabled[port] = true;
         set(port + '.enabled', true);
         set(port + '.rotation', d.rotation);
@@ -5079,7 +5136,8 @@ PiScreenSetup.prototype.recoverSettings = function() {
       set('dpi.enabled', true);
       set('dpi.rotation', dp.rotation);
       fileRotation = dp.rotation;
-      set('dpi.overlay', self.findDpiPresetByOverlays(dp.overlays) || dp.overlays[0] || '');
+      var vendorOverlays = dp.overlays.map(function(o) { return self.shipped.toVendor(o); });
+      set('dpi.overlay', self.findDpiPresetByOverlays(vendorOverlays) || vendorOverlays[0] || '');
       set('dpi.custom_timing', dp.timing.join('\n'));
     } else if (parsed.sections['DPI Custom']) {
       enabled.dpi = true;

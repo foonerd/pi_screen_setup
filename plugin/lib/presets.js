@@ -86,7 +86,9 @@ function compareKernel(a, b) {
 }
 
 // Whether `preset` can be used here. `ctx`: { kernel: uname -r, boardFilters: [...] from
-// lib/board, shippedOverlays: Set of overlay names present in plugin/overlays }.
+// lib/board, shippedOverlays: Set of the vendor overlay names the plugin ships, lower
+// case (lib/overlays names()); overlay file names are matched as the firmware matches
+// them on the boot partition, without regard to case }.
 // Never refuses outright: the notes tell the user what is missing.
 function applicable(preset, ctx) {
     const notes = [];
@@ -98,7 +100,7 @@ function applicable(preset, ctx) {
     if (Array.isArray(preset.boards) && preset.boards.length && Array.isArray(ctx.boardFilters) && ctx.boardFilters.length
         && !preset.boards.some((b) => ctx.boardFilters.indexOf(b) !== -1)) notes.push({ code: 'BOARD', detail: preset.boards.join(', ') });
     (preset.requires_overlay || []).forEach((name) => {
-        if (!ctx.shippedOverlays || !ctx.shippedOverlays.has(name)) notes.push({ code: 'NEEDS_OVERLAY', detail: name });
+        if (!ctx.shippedOverlays || !ctx.shippedOverlays.has(String(name).toLowerCase())) notes.push({ code: 'NEEDS_OVERLAY', detail: name });
     });
     const blocking = notes.some((n) => n.code === 'MIN_KERNEL' || n.code === 'BOARD' || n.code === 'NEEDS_OVERLAY');
     return { ok: !blocking, notes };

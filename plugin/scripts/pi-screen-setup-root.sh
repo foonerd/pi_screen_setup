@@ -7,11 +7,14 @@
 #   write-boot <name>        stdin -> /boot/<name>.txt, atomically; name is one of
 #                            videoconfig config cmdline volumioconfig userconfig
 #   remove-boot videoconfig  the plugin's own file removed (no other name)
-#   clean-exit               the plugin's lines taken out of the boot files and the
-#                            lines it stripped from Volumio's files put back (below)
-#   install-overlay <name>   stdin -> /boot/overlays/<name>.dtbo, name ^pss-[a-z0-9-]+$
+#   clean-exit               the plugin's lines taken out of the boot files, the
+#                            lines it stripped from Volumio's files put back (below),
+#                            its pss-*.dtbo files removed from /boot/overlays
+#   install-overlay <name>   stdin -> /boot/overlays/<name>.dtbo, name ^pss-[a-z0-9-]+$,
+#                            content a flattened device tree (magic d00dfeed)
 #   remove-overlay <name>    that file removed
-#   install-edid <name>      stdin -> /lib/firmware/edid/<name>.bin, name ^pss-[a-z0-9-]+$
+#   install-edid <name>      stdin -> /lib/firmware/edid/<name>.bin, name ^pss-[a-z0-9-]+$,
+#                            content an EDID block (header 00ffffffffffff00)
 #
 # PSS_ROOT prefixes every path, for the test suite, which runs this script directly;
 # sudo does not pass environment variables, so it has no effect through the sudoers entry.
@@ -28,15 +31,23 @@ LIMIT=65536
 
 # stdin -> $1, through a temporary file beside it (same filesystem, so the rename is
 # atomic even on the FAT boot partition), capped, never empty unless $2 says so.
+# $3 names what the content must be: text (no NUL byte), dtb or edid (that magic).
 write_from_stdin() {
-  target="$1"; allow_empty="${2:-no}"
+  target="$1"; allow_empty="${2:-no}"; kind="${3:-text}"
   dir=$(dirname "$target")
   [ -d "$dir" ] || die "no directory $dir"
   tmp=$(mktemp "$dir/.pss.XXXXXX")
   head -c "$LIMIT" > "$tmp"
   if [ "$(wc -c < "$tmp")" -ge "$LIMIT" ]; then rm -f "$tmp"; die "input larger than $LIMIT bytes"; fi
   if [ "$allow_empty" = no ] && [ ! -s "$tmp" ]; then rm -f "$tmp"; die "refusing to write an empty file to $target"; fi
-  if [ "$(tr -d '\000' < "$tmp" | wc -c)" -ne "$(wc -c < "$tmp")" ]; then rm -f "$tmp"; die "input holds a NUL byte"; fi
+  case "$kind" in
+    text)
+      if [ "$(tr -d '\000' < "$tmp" | wc -c)" -ne "$(wc -c < "$tmp")" ]; then rm -f "$tmp"; die "input holds a NUL byte"; fi ;;
+    dtb)
+      if [ "$(od -An -tx1 -N4 "$tmp" | tr -d ' \n')" != d00dfeed ]; then rm -f "$tmp"; die "input is not a flattened device tree"; fi ;;
+    edid)
+      if [ "$(od -An -tx1 -N8 "$tmp" | tr -d ' \n')" != 00ffffffffffff00 ]; then rm -f "$tmp"; die "input is not an EDID block"; fi ;;
+  esac
   chmod 644 "$tmp"
   sync -f "$tmp" 2>/dev/null || sync
   mv -f "$tmp" "$target"
@@ -110,12 +121,19 @@ case "${1:-}" in
         echo "cmdline.txt: rotation parameters removed"
       fi
     fi
+    # 5. the vendor overlay files the plugin installed, ours by prefix
+    n=0
+    for f in "$OVERLAYS"/pss-*.dtbo; do
+      [ -f "$f" ] || continue
+      rm -f "$f"; n=$((n + 1))
+    done
+    [ "$n" -eq 0 ] || echo "overlays: $n plugin-installed file(s) removed"
     ;;
 
   install-overlay)
     name="${2:-}"; check_name "$name" install-overlay
     [ -d "$OVERLAYS" ] || die "install-overlay: no $OVERLAYS"
-    write_from_stdin "$OVERLAYS/$name.dtbo"
+    write_from_stdin "$OVERLAYS/$name.dtbo" no dtb
     ;;
 
   remove-overlay)
@@ -126,7 +144,7 @@ case "${1:-}" in
   install-edid)
     name="${2:-}"; check_name "$name" install-edid
     mkdir -p "$EDID"
-    write_from_stdin "$EDID/$name.bin"
+    write_from_stdin "$EDID/$name.bin" no edid
     ;;
 
   *)

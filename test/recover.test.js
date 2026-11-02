@@ -37,7 +37,17 @@ test('the sections the generator writes, with and without the [all] lead', () =>
 
 test('dsi params with commas, the no-overlay note, custom sections, the baseline and migrated markers, headless', () => {
     const dsi = recover.dsi(['dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1']);
-    assert.deepEqual(dsi, { overlay: 'vc4-kms-dsi-waveshare-panel', rotation: 0, params: '7_0_inchC,i2c1', noPanelOverlay: false });
+    assert.deepEqual(dsi, { overlay: 'vc4-kms-dsi-waveshare-panel', rotation: 0, params: '7_0_inchC,i2c1', noPanelOverlay: false }, 'without the presets, the first token');
+    // With the presets' values: the longest one the line starts with is the overlay, the
+    // rest the rotation and the user's parameters, as appendDsiPortLines wrote them
+    const known = ['vc4-kms-dsi-waveshare-panel,7_0_inchC', 'vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1', 'vc4-kms-dsi-ili9881-7inch', 'waveshare_35DSI,35H,dsi1'];
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1'], known), { overlay: 'vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1', rotation: 0, params: '', noPanelOverlay: false });
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1,rotation=180,dsi0'], known), { overlay: 'vc4-kms-dsi-waveshare-panel,7_0_inchC,i2c1', rotation: 180, params: 'dsi0', noPanelOverlay: false });
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchC,rotation=90'], known), { overlay: 'vc4-kms-dsi-waveshare-panel,7_0_inchC', rotation: 90, params: '', noPanelOverlay: false });
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-waveshare-panel,7_0_inchCx'], known), { overlay: 'vc4-kms-dsi-waveshare-panel', rotation: 0, params: '7_0_inchCx', noPanelOverlay: false }, 'a prefix is a match only at a comma');
+    assert.deepEqual(recover.dsi(['dtoverlay=Waveshare_35DSI,35H,dsi1'], known), { overlay: 'waveshare_35DSI,35H,dsi1', rotation: 0, params: '', noPanelOverlay: false }, 'file names match without regard to case, as the firmware reads them');
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-7inch'], known), { overlay: 'vc4-kms-dsi-7inch', rotation: 0, params: '', noPanelOverlay: false });
+    assert.deepEqual(recover.dsi(['dtoverlay=vc4-kms-dsi-7inch,rotation=270'], [null, '', 7]), { overlay: 'vc4-kms-dsi-7inch', rotation: 270, params: '', noPanelOverlay: false });
     const withRot = recover.dsi(['dtoverlay=vc4-kms-dsi-ili9881-7inch,rotation=90,dsi0']);
     assert.deepEqual(withRot, { overlay: 'vc4-kms-dsi-ili9881-7inch', rotation: 90, params: 'dsi0', noPanelOverlay: false });
     const p = recover.parseVideoconfig([B, '# DSI0 Configuration', '# No vc4-kms-dsi panel dtoverlay line (preset emit_dsi_overlay=false)', '', '# DSI1 Custom Configuration', 'dtoverlay=foo,x=1', '', '# DPI Custom Configuration', 'dtoverlay=vc4-kms-dpi-generic,hactive=800', '', '# Headless Mode - No display output configured', ''].join('\n'));

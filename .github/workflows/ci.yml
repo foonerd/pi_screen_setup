@@ -29,6 +29,8 @@ jobs:
           done
           unzip -p dist/pi_screen_setup-*.zip display_presets.json | grep -q '"presets"'
           unzip -l dist/pi_screen_setup-*.zip | grep -q ' scripts/pi-screen-setup-root.sh$' || { echo 'no root helper in the zip' >&2; exit 1; }
+          unzip -l dist/pi_screen_setup-*.zip | grep -q ' overlays/manifest.json$' || { echo 'no overlay manifest in the zip' >&2; exit 1; }
+          test "$(unzip -l dist/pi_screen_setup-*.zip | grep -c ' overlays/pss-.*\.dtbo$')" = "$(unzip -p dist/pi_screen_setup-*.zip overlays/manifest.json | grep -c '"file":')" || { echo 'the zip does not carry every overlay the manifest names' >&2; exit 1; }
       - uses: actions/upload-artifact@v7
         with:
           name: plugin

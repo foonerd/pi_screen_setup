@@ -53,13 +53,33 @@ function parseVideoconfig(text) {
     return out;
 }
 
-// dtoverlay=<overlay>[,rotation=N][,params] as appendDsiPortLines writes it.
-function dsi(lines) {
+// dtoverlay=<overlay>[,rotation=N][,params] as appendDsiPortLines writes it, where
+// <overlay> is the preset's whole dtoverlay value and may itself carry parameters
+// (vc4-kms-dsi-waveshare-panel,7_0_inchC). `known` lists the presets' values: the
+// longest one the line starts with is the overlay, case-insensitively as the firmware
+// reads file names; the rest is the rotation and the user's parameters. Without a match
+// the overlay is the first token, as before.
+function dsi(lines, known) {
     const result = { overlay: null, rotation: 0, params: '', noPanelOverlay: Boolean(lines && lines.noPanelOverlay) };
     const line = (lines || []).find((l) => l.startsWith('dtoverlay='));
     if (!line) return result;
-    const parts = line.slice('dtoverlay='.length).split(',');
-    result.overlay = parts.shift();
+    const value = line.slice('dtoverlay='.length);
+    const lower = value.toLowerCase();
+    let overlay = null;
+    (known || []).forEach((k) => {
+        if (typeof k !== 'string' || !k) return;
+        const kl = k.toLowerCase();
+        if ((lower === kl || lower.startsWith(kl + ',')) && (!overlay || k.length > overlay.length)) overlay = k;
+    });
+    let parts;
+    if (overlay) {
+        parts = value.slice(overlay.length).split(',');
+        parts.shift();
+    } else {
+        parts = value.split(',');
+        overlay = parts.shift();
+    }
+    result.overlay = overlay;
     if (parts.length && /^rotation=\d+$/.test(parts[0])) result.rotation = parseInt(parts.shift().split('=')[1], 10);
     result.params = parts.join(',');
     return result;

@@ -417,6 +417,10 @@ const ROUND_TRIPS = [
     { name: 'Pi 4, HDMI0 group/mode preset, EDID ignored, KMS off', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'waveshare-11.6-hdmi-h', 'hdmi0.ignore_edid': true, 'kms.mode': 'off' }, expect: { 'kms.mode': 'off', 'hdmi0.ignore_edid': true, 'hdmi0.display_preset': 'waveshare-11.6-hdmi-h' } },
     { name: 'Pi 4, HDMI0 auto with a custom CMA', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'auto', 'kms.mode': 'on', 'kms.cma_option': 'custom', 'kms.cma_custom_mb': 250 }, expect: { 'kms.cma_option': 'custom', 'kms.cma_custom_mb': 252 } },
     { name: 'Pi 5, DSI0 original 7" (rotation through cmdline), HDMI0 audio', board: 'pi5', settings: { primary_output: 'dsi0', 'dsi0.enabled': true, 'dsi0.overlay': 'rpi-touch-7inch', 'dsi0.rotation': 90, 'hdmi0.enabled': true, 'hdmi0.mode': 'audio' }, expect: { 'dsi0.rotation': 90, 'dsi0.overlay': 'rpi-touch-7inch', 'hdmi0.mode': 'audio' } },
+    { name: 'Pi 5, DSI1 Waveshare 7" (C): parameters on the overlay line, rotation 180, user parameter', board: 'pi5', settings: { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'waveshare-dsi-7.0c', 'dsi1.rotation': 180, 'dsi1.custom_params': 'dsi0' }, expect: { 'dsi1.overlay': 'waveshare-dsi-7.0c', 'dsi1.rotation': 180, 'dsi1.custom_params': 'dsi0' } },
+    { name: 'Pi 5, DSI1 Waveshare 3.5" (H): a vendor file with parameters, rotation through cmdline', board: 'pi5', settings: { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'waveshare-dsi-3.5h', 'dsi1.rotation': 90 }, expect: { 'dsi1.overlay': 'waveshare-dsi-3.5h', 'dsi1.rotation': 90 } },
+    { name: 'Pi 5, DSI1 Waveshare 3.5" (E): the generic overlay with timings, then the vendor file', board: 'pi5', settings: { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'waveshare-dsi-3.5e', 'dsi1.rotation': 0 }, expect: { 'dsi1.overlay': 'waveshare-dsi-3.5e' } },
+    { name: 'Pi 4, DPI Waveshare 5": vendor files under the plugin\'s names, rotation 90', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-5dpi', 'dpi.rotation': 90 }, expect: { 'dpi.overlay': 'waveshare-5dpi', 'dpi.rotation': 90 } },
     { name: 'Pi 5, DSI1 custom overlay line', board: 'pi5', settings: { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'custom', 'dsi1.custom_params': 'vc4-kms-dsi-example,x=1,y=2' }, expect: { 'dsi1.overlay': 'custom', 'dsi1.custom_params': 'vc4-kms-dsi-example,x=1,y=2' } },
     { name: 'Pi 5, DSI0 panel without its own overlay line and without KMS', board: 'pi5', settings: { primary_output: 'dsi0', 'dsi0.enabled': true, 'dsi0.overlay': 'btt-pitft50-v1.0', 'kms.mode': 'preset' }, expect: { 'dsi0.overlay': 'btt-pitft50-v1.0', 'kms.mode': 'preset' } },
     { name: 'Pi 4, DPI preset with several overlays, rotation 90, timing line', board: 'pi4', settings: { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90, 'dpi.custom_timing': 'dpi_timings=480 0 26 16 10 640 0 25 10 15 0 0 0 60 0 32000000 1' }, expect: { 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90 } },
@@ -1202,8 +1206,15 @@ test('schema 2: aliases in the pickers, notes for kernel, board and vendor overl
     ui = await env.p.getUIConfig();
     const dpiNote = uiItem(ui, 'section_step2_dpi', 'dpi_preset_hint');
     assert.equal(dpiNote.hidden, false);
-    assert.ok(/vc4-kms-dpi-2inch8\.dtbo/.test(dpiNote.value), dpiNote.value);
-    assert.ok(/waveshare-touch-28dpi\.dtbo/.test(dpiNote.value));
+    assert.ok(/installed by the plugin/.test(dpiNote.value), dpiNote.value);
+    assert.ok(/pss-vc4-kms-dpi-2inch8\.dtbo, pss-waveshare-28dpi-3b-4b\.dtbo, pss-waveshare-touch-28dpi\.dtbo/.test(dpiNote.value), dpiNote.value);
+    assert.deepEqual(env.p.presetApplicability(env.p.getDisplayPreset('waveshare-2.8dpi')), { ok: true, notes: [] }, 'nothing missing');
+    // and when the plugin ships nothing, the row says what it needs
+    const shippedBefore = env.p.shippedOverlays;
+    env.p.shippedOverlays = new Set();
+    assert.deepEqual(env.p.presetApplicability(env.p.getDisplayPreset('waveshare-2.8dpi')).notes.map((n) => n.detail), ['vc4-kms-dpi-2inch8', 'waveshare-28dpi-3b-4b', 'waveshare-touch-28dpi']);
+    assert.ok(/vc4-kms-dpi-2inch8\.dtbo in \/boot\/overlays, which this release does not install/.test(env.p.presetNotes('waveshare-2.8dpi')));
+    env.p.shippedOverlays = shippedBefore;
     env.p.saveStep2Dpi({ dpi_overlay: { value: 'hyperpixel4' } });
     env.p.step2ShowAudioCache = false;
     ui = await env.p.getUIConfig();
@@ -1232,10 +1243,93 @@ test('schema 2: aliases in the pickers, notes for kernel, board and vendor overl
     await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-2.8dpi', 'dpi.rotation': 90 });
     const vc = H.readBoot('videoconfig.txt');
     assert.ok(/^dtoverlay=vc4-kms-v3d$/m.test(vc), vc);
-    assert.ok(/^dtoverlay=vc4-kms-dpi-2inch8$/m.test(vc));
-    assert.ok(/^dtoverlay=waveshare-28dpi-3b-4b$/m.test(vc));
-    assert.ok(/^dtoverlay=waveshare-touch-28dpi$/m.test(vc));
+    assert.ok(/^dtoverlay=pss-vc4-kms-dpi-2inch8$/m.test(vc), 'the vendor file under the plugin\'s name');
+    assert.ok(/^dtoverlay=pss-waveshare-28dpi-3b-4b$/m.test(vc));
+    assert.ok(/^dtoverlay=pss-waveshare-touch-28dpi$/m.test(vc));
+    assert.ok(/^# Vendor overlay files installed by the plugin: pss-vc4-kms-dpi-2inch8\.dtbo pss-waveshare-28dpi-3b-4b\.dtbo pss-waveshare-touch-28dpi\.dtbo$/m.test(vc), vc);
     assert.ok(/ video=DPI-1:rotate=90/.test(H.readBoot('cmdline.txt')));
+    await stop(env);
+});
+
+test('vendor overlay files: installed before the file that names them, repaired, stale ones removed, all gone at the factory reset; read back to the preset', async () => {
+    const bootOverlays = path.join(H.BOOT, 'overlays');
+    const shippedDir = path.join(H.PLUGIN_DIR, 'overlays');
+    const installed = () => fs.readdirSync(bootOverlays).filter((f) => f.startsWith('pss-')).sort();
+    H.seed({ board: 'pi4' });
+    let env = H.plugin();
+    await env.start();
+    assert.equal(env.p.shipped.count, 17);
+    assert.deepEqual(env.p.shipped.problems, []);
+    assert.deepEqual(installed(), [], 'nothing installed before an apply');
+
+    // The 5" DPI panel: the two vendor files, bytes as shipped, then videoconfig.txt naming them
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-5dpi', 'dpi.rotation': 0 });
+    assert.deepEqual(installed(), ['pss-vc4-kms-dpi-5inch.dtbo', 'pss-waveshare-5dpi.dtbo']);
+    assert.ok(fs.readFileSync(path.join(bootOverlays, 'pss-waveshare-5dpi.dtbo')).equals(fs.readFileSync(path.join(shippedDir, 'pss-waveshare-5dpi.dtbo'))));
+    let vc = H.readBoot('videoconfig.txt');
+    assert.ok(/^dtoverlay=vc4-kms-v3d$/m.test(vc));
+    assert.ok(/^dtoverlay=pss-vc4-kms-dpi-5inch$/m.test(vc));
+    assert.ok(/^dtoverlay=pss-waveshare-5dpi$/m.test(vc));
+    assert.equal(/dtoverlay=vc4-kms-DPI-5inch/.test(vc), false, 'the vendor\'s name is not written: the file is not there under it');
+    assert.ok(/^# Vendor overlay files installed by the plugin: pss-vc4-kms-dpi-5inch\.dtbo pss-waveshare-5dpi\.dtbo$/m.test(vc));
+
+    // A damaged installed file is written again; an intact one is left alone
+    fs.writeFileSync(path.join(bootOverlays, 'pss-waveshare-5dpi.dtbo'), 'garbage');
+    const intactBefore = fs.statSync(path.join(bootOverlays, 'pss-vc4-kms-dpi-5inch.dtbo')).mtimeMs;
+    await H.sleep(20);
+    await env.p.applyConfiguration();
+    assert.ok(fs.readFileSync(path.join(bootOverlays, 'pss-waveshare-5dpi.dtbo')).equals(fs.readFileSync(path.join(shippedDir, 'pss-waveshare-5dpi.dtbo'))), 'repaired');
+    assert.equal(fs.statSync(path.join(bootOverlays, 'pss-vc4-kms-dpi-5inch.dtbo')).mtimeMs, intactBefore, 'not rewritten');
+
+    // Another panel: its files come, the 5" ones go
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-7dpi', 'dpi.rotation': 0 });
+    assert.deepEqual(installed(), ['pss-vc4-kms-dpi-7inch.dtbo', 'pss-waveshare-7dpi.dtbo']);
+    // A panel the kernel serves: nothing of ours stays
+    await configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'hyperpixel4', 'dpi.rotation': 0 });
+    assert.deepEqual(installed(), []);
+    assert.equal(/Vendor overlay files/.test(H.readBoot('videoconfig.txt')), false);
+
+    // DSI: the 3.5" (H) takes its parameters on the plugin's file name
+    await configure(env, { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'waveshare-dsi-3.5h', 'dsi1.rotation': 0, 'dpi.enabled': false });
+    assert.deepEqual(installed(), ['pss-waveshare-35dsi.dtbo']);
+    vc = H.readBoot('videoconfig.txt');
+    assert.ok(/^dtoverlay=pss-waveshare-35dsi,35H,dsi1$/m.test(vc), vc);
+    // the 3.5" (E): the kernel's generic overlay with timings, then the vendor file as its second line
+    await configure(env, { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'waveshare-dsi-3.5e', 'dsi1.rotation': 0 });
+    vc = H.readBoot('videoconfig.txt');
+    assert.ok(/^dtoverlay=vc4-kms-dsi-generic,hactive=640,hfp=48,hsync=32,hbp=80,vactive=480,vfp=3,vsync=4,vbp=13\ndtoverlay=pss-waveshare-35dsi$/m.test(vc), vc);
+    assert.deepEqual(installed(), ['pss-waveshare-35dsi.dtbo']);
+    env.p.writeDiagnosticsReport();
+    const report = fs.readFileSync('/tmp/pi-screen-setup-diagnostics.txt', 'utf8');
+    assert.ok(/^shipped_overlays: 17$/m.test(report), 'the diagnostics count the shipped files');
+    assert.ok(/^installed_overlays: \["pss-waveshare-35dsi"\]$/m.test(report), 'and list the installed ones');
+    await stop(env);
+
+    // The settings file lost: the plugin's file names map back to the preset
+    fs.copySync(path.join(H.PLUGIN_DIR, 'config.json'), path.join(H.CONFIG_DIR, 'config.json'));
+    env = H.plugin();
+    await env.start();
+    assert.equal(env.p.getConfigValue('dsi1.overlay'), 'waveshare-dsi-3.5e');
+    assert.equal(env.p.getConfigValue('primary_output'), 'dsi1');
+
+    // The factory reset: the helper removes every pss- file along with the plugin's lines
+    fs.writeFileSync(path.join(bootOverlays, 'pss-left-over.dtbo'), 'x');
+    await env.p.restoreFactoryDefaults();
+    assert.deepEqual(installed(), []);
+    assert.ok(fs.existsSync(path.join(bootOverlays, 'vc4-kms-v3d.dtbo')), 'the OS\'s files stay');
+    await stop(env);
+
+    // A helper that refuses: the apply fails before videoconfig.txt is touched
+    H.seed({ board: 'pi4' });
+    env = H.plugin();
+    await env.start();
+    const before = H.readBoot('videoconfig.txt');
+    const realPriv = env.p.priv;
+    env.p.priv = Object.assign({}, realPriv, { installOverlay() { throw new Error('install-overlay: no /boot/overlays'); } });
+    await assert.rejects(Promise.resolve().then(() => configure(env, { primary_output: 'dpi', 'dpi.enabled': true, 'dpi.overlay': 'waveshare-5dpi', 'dpi.rotation': 0 })), /no \/boot\/overlays/);
+    assert.equal(H.readBoot('videoconfig.txt'), before, 'videoconfig.txt untouched');
+    assert.ok(env.toasts.some((t) => /no \/boot\/overlays/.test(t.message)));
+    env.p.priv = realPriv;
     await stop(env);
 });
 

@@ -67,6 +67,7 @@
     "PRESET_NOTE_MIN_KERNEL": "Richiede il kernel {kernel}; questo player usa {running}, dove la riga non fa ancora nulla.",
     "PRESET_NOTE_BOARD": "Pensato per queste schede: {boards}.",
     "PRESET_NOTE_NEEDS_OVERLAY": "Richiede il file overlay del produttore {name}.dtbo in /boot/overlays, che questa versione non installa.",
+    "PRESET_NOTE_SHIPPED_OVERLAY": "Il plugin installa i file overlay del produttore in /boot/overlays all’applicazione: {files}.",
     "PRESET_NOTE_DEPRECATED": "Sostituito da {name}.",
     "PRESET_NOTE_EXPERIMENTAL": "Funziona per alcuni utenti; non verificato dal produttore.",
     "DSI_SUMMARY_NO_PANEL_OVERLAY": "nessuna riga overlay panel vc4-kms-dsi in videoconfig",
