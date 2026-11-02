@@ -13,6 +13,9 @@ var board = require('./lib/board');
 var cma = require('./lib/cma');
 var configtxt = require('./lib/configtxt');
 var verify = require('./lib/verify');
+var conf = require('./lib/conf');
+var recover = require('./lib/recover');
+var privileged = require('./lib/privileged');
 
 module.exports = PiScreenSetup;
 
@@ -20,8 +23,9 @@ module.exports = PiScreenSetup;
 var VIDEOCONFIG_BANNER = '### pi_screen_setup managed - DO NOT EDIT ###';
 var INCLUDE_LINE = 'include videoconfig.txt';
 
-// Paths
-var BOOT_PATH = '/boot';
+// Paths. PI_SCREEN_SETUP_ROOT relocates every system path (tests point it at a tree).
+var ROOT = process.env.PI_SCREEN_SETUP_ROOT || '';
+var BOOT_PATH = ROOT + '/boot';
 var CONFIG_TXT = BOOT_PATH + '/config.txt';
 var VIDEOCONFIG_TXT = BOOT_PATH + '/videoconfig.txt';
 var VOLUMIOCONFIG_TXT = BOOT_PATH + '/volumioconfig.txt';
@@ -31,10 +35,10 @@ var OVERLAYS_PATH = BOOT_PATH + '/overlays';
 var OVERLAYS_README = OVERLAYS_PATH + '/README';
 
 // Current config directory for OTA comparison
-var CURRENT_CONFIG_DIR = '/data/plugins/system_hardware/pi_screen_setup/backups/current';
+var CURRENT_CONFIG_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/backups/current';
 
 // Presets cache paths
-var PRESETS_CACHE_DIR = '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
+var PRESETS_CACHE_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
 var PRESETS_REMOTE_CACHE = PRESETS_CACHE_DIR + '/remote.json';
 var PRESETS_DRAFT = PRESETS_CACHE_DIR + '/draft.json';
 var PRESETS_METADATA = PRESETS_CACHE_DIR + '/metadata.json';
@@ -83,6 +87,8 @@ var MIGRATION_PATTERNS = [
   /^dtoverlay=.*hyperpixel/im,
   /^dtoverlay=.*vga666/im,
   /^hdmi_/m,                       // Match ANY hdmi_ setting
+  /^config_hdmi_boost/m,           // HDMI signal boost (ours)
+  /^max_framebuffer_/m,            // Framebuffer limits that presets set (ours)
   /^display_auto_detect/m,         // Auto-detect setting (ours)
   /^display_default_lcd/m,         // LCD default setting (ours)
   // NOTE: display_rotate, display_lcd_rotate, display_hdmi_rotate belong to Touch Display plugin - DO NOT MIGRATE
@@ -146,7 +152,7 @@ function PiScreenSetup(context) {
   self.pluginName = 'pi_screen_setup';
   self.pluginType = 'system_hardware';
   self.pluginDir = __dirname;
-  self.backupDir = path.join('/data/plugins', self.pluginType, self.pluginName, 'backups');
+  self.backupDir = path.join(ROOT + '/data/plugins', self.pluginType, self.pluginName, 'backups');
   self.factoryDir = path.join(self.backupDir, 'factory');
   self.restorePointsDir = path.join(self.backupDir, 'restore_points');
 
@@ -186,7 +192,7 @@ function PiScreenSetup(context) {
   
   // Database update state
   self.presetsMetadata = null;
-  self.presetsCacheDir = path.join('/data/plugins', self.pluginType, self.pluginName, 'presets_cache');
+  self.presetsCacheDir = path.join(ROOT + '/data/plugins', self.pluginType, self.pluginName, 'presets_cache');
   
   // Admin working copy
   self.draftPresets = null;
@@ -212,6 +218,9 @@ function PiScreenSetup(context) {
   
   // Restore point selection (for UI)
   self.selectedRestorePoint = null;
+
+  // Boot partition writer: sudo in production, direct when relocated to another root
+  self.priv = ROOT ? privileged.direct : privileged.sudo;
 }
 
 // Helper to get config value - checks cache first, then v-conf, then default
@@ -238,13 +247,28 @@ PiScreenSetup.prototype.setConfigValue = function(key, value) {
   var self = this;
   
   // Set in v-conf
-  self.config.set(key, value);
+  try {
+    self.config.set(key, value);
+  } catch (e) {
+    self.logger.error('pi_screen_setup: could not store ' + key + '=' + JSON.stringify(value) + ' - ' + e);
+  }
   
   // Set in cache for immediate access
   if (!self.wizardDataCache) {
     self.wizardDataCache = {};
   }
   self.wizardDataCache[key] = value;
+};
+
+// Documents (arrays, objects) are kept as JSON text: v-conf has no usable array type.
+PiScreenSetup.prototype.getJsonValue = function(key, defaultValue) {
+  var raw = this.config.get(key);
+  if (typeof raw !== 'string' || raw === '') return defaultValue;
+  try { return JSON.parse(raw); } catch (e) { return defaultValue; }
+};
+
+PiScreenSetup.prototype.setJsonValue = function(key, value) {
+  this.config.set(key, JSON.stringify(value === undefined ? null : value));
 };
 
 /**
@@ -295,9 +319,9 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
   var self = this;
   var target = '/tmp/pi-screen-setup-diagnostics.txt';
   try {
-    var sys = board.readSystem();
+    var sys = board.readSystem(ROOT);
     var boot = self.readEffectiveBoot();
-    var run = function(cmd) { try { return execSync(cmd + ' 2>/dev/null', { encoding: 'utf8', timeout: 5000 }); } catch (e) { return ''; } };
+    var run = function(cmd) { try { return execSync('(' + cmd + ') 2>/dev/null', { encoding: 'utf8', timeout: 5000 }); } catch (e) { return ''; } };
     var pkg = {};
     try { pkg = fs.readJsonSync(path.join(__dirname, 'package.json')); } catch (e) { /* version unknown */ }
     var outputs = ['hdmi0', 'hdmi1', 'dsi0', 'dsi1', 'dpi'];
@@ -329,7 +353,7 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
       effective: boot.effective,
       trailingFilters: boot.trailingFilters,
       expected: { kmsOverlay: self.getEffectiveKmsEnabled() ? self.hardwareInfo.kms_overlay : null, cmaMb: self.getCmaMb() },
-      actual: verify.snapshot(),
+      actual: verify.snapshot(ROOT),
       pluginState: state,
       dmesg: run('dmesg | grep -iE "vc4|drm|dsi|dpi|cma|hdmi|panel" | tail -n 80'),
       pluginLog: run('journalctl -u volumio --no-pager -n 400 | grep -F pi_screen_setup | tail -n 60')
@@ -344,7 +368,7 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
 };
 
 PiScreenSetup.prototype.readMeminfo = function() {
-  try { return fs.readFileSync('/proc/meminfo', 'utf8'); } catch (e) { return ''; }
+  try { return fs.readFileSync(ROOT + '/proc/meminfo', 'utf8'); } catch (e) { return ''; }
 };
 
 // The stored CMA option as a choice for lib/cma: legacy words, a size in MB, 'auto' or 'custom'.
@@ -392,6 +416,13 @@ PiScreenSetup.prototype.onVolumioStart = function() {
 
   self.config = new (require('v-conf'))();
   self.config.loadFile(configFile);
+
+  // Files written before 1.0 (raw JSON) read as empty and dropped every write; convert once.
+  if (conf.normalize(self.config.data)) {
+    self.config.saved = false;
+    self.config.save();
+    self.logger.info('pi_screen_setup: configuration file converted to the v-conf format');
+  }
 
   if (self.config.get('kms.mode') === undefined) {
     var legacyEnabled = self.config.get('kms.enabled', true);
@@ -1294,7 +1325,7 @@ PiScreenSetup.prototype.detectHardware = function() {
   };
 
   try {
-    var sys = board.readSystem();
+    var sys = board.readSystem(ROOT);
     hwInfo.model_raw = sys.model || '';
     hwInfo.serial = sys.serial;
     hwInfo.is_pi = hwInfo.model_raw.toLowerCase().indexOf('raspberry pi') !== -1 || Boolean(sys.board);
@@ -2732,24 +2763,41 @@ PiScreenSetup.prototype.matchHdmiConfigToPreset = function(hdmiConfig) {
 
 // Find DSI preset ID by dtoverlay name (for migration)
 // Returns preset ID or the overlay name if not found
-PiScreenSetup.prototype.findDsiPresetByOverlay = function(overlayName) {
+PiScreenSetup.prototype.findDsiPresetByOverlay = function(overlayName, type) {
   var self = this;
+  var wanted = type || 'dsi';
   
   if (!self.displayPresets || !overlayName) {
     return overlayName;
   }
   
-  // Search through DSI presets for matching dtoverlay
+  // Search through presets of the wanted type for matching dtoverlay
   for (var presetId in self.displayPresets) {
     if (presetId.startsWith('_comment')) continue;
     var preset = self.displayPresets[presetId];
-    if (preset.type === 'dsi' && preset.config && preset.config.dtoverlay === overlayName) {
+    if (preset.type === wanted && preset.config && preset.config.dtoverlay === overlayName) {
       return presetId;
     }
   }
   
   // Not found - return overlay name (will be treated as custom)
   return overlayName;
+};
+
+
+// The DPI preset whose overlay list (dtoverlay, dtoverlay_2, ...) is exactly `overlays`, or null.
+PiScreenSetup.prototype.findDpiPresetByOverlays = function(overlays) {
+  var self = this;
+  if (!self.displayPresets || !overlays || !overlays.length) return null;
+  for (var presetId in self.displayPresets) {
+    if (presetId.startsWith('_comment')) continue;
+    var preset = self.displayPresets[presetId];
+    if (preset.type !== 'dpi' || !preset.config || !preset.config.dtoverlay) continue;
+    var list = [preset.config.dtoverlay];
+    for (var i = 2; i <= 10 && preset.config['dtoverlay_' + i]; i++) list.push(preset.config['dtoverlay_' + i]);
+    if (list.length === overlays.length && list.every(function(o, k) { return o === overlays[k]; })) return presetId;
+  }
+  return null;
 };
 
 
@@ -2841,7 +2889,7 @@ PiScreenSetup.prototype.restoreFromBackup = function(backupPath, targetPath) {
     }
 
     // Use sudo helper for /boot partition
-    if (targetPath.startsWith('/boot')) {
+    if (targetPath.startsWith(BOOT_PATH)) {
       if (self.copyToBootFile(backupPath, targetPath)) {
         self.logger.info('pi_screen_setup: Restored ' + targetPath + ' from ' + backupPath);
         defer.resolve();
@@ -2870,9 +2918,7 @@ PiScreenSetup.prototype.writeBootFile = function(filePath, content) {
     var tempFile = '/tmp/pi_screen_setup_' + path.basename(filePath);
     fs.writeFileSync(tempFile, content, 'utf8');
     
-    // Copy to boot partition with sudo
-    execSync('sudo cp "' + tempFile + '" "' + filePath + '"');
-    execSync('sudo chmod 644 "' + filePath + '"');
+    self.priv.copy(tempFile, filePath);
     
     // Clean up temp file
     fs.unlinkSync(tempFile);
@@ -2890,8 +2936,7 @@ PiScreenSetup.prototype.copyToBootFile = function(sourcePath, destPath) {
   var self = this;
   
   try {
-    execSync('sudo cp "' + sourcePath + '" "' + destPath + '"');
-    execSync('sudo chmod 644 "' + destPath + '"');
+    self.priv.copy(sourcePath, destPath);
     self.logger.info('pi_screen_setup: Copied ' + sourcePath + ' to ' + destPath);
     return true;
   } catch (err) {
@@ -2906,7 +2951,7 @@ PiScreenSetup.prototype.removeBootFile = function(filePath) {
   
   try {
     if (fs.existsSync(filePath)) {
-      execSync('sudo rm "' + filePath + '"');
+      self.priv.remove(filePath);
       self.logger.info('pi_screen_setup: Removed ' + filePath);
     }
     return true;
@@ -3150,7 +3195,7 @@ PiScreenSetup.prototype.restoreFactoryDefaults = function() {
   var defer = libQ.defer();
 
   try {
-    if (!fs.existsSync(self.factoryDir)) {
+    if (!self.hasFactoryBackup()) {
       defer.reject(new Error('Factory backups not found'));
       return defer.promise;
     }
@@ -3440,7 +3485,8 @@ PiScreenSetup.prototype.generateHDMIConfig = function(port) {
 
   // Apply display preset configuration (only for modes with video)
   if (mode !== 'audio' && displayPreset && displayPreset !== 'auto') {
-    var preset = self.getDisplayPreset(displayPreset);
+    var isCustomHdmi = displayPreset === 'custom' || displayPreset === 'custom-hdmi';
+    var preset = isCustomHdmi ? null : self.getDisplayPreset(displayPreset);
     
     if (preset && preset.config) {
       var config = preset.config;
@@ -3487,8 +3533,8 @@ PiScreenSetup.prototype.generateHDMIConfig = function(port) {
       if (config.hdmi_pixel_freq_limit !== undefined) {
         lines.push('hdmi_pixel_freq_limit=' + config.hdmi_pixel_freq_limit);
       }
-    } else if (displayPreset === 'custom' || displayPreset === 'custom-hdmi') {
-      // Custom timings entered by user
+    } else if (isCustomHdmi) {
+      // Custom timings entered by user (the database names this choice custom-hdmi)
       var customTimings = self.getConfigValue(prefix + '.custom_timings', '');
       var customParams = self.getConfigValue(prefix + '.custom_params', '');
       
@@ -3646,6 +3692,7 @@ PiScreenSetup.prototype.writeMigratedConfig = function(rawLines) {
     lines.push('# Generated: ' + new Date().toISOString());
     lines.push('# Model: ' + (self.hardwareInfo ? self.hardwareInfo.model_raw : 'Unknown'));
     lines.push('# Source: Migrated from existing configuration');
+    lines.push('[all]');
     lines.push('');
     
     // Group lines by source for clarity
@@ -4151,7 +4198,7 @@ PiScreenSetup.prototype.removeLinesFromFile = function(filePath, patterns) {
       .then(function() {
         var newContent = newLines.join(os.EOL);
         // Use sudo helper for /boot partition
-        if (filePath.startsWith('/boot')) {
+        if (filePath.startsWith(BOOT_PATH)) {
           if (self.writeBootFile(filePath, newContent)) {
             self.logger.info('pi_screen_setup: Cleaned migration lines from ' + filePath);
             defer.resolve();
@@ -4589,7 +4636,7 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
     self.config.set('dpi.enabled', true);
     if (parsed.dpi.overlay) {
       // Find preset ID by overlay name
-      var dpiPresetId = self.findDsiPresetByOverlay(parsed.dpi.overlay);
+      var dpiPresetId = self.findDsiPresetByOverlay(parsed.dpi.overlay, 'dpi');
       self.config.set('dpi.overlay', dpiPresetId);
     }
     if (parsed.dpi.rotation !== null) {
@@ -4642,8 +4689,8 @@ PiScreenSetup.prototype.migrateValidate = function() {
       self.logger.info('pi_screen_setup: migrateValidate - parsed ' + parseResult.recognized.length + ' recognized, ' + parseResult.unknown.length + ' unknown');
       
       // Store raw lines and parsed results (both config and cache)
-      self.config.set('migration_raw_lines', migrationInfo.lines);
-      self.config.set('migration_parsed', parseResult);
+      self.setJsonValue('migration_raw_lines', migrationInfo.lines);
+      self.setJsonValue('migration_parsed', parseResult);
       self.migrationRawLinesCache = migrationInfo.lines;
       self.migrationParsedCache = parseResult;
       
@@ -4655,7 +4702,7 @@ PiScreenSetup.prototype.migrateValidate = function() {
           message: self.getI18n('UNKNOWN_PARAMS') + ': ' + parseResult.unknown.map(function(u) { return u.line; }).join(', ')
         });
       }
-      self.config.set('migration_validation', validation);
+      self.setJsonValue('migration_validation', validation);
       
       // Apply parsed values to config
       self.applyParsedConfigToSettings(parseResult);
@@ -4708,9 +4755,9 @@ PiScreenSetup.prototype.migrateAsIs = function() {
       var parseResult = self.parseExistingConfig(migrationInfo.lines);
       
       // Store raw lines (both config and cache)
-      self.config.set('migration_raw_lines', migrationInfo.lines);
-      self.config.set('migration_parsed', parseResult);
-      self.config.set('migration_validation', [{ type: 'info', message: 'Expert mode - settings will be used as-is' }]);
+      self.setJsonValue('migration_raw_lines', migrationInfo.lines);
+      self.setJsonValue('migration_parsed', parseResult);
+      self.setJsonValue('migration_validation', [{ type: 'info', message: 'Expert mode - settings will be used as-is' }]);
       self.migrationRawLinesCache = migrationInfo.lines;
       self.migrationParsedCache = parseResult;
       
@@ -4744,9 +4791,9 @@ PiScreenSetup.prototype.migrateSkip = function() {
   // Clear migration state (both config and cache)
   self.config.set('migration_state', 'none');
   self.migrationStateCache = 'none';
-  self.config.set('migration_raw_lines', []);
-  self.config.set('migration_parsed', {});
-  self.config.set('migration_validation', []);
+  self.setJsonValue('migration_raw_lines', []);
+  self.setJsonValue('migration_parsed', {});
+  self.setJsonValue('migration_validation', []);
   self.migrationRawLinesCache = null;
   self.migrationParsedCache = null;
   
@@ -4775,7 +4822,7 @@ PiScreenSetup.prototype.migrateAccept = function() {
   self.logger.info('pi_screen_setup: migrateAccept - set state to processing');
   
   // Get the raw lines for writing to videoconfig.txt
-  var rawLines = self.migrationRawLinesCache || self.config.get('migration_raw_lines') || [];
+  var rawLines = self.migrationRawLinesCache || self.getJsonValue('migration_raw_lines', []);
   self.logger.info('pi_screen_setup: migrateAccept - raw lines count: ' + rawLines.length);
   
   // Write migrated config directly from raw lines (bypass v-conf timing issues)
@@ -4787,6 +4834,10 @@ PiScreenSetup.prototype.migrateAccept = function() {
       return self.executeMigration();
     })
     .then(function() {
+      // The reference for drift detection and the source for a restore after an OS update
+      return self.saveCurrentConfig();
+    })
+    .then(function() {
       // Mark complete
       self.config.set('wizard_complete', true);
       self.wizardCompleteCache = true;
@@ -4795,6 +4846,7 @@ PiScreenSetup.prototype.migrateAccept = function() {
       self.config.set('migration_state', 'none');
       self.migrationStateCache = 'none';
       self.config.set('applied_date', new Date().toISOString());
+      self.config.set('videoconfig_mode', 'migrated');
       self.logger.info('pi_screen_setup: migrateAccept - migration complete');
       
       self.commandRouter.pushToastMessage('success', 'Pi Screen Setup', self.getI18n('CONFIG_APPLIED') || 'Configuration applied');
@@ -4846,9 +4898,9 @@ PiScreenSetup.prototype.migrateReconfigure = function() {
   // Clear migration state (both config and cache)
   self.config.set('migration_state', 'none');
   self.migrationStateCache = 'none';
-  self.config.set('migration_raw_lines', []);
-  self.config.set('migration_parsed', {});
-  self.config.set('migration_validation', []);
+  self.setJsonValue('migration_raw_lines', []);
+  self.setJsonValue('migration_parsed', {});
+  self.setJsonValue('migration_validation', []);
   self.migrationRawLinesCache = null;
   self.migrationParsedCache = null;
   
@@ -4902,9 +4954,9 @@ PiScreenSetup.prototype.readEffectiveBoot = function() {
 PiScreenSetup.prototype.ensureKmsBaseline = function(boot) {
   var self = this;
   var b = self.hardwareInfo && self.hardwareInfo.board;
-  if (!b || b.kms !== 'yes' || !boot.effective || boot.effective.kmsOverlay) return false;
-  if (self.getConfigValue('kms.mode', 'preset') === 'off') return false;
-  if (boot.files['videoconfig.txt'] !== null && boot.files['videoconfig.txt'].indexOf(VIDEOCONFIG_BANNER) !== -1) return false;
+  if (!b || b.kms !== 'yes' || !boot.effective || boot.effective.kmsOverlay) return libQ.resolve(false);
+  if (self.getConfigValue('kms.mode', 'preset') === 'off') return libQ.resolve(false);
+  if (boot.files['videoconfig.txt'] !== null && boot.files['videoconfig.txt'].indexOf(VIDEOCONFIG_BANNER) !== -1) return libQ.resolve(false);
   var content = [
     VIDEOCONFIG_BANNER,
     '# Generated: ' + new Date().toISOString(),
@@ -4913,11 +4965,186 @@ PiScreenSetup.prototype.ensureKmsBaseline = function(boot) {
     'dtoverlay=' + self.hardwareInfo.kms_overlay + cma.parameter('auto', null, b),
     ''
   ].join(os.EOL);
-  if (!self.writeBootFile(VIDEOCONFIG_TXT, content)) return false;
-  self.ensureConfigInclude();
-  self.config.set('kms.baseline_applied', new Date().toISOString());
-  self.logger.warn('pi_screen_setup: KMS baseline written - the OS files applied no KMS overlay on ' + b.name);
-  self.commandRouter.pushToastMessage('warning', self.getI18n('PLUGIN_NAME'), self.getI18n('KMS_BASELINE_APPLIED'));
+  if (!self.writeBootFile(VIDEOCONFIG_TXT, content)) return libQ.resolve(false);
+  return self.ensureConfigInclude().then(function() {
+    self.config.set('kms.baseline_applied', new Date().toISOString());
+    self.logger.warn('pi_screen_setup: KMS baseline written - the OS files applied no KMS overlay on ' + b.name);
+    self.commandRouter.pushToastMessage('warning', self.getI18n('PLUGIN_NAME'), self.getI18n('KMS_BASELINE_APPLIED'));
+    return true;
+  });
+};
+
+// Rebuilds the settings from the plugin's own boot files (lib/recover.js): the live
+// videoconfig.txt, else the copy saved at the last apply; cmdline.txt for the rotation;
+// the saved metadata for the primary output and the date. Returns true when a
+// configuration was found and stored; the caller then treats the wizard as complete.
+PiScreenSetup.prototype.recoverSettings = function() {
+  var self = this;
+  var read = function(f) { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return null; } };
+  var source = VIDEOCONFIG_TXT;
+  var parsed = recover.parseVideoconfig(read(source));
+  if (!parsed) {
+    source = path.join(CURRENT_CONFIG_DIR, 'videoconfig.txt');
+    parsed = recover.parseVideoconfig(read(source));
+  }
+  if (!parsed || parsed.baseline) return false;
+
+  var metadata = {};
+  try { metadata = fs.readJsonSync(path.join(CURRENT_CONFIG_DIR, 'metadata.json')); } catch (e) { /* nothing saved */ }
+  var cmd = recover.cmdline(read(CMDLINE_TXT) || '');
+  var hw = self.hardwareInfo || {};
+  var set = function(k, v) { self.setConfigValue(k, v); };
+  // The saved summary starts with "<KIND>: <preset name>"; the longest name that fits wins.
+  var byDescription = function(kind, type) {
+    var desc = String(metadata.description || '');
+    var best = null;
+    for (var id in self.displayPresets || {}) {
+      var pr = self.displayPresets[id];
+      if (id.startsWith('_comment') || pr.type !== type || !pr.name) continue;
+      if (desc.indexOf(kind + ': ' + pr.name) === 0 && (!best || pr.name.length > self.displayPresets[best].name.length)) best = id;
+    }
+    return best;
+  };
+  var primary = metadata.primary_output;
+  var fileRotation = 0;
+
+  if (parsed.migrated) {
+    set('videoconfig_mode', 'migrated');
+    if (primary) { set('primary_output', primary); self.primaryOutputCache = primary; }
+  } else {
+    set('videoconfig_mode', 'generated');
+    var enabled = {};
+    ['hdmi0', 'hdmi1', 'dsi0', 'dsi1', 'dpi', 'composite'].forEach(function(o) { set(o + '.enabled', false); });
+    set('custom_overlay.enabled', false);
+
+    ['HDMI0', 'HDMI1'].forEach(function(name) {
+      if (!parsed.sections[name]) return;
+      var port = name.toLowerCase();
+      var h = recover.hdmi(parsed.sections[name]);
+      var ph = self.parseExistingConfig(h.lines.map(function(l) { return { source: 'videoconfig.txt', line: l }; })).parsed.hdmi;
+      enabled[port] = true;
+      set(port + '.enabled', true);
+      set(port + '.force_hotplug', Boolean(ph.force_hotplug));
+      set(port + '.ignore_edid', Boolean(ph.ignore_edid));
+      set(port + '.boost', ph.boost === null ? 0 : ph.boost);
+      var hasVideo = ph.group !== null || ph.mode !== null || Boolean(ph.cvt) || Boolean(ph.timings);
+      var match = hasVideo ? self.matchHdmiConfigToPreset(ph) : null;
+      if (match) {
+        set(port + '.display_preset', match.presetId);
+      } else if (hasVideo) {
+        set(port + '.display_preset', 'custom-hdmi');
+        set(port + '.custom_timings', ph.timings || ph.cvt || '');
+        set(port + '.custom_params', h.extra.join('\n'));
+      } else {
+        set(port + '.display_preset', 'auto');
+      }
+      set(port + '.mode', h.drive === 1 ? 'screen' : (!hasVideo && ph.force_hotplug && primary !== port ? 'audio' : 'screen_audio'));
+    });
+
+    ['DSI0', 'DSI1'].forEach(function(name) {
+      var port = name.toLowerCase();
+      if (parsed.sections[name]) {
+        var d = recover.dsi(parsed.sections[name]);
+        enabled[port] = true;
+        set(port + '.enabled', true);
+        set(port + '.rotation', d.rotation);
+        set(port + '.custom_params', d.params);
+        if (d.overlay) {
+          set(port + '.overlay', self.findDsiPresetByOverlay(d.overlay, 'dsi'));
+        } else if (d.noPanelOverlay) {
+          var id = byDescription('DSI', 'dsi');
+          if (id) set(port + '.overlay', id);
+        }
+      } else if (parsed.sections[name + ' Custom']) {
+        var c = (parsed.sections[name + ' Custom'].find(function(l) { return l.startsWith('dtoverlay='); }) || '').slice('dtoverlay='.length);
+        enabled[port] = true;
+        set(port + '.enabled', true);
+        set(port + '.overlay', 'custom');
+        set(port + '.custom_params', c);
+      }
+    });
+
+    if (parsed.sections['DPI']) {
+      var dp = recover.dpi(parsed.sections['DPI']);
+      enabled.dpi = true;
+      set('dpi.enabled', true);
+      set('dpi.rotation', dp.rotation);
+      fileRotation = dp.rotation;
+      set('dpi.overlay', self.findDpiPresetByOverlays(dp.overlays) || dp.overlays[0] || '');
+      set('dpi.custom_timing', dp.timing.join('\n'));
+    } else if (parsed.sections['DPI Custom']) {
+      enabled.dpi = true;
+      set('dpi.enabled', true);
+      set('dpi.overlay', 'custom');
+      set('dpi.custom_timing', (parsed.sections['DPI Custom'].find(function(l) { return l.startsWith('dtoverlay='); }) || '').slice('dtoverlay='.length));
+    }
+
+    if (parsed.sections['Composite']) {
+      var cp = recover.composite(parsed.sections['Composite']);
+      enabled.composite = true;
+      set('composite.enabled', true);
+      set('composite.mode', Object.keys(COMPOSITE_MODES).find(function(k) { return COMPOSITE_MODES[k].mode === cp.mode; }) || 'pal');
+      set('composite.aspect', cp.aspect === 3 ? '16:9' : '4:3');
+    }
+
+    if (parsed.sections['Custom Overlay']) {
+      enabled.custom = true;
+      set('custom_overlay.enabled', true);
+      set('custom_overlay.line', parsed.sections['Custom Overlay'][0] || '');
+    }
+
+    // Primary output: the saved metadata, else the one video output the file configures
+    var known = ['hdmi0', 'hdmi1', 'dsi0', 'dsi1', 'dpi', 'composite', 'custom', 'headless'];
+    if (known.indexOf(primary) === -1 || (primary !== 'headless' && !enabled[primary])) {
+      primary = parsed.headless ? 'headless'
+        : (Object.keys(enabled).find(function(o) { return o !== 'hdmi0' && o !== 'hdmi1'; })
+          || (enabled.hdmi0 ? 'hdmi0' : (enabled.hdmi1 ? 'hdmi1' : 'headless')));
+    }
+    set('primary_output', primary);
+    self.primaryOutputCache = primary;
+
+    // Rotation and the cmdline switches for outputs that rotate through cmdline.txt
+    var dsiPreset = primary.indexOf('dsi') === 0 ? self.getDisplayPreset(self.getConfigValue(primary + '.overlay', '')) : null;
+    var viaCmdline = primary === 'hdmi0' || primary === 'hdmi1' || primary === 'dpi'
+      || (primary.indexOf('dsi') === 0 && !(dsiPreset && dsiPreset.overlay_rotation_param === true));
+    if (viaCmdline) {
+      var rot = fileRotation || (cmd.video && cmd.video.rotate !== null ? cmd.video.rotate
+        : (cmd.plymouth !== null ? cmd.plymouth : (cmd.fbcon !== null ? cmd.fbcon * 90 : 0)));
+      set(primary + '.rotation', rot);
+      if (rot !== 0) {
+        set('cmdline_rotation.video', cmd.video !== null);
+        set('cmdline_rotation.plymouth', cmd.plymouth !== null);
+      }
+      set('cmdline_rotation.fbcon', cmd.fbcon !== null);
+    }
+
+    if (hw.kms_supported) {
+      var byPreset = self.getPresetVc4KmsDefaultForPrimary(primary);
+      if (parsed.kms) {
+        set('kms.mode', byPreset ? 'preset' : 'on');
+        if (parsed.kms.cmaMb === null) {
+          set('kms.cma_option', 'auto');
+        } else if (cma.SIZES.indexOf(parsed.kms.cmaMb) !== -1) {
+          set('kms.cma_option', String(parsed.kms.cmaMb));
+        } else {
+          set('kms.cma_option', 'custom');
+          set('kms.cma_custom_mb', parsed.kms.cmaMb);
+        }
+      } else {
+        set('kms.mode', byPreset ? 'off' : 'preset');
+      }
+      self.config.set('kms.enabled', self.getEffectiveKmsEnabled());
+    }
+  }
+
+  var when = metadata.saved || parsed.generated || new Date().toISOString();
+  self.config.set('wizard_complete', true);
+  self.wizardCompleteCache = true;
+  self.config.set('wizard_step', 7);
+  self.wizardStepCache = 7;
+  self.config.set('applied_date', when);
+  self.logger.info('pi_screen_setup: settings recovered from ' + source + ' (' + (parsed.migrated ? 'migrated file' : primary) + ', written ' + when + ')');
+  self.commandRouter.pushToastMessage('info', self.getI18n('PLUGIN_NAME'), self.getI18n('SETTINGS_RECOVERED').replace('{date}', when));
   return true;
 };
 
@@ -4938,54 +5165,28 @@ PiScreenSetup.prototype.validateBootConfig = function() {
   try {
     var wizardComplete = self.config.get('wizard_complete', false);
     
-    // Check for evidence of prior configuration even if wizard_complete is false
-    // This handles cases where config.json was reset but backups/boot files remain
-    if (!wizardComplete) {
-      var hasCurrentBackup = fs.existsSync(path.join(CURRENT_CONFIG_DIR, 'metadata.json'));
-      var hasVideoconfig = fs.existsSync(VIDEOCONFIG_TXT);
-      var hasOurBanner = false;
-      
-      if (hasVideoconfig) {
-        try {
-          var vcContent = fs.readFileSync(VIDEOCONFIG_TXT, 'utf8');
-          hasOurBanner = vcContent.indexOf(VIDEOCONFIG_BANNER) !== -1;
-        } catch (e) {
-          // Ignore read errors
-        }
-      }
-      
-      if (hasCurrentBackup || hasOurBanner) {
-        // Evidence of prior configuration found - restore wizard_complete
-        self.logger.info('pi_screen_setup: Detected prior configuration (backup=' + hasCurrentBackup + ', banner=' + hasOurBanner + ') - restoring wizard_complete');
-        self.config.set('wizard_complete', true);
-        self.wizardCompleteCache = true;
+    // The settings have never been applied but the boot files carry our configuration
+    // (settings reset, restored from an older backup, or written by a release that could
+    // not persist them): rebuild the settings from the files instead of starting over.
+    if (!wizardComplete && !self.config.get('applied_date', '')) {
+      if (self.recoverSettings()) {
         wizardComplete = true;
-        
-        // Try to restore applied_date from metadata if available
-        if (hasCurrentBackup) {
-          try {
-            var metadata = fs.readJsonSync(path.join(CURRENT_CONFIG_DIR, 'metadata.json'));
-            if (metadata.saved && !self.config.get('applied_date')) {
-              self.config.set('applied_date', metadata.saved);
-            }
-          } catch (e) {
-            // Ignore metadata read errors
-          }
-        }
       }
     }
     
     // Not configured yet: nothing of ours to validate, but the display driver must not
     // be left off by the OS file (conditional ownership, journal R1).
     if (!wizardComplete) {
+      var finish = function() { result.valid = true; defer.resolve(result); };
       try {
         self.lastBoot = self.readEffectiveBoot();
-        self.ensureKmsBaseline(self.lastBoot);
+        self.ensureKmsBaseline(self.lastBoot)
+          .then(function(applied) { if (applied) self.lastBoot = self.readEffectiveBoot(); finish(); })
+          .fail(function(e) { self.logger.error('pi_screen_setup: baseline check failed - ' + e); finish(); });
       } catch (e) {
         self.logger.error('pi_screen_setup: baseline check failed - ' + e);
+        finish();
       }
-      result.valid = true;
-      defer.resolve(result);
       return defer.promise;
     }
 
@@ -5060,7 +5261,7 @@ PiScreenSetup.prototype.validateBootConfig = function() {
         kmsOverlay: self.getEffectiveKmsEnabled() ? self.hardwareInfo.kms_overlay : null,
         cmaMb: self.getCmaMb()
       };
-      self.bootFindings = verify.findings(expected, verify.snapshot());
+      self.bootFindings = verify.findings(expected, verify.snapshot(ROOT));
     } catch (e) {
       self.logger.error('pi_screen_setup: effective-state check failed - ' + e);
     }
@@ -5264,6 +5465,11 @@ PiScreenSetup.prototype.restoreConfiguration = function() {
   var self = this;
   var defer = libQ.defer();
 
+  if (!self.config.get('wizard_complete', false)) {
+    defer.reject(new Error(self.getI18n('NOT_CONFIGURED')));
+    return defer.promise;
+  }
+
   self.logger.info('pi_screen_setup: Regenerating configuration after drift');
 
   self.ensureConfigInclude()
@@ -5271,6 +5477,17 @@ PiScreenSetup.prototype.restoreConfiguration = function() {
       return self.cleanVolumioConfig();
     })
     .then(function() {
+      // A migrated file was taken over as-is; there are no settings to regenerate it from.
+      if (self.config.get('videoconfig_mode', 'generated') === 'migrated') {
+        var saved = path.join(CURRENT_CONFIG_DIR, 'videoconfig.txt');
+        if (!fs.existsSync(saved) || fs.readFileSync(saved, 'utf8').indexOf(VIDEOCONFIG_BANNER) === -1) {
+          throw new Error('No saved copy of the migrated videoconfig.txt');
+        }
+        if (!self.copyToBootFile(saved, VIDEOCONFIG_TXT)) {
+          throw new Error('Failed to restore videoconfig.txt');
+        }
+        return libQ.resolve();
+      }
       return self.writeVideoConfig();
     })
     .then(function() {
@@ -5540,7 +5757,7 @@ PiScreenSetup.prototype.getUIConfig = function() {
               migrationDetectedSection.hidden = false;
               self.config.set('migration_state', 'detected');
               self.migrationStateCache = 'detected';
-              self.config.set('migration_raw_lines', info.lines);
+              self.setJsonValue('migration_raw_lines', info.lines);
               
               // Populate raw lines display
               var rawItem = self.findContentItem(migrationDetectedSection, 'migration_raw_display');
@@ -5579,7 +5796,7 @@ PiScreenSetup.prototype.getUIConfig = function() {
         self.logger.info('pi_screen_setup: In detected/processing state - showing migration section');
         // Already in detected or processing state
         migrationDetectedSection.hidden = false;
-        var rawLines = self.config.get('migration_raw_lines', []);
+        var rawLines = self.getJsonValue('migration_raw_lines', []);
         var rawItem = self.findContentItem(migrationDetectedSection, 'migration_raw_display');
         if (rawItem && rawLines.length > 0) {
           var linesText = rawLines.map(function(l) {
@@ -5615,9 +5832,9 @@ PiScreenSetup.prototype.getUIConfig = function() {
           migrationDetectedSection.hidden = true;
         }
         
-        var rawLines = self.config.get('migration_raw_lines', []);
-        var parseResult = self.config.get('migration_parsed', {});
-        var validation = self.config.get('migration_validation', []);
+        var rawLines = self.getJsonValue('migration_raw_lines', []);
+        var parseResult = self.getJsonValue('migration_parsed', {});
+        var validation = self.getJsonValue('migration_validation', []);
         
         self.logger.info('pi_screen_setup: Review - rawLines count: ' + rawLines.length + ', parseResult keys: ' + Object.keys(parseResult).join(','));
         
@@ -5773,8 +5990,8 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
           if (self.displayPresets) {
             for (var presetKey in self.displayPresets) {
               var preset = self.displayPresets[presetKey];
-              // Skip comment entries and non-HDMI presets
-              if (presetKey.startsWith('_comment') || preset.type !== 'hdmi') {
+              // Skip comment entries, non-HDMI presets and the auto entry added below
+              if (presetKey.startsWith('_comment') || preset.type !== 'hdmi' || presetKey === 'auto') {
                 continue;
               }
               presetOptions.push({ value: presetKey, label: preset.name });
@@ -5798,7 +6015,8 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         if (customTimings) {
           var currentTimings = self.getConfigValue(hdmiPrefix + '.custom_timings', '');
           customTimings.value = currentTimings;
-          var isCustom = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto') === 'custom';
+          var chosen = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto');
+          var isCustom = chosen === 'custom' || chosen === 'custom-hdmi';
           customTimings.hidden = !isCustom;
         }
 
@@ -5807,8 +6025,8 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         if (customParams) {
           var currentParams = self.getConfigValue(hdmiPrefix + '.custom_params', '');
           customParams.value = currentParams;
-          var isCustom2 = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto') === 'custom';
-          customParams.hidden = !isCustom2;
+          var chosen2 = self.getConfigValue(hdmiPrefix + '.display_preset', 'auto');
+          customParams.hidden = !(chosen2 === 'custom' || chosen2 === 'custom-hdmi');
         }
 
         // Force hotplug
@@ -6923,6 +7141,7 @@ PiScreenSetup.prototype.applyConfiguration = function(data) {
       self.config.set('wizard_step', 7);
       self.wizardStepCache = 7;
       self.config.set('applied_date', new Date().toISOString());
+      self.config.set('videoconfig_mode', 'generated');
       
       self.config.set('kms.enabled', self.getEffectiveKmsEnabled());
 

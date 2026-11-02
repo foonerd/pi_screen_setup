@@ -134,14 +134,14 @@ MIGRATION_NEEDED=0
 
 # Note: display_*rotate settings belong to Touch Display plugin - do not detect those
 if [ -f "/boot/volumioconfig.txt" ]; then
-    if grep -qE "^dtoverlay=vc4-(f?)kms|^hdmi_|^sdtv_|^framebuffer_|^enable_tvout|^display_auto_detect|^display_default_lcd" /boot/volumioconfig.txt 2>/dev/null; then
+    if grep -qE "^dtoverlay=vc4-(f?)kms|^hdmi_|^config_hdmi_boost|^max_framebuffer_|^sdtv_|^framebuffer_|^enable_tvout|^display_auto_detect|^display_default_lcd" /boot/volumioconfig.txt 2>/dev/null; then
         echo "Found display settings in volumioconfig.txt"
         MIGRATION_NEEDED=1
     fi
 fi
 
 if [ -f "/boot/userconfig.txt" ]; then
-    if grep -qE "^dtoverlay=vc4-(f?)kms|^hdmi_|^sdtv_|^framebuffer_|^enable_tvout|^display_auto_detect|^display_default_lcd" /boot/userconfig.txt 2>/dev/null; then
+    if grep -qE "^dtoverlay=vc4-(f?)kms|^hdmi_|^config_hdmi_boost|^max_framebuffer_|^sdtv_|^framebuffer_|^enable_tvout|^display_auto_detect|^display_default_lcd" /boot/userconfig.txt 2>/dev/null; then
         echo "Found display settings in userconfig.txt"
         MIGRATION_NEEDED=1
     fi

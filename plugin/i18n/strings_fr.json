@@ -127,6 +127,8 @@
     "DIAGNOSTICS_DOC": "Ecrit /tmp/pi-screen-setup-diagnostics.txt : carte, fichiers de demarrage tels que trouves et tels qu appliques, etat du pilote et des connecteurs, memoire, messages du noyau. Collez-le en entier dans un rapport de test ; il ne contient aucune donnee de compte ni de reseau.",
     "DIAGNOSTICS_WRITTEN": "Rapport de diagnostic ecrit dans {path}. Par SSH : cat {path}",
     "DIAGNOSTICS_FAILED": "Impossible d ecrire le rapport de diagnostic : {error}",
+    "SETTINGS_RECOVERED": "Les réglages d’affichage ont été reconstruits à partir des fichiers de démarrage écrits le {date}. Vérifiez le résumé ci-dessous ; rien n’a été modifié sur le disque.",
+    "NOT_CONFIGURED": "Aucune configuration d’affichage n’a encore été appliquée",
     "ERR_KMS_NOT_EFFECTIVE": "Les fichiers de demarrage n appliquent aucun pilote d affichage (KMS) a cette carte alors qu un est configure",
     "ERR_KMS_UNEXPECTED": "Les fichiers de demarrage appliquent un pilote d affichage (KMS) alors qu aucun n est configure",
     "STEP5_TITLE": "Etape 5 sur 7: Comportement Mise a Jour OTA",
@@ -473,7 +475,6 @@
     "PM_TOAST_SAVE_FAILED": "Echec de l'enregistrement: {0}",
     "PM_TOAST_ADD_FAILED": "Echec de l'ajout: {0}",
     "PM_TOAST_DELETE_FAILED": "Echec de la suppression: {0}",
-
     "OTA_DRIFT_TITLE": "Ecart de configuration detecte",
     "OTA_DRIFT_DESC": "Votre configuration d'affichage differe des parametres enregistres. Cela se produit generalement apres une mise a jour systeme.",
     "DRIFT_STATUS": "Statut",
@@ -484,7 +485,6 @@
     "RESTORE_AND_REBOOT": "Restaurer et redemarrer",
     "OTA_REBOOT_MESSAGE": "La configuration d'affichage a ete restauree. Un redemarrage est necessaire pour appliquer les modifications.",
     "CONFIG_RESTORED_REBOOTING": "Configuration restauree. Redemarrage...",
-
     "ERR_VIDEOCONFIG_MISSING": "videoconfig.txt est manquant",
     "ERR_VIDEOCONFIG_MODIFIED": "videoconfig.txt a ete modifie exterieurement",
     "ERR_INCLUDE_MISSING": "Ligne include manquante dans config.txt",

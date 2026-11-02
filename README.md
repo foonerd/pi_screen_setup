@@ -285,6 +285,9 @@ After completing the wizard, the Edit Configuration section provides:
 **Uninstall Behavior**
 When the plugin is uninstalled, it automatically restores the factory defaults, removing all display configuration changes made by the plugin.
 
+**Settings rebuilt from the boot files**
+The boot files the plugin writes are also its record. If the plugin starts with a settings file that has never been applied — after a settings reset, a "restore settings" from an older backup, or an update from a release before 1.0 — while `/boot/videoconfig.txt` (or the copy saved at the last apply) carries its configuration, it reads the output, preset, rotation, HDMI mode, KMS and CMA back from those files, stores them and says so, with the date the files were written. Nothing on disk is changed by this; the summary in the plugin's settings shows what was found. A wizard you reset yourself stays reset.
+
 ## Waveshare Portrait Display Notes
 
 For Waveshare 11.9" and 7.9" HDMI displays (portrait native):

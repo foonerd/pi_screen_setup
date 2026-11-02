@@ -130,5 +130,10 @@ for (const [id, p] of Object.entries(db.presets || {})) {
 if (!/^echo "plugininstallend"\s*$/m.test(read('install.sh'))) fail('install.sh does not end with echo "plugininstallend"');
 if (!/^echo "pluginuninstallend"\s*$/m.test(read('uninstall.sh'))) fail('uninstall.sh does not end with echo "pluginuninstallend"');
 
+// Volumio copies the shipped config.json to /data/configuration as it is; v-conf reads
+// only { type, value } leaves. A raw value there is a setting the plugin can never store.
+const conf = require(path.join(root, 'lib', 'conf.js'));
+if (!conf.isNormalized(json('config.json'))) fail('config.json: not in the v-conf shape ({ type, value } leaves)');
+
 if (failures) { console.error(failures + ' failure(s)'); process.exit(1); }
 console.log('check: ok');

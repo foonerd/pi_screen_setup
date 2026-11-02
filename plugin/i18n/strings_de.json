@@ -127,6 +127,8 @@
     "DIAGNOSTICS_DOC": "Schreibt /tmp/pi-screen-setup-diagnostics.txt: Board, Boot-Dateien wie vorgefunden und wie sie gelten, Treiber- und Anschlusszustand, Speicher, Kernelmeldungen. Vollstaendig in einen Testbericht einfuegen; enthaelt keine Konto- oder Netzwerkdaten.",
     "DIAGNOSTICS_WRITTEN": "Diagnosebericht geschrieben nach {path}. Per SSH: cat {path}",
     "DIAGNOSTICS_FAILED": "Diagnosebericht konnte nicht geschrieben werden: {error}",
+    "SETTINGS_RECOVERED": "Die Anzeigeeinstellungen wurden aus den am {date} geschriebenen Boot-Dateien wiederhergestellt. Prüfen Sie die Zusammenfassung unten; auf dem Datenträger wurde nichts geändert.",
+    "NOT_CONFIGURED": "Es wurde noch keine Anzeigekonfiguration angewendet",
     "ERR_KMS_NOT_EFFECTIVE": "Die Boot-Dateien aktivieren auf diesem Board keinen Anzeigetreiber (KMS), obwohl einer konfiguriert ist",
     "ERR_KMS_UNEXPECTED": "Die Boot-Dateien aktivieren einen Anzeigetreiber (KMS), obwohl keiner konfiguriert ist",
     "STEP5_TITLE": "Schritt 5 von 7: OTA-Update-Verhalten",
@@ -473,7 +475,6 @@
     "PM_TOAST_SAVE_FAILED": "Speichern fehlgeschlagen: {0}",
     "PM_TOAST_ADD_FAILED": "Hinzufuegen fehlgeschlagen: {0}",
     "PM_TOAST_DELETE_FAILED": "Loeschen fehlgeschlagen: {0}",
-
     "OTA_DRIFT_TITLE": "Konfigurationsabweichung erkannt",
     "OTA_DRIFT_DESC": "Ihre Anzeigeeinstellungen weichen von den gespeicherten Einstellungen ab. Dies passiert normalerweise nach einem Systemupdate.",
     "DRIFT_STATUS": "Status",
@@ -484,7 +485,6 @@
     "RESTORE_AND_REBOOT": "Wiederherstellen und neu starten",
     "OTA_REBOOT_MESSAGE": "Anzeigeeinstellungen wurden wiederhergestellt. Ein Neustart ist erforderlich.",
     "CONFIG_RESTORED_REBOOTING": "Konfiguration wiederhergestellt. Neustart...",
-
     "ERR_VIDEOCONFIG_MISSING": "videoconfig.txt fehlt",
     "ERR_VIDEOCONFIG_MODIFIED": "videoconfig.txt wurde extern geaendert",
     "ERR_INCLUDE_MISSING": "Include-Zeile fehlt in config.txt",

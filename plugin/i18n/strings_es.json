@@ -127,6 +127,8 @@
     "DIAGNOSTICS_DOC": "Escribe /tmp/pi-screen-setup-diagnostics.txt: placa, archivos de arranque tal como estan y como se aplican, estado del controlador y conectores, memoria, mensajes del kernel. Peguelo completo en un informe de prueba; no contiene datos de cuenta ni de red.",
     "DIAGNOSTICS_WRITTEN": "Informe de diagnostico escrito en {path}. Por SSH: cat {path}",
     "DIAGNOSTICS_FAILED": "No se pudo escribir el informe de diagnostico: {error}",
+    "SETTINGS_RECOVERED": "Los ajustes de pantalla se reconstruyeron a partir de los archivos de arranque escritos el {date}. Revise el resumen; no se ha cambiado nada en el disco.",
+    "NOT_CONFIGURED": "Aún no se ha aplicado ninguna configuración de pantalla",
     "ERR_KMS_NOT_EFFECTIVE": "Los archivos de arranque no aplican ningun controlador de pantalla (KMS) a esta placa aunque hay uno configurado",
     "ERR_KMS_UNEXPECTED": "Los archivos de arranque aplican un controlador de pantalla (KMS) aunque no hay ninguno configurado",
     "STEP5_TITLE": "Paso 5 de 7: Comportamiento de Actualizacion OTA",
@@ -473,7 +475,6 @@
     "PM_TOAST_SAVE_FAILED": "Error al guardar: {0}",
     "PM_TOAST_ADD_FAILED": "Error al anadir: {0}",
     "PM_TOAST_DELETE_FAILED": "Error al eliminar: {0}",
-
     "OTA_DRIFT_TITLE": "Discrepancia de configuracion detectada",
     "OTA_DRIFT_DESC": "Su configuracion de pantalla difiere de los ajustes guardados. Esto suele ocurrir despues de una actualizacion del sistema.",
     "DRIFT_STATUS": "Estado",
@@ -484,7 +485,6 @@
     "RESTORE_AND_REBOOT": "Restaurar y reiniciar",
     "OTA_REBOOT_MESSAGE": "La configuracion de pantalla ha sido restaurada. Se requiere un reinicio para aplicar los cambios.",
     "CONFIG_RESTORED_REBOOTING": "Configuracion restaurada. Reiniciando...",
-
     "ERR_VIDEOCONFIG_MISSING": "videoconfig.txt no existe",
     "ERR_VIDEOCONFIG_MODIFIED": "videoconfig.txt fue modificado externamente",
     "ERR_INCLUDE_MISSING": "Linea include falta en config.txt",

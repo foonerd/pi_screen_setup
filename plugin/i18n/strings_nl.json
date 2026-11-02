@@ -127,6 +127,8 @@
     "DIAGNOSTICS_DOC": "Schrijft /tmp/pi-screen-setup-diagnostics.txt: board, opstartbestanden zoals aangetroffen en zoals ze gelden, toestand van stuurprogramma en aansluitingen, geheugen, kernelmeldingen. Plak het volledig in een testrapport; het bevat geen account- of netwerkgegevens.",
     "DIAGNOSTICS_WRITTEN": "Diagnoserapport geschreven naar {path}. Via SSH: cat {path}",
     "DIAGNOSTICS_FAILED": "Kon het diagnoserapport niet schrijven: {error}",
+    "SETTINGS_RECOVERED": "De scherminstellingen zijn hersteld uit de opstartbestanden die op {date} zijn geschreven. Controleer de samenvatting; er is niets op de schijf gewijzigd.",
+    "NOT_CONFIGURED": "Er is nog geen schermconfiguratie toegepast",
     "ERR_KMS_NOT_EFFECTIVE": "De opstartbestanden passen op dit board geen beeldschermstuurprogramma (KMS) toe hoewel er een is ingesteld",
     "ERR_KMS_UNEXPECTED": "De opstartbestanden passen een beeldschermstuurprogramma (KMS) toe hoewel er geen is ingesteld",
     "STEP5_TITLE": "Stap 5 van 7: OTA Update Gedrag",
@@ -473,7 +475,6 @@
     "PM_TOAST_SAVE_FAILED": "Opslaan mislukt: {0}",
     "PM_TOAST_ADD_FAILED": "Toevoegen mislukt: {0}",
     "PM_TOAST_DELETE_FAILED": "Verwijderen mislukt: {0}",
-
     "OTA_DRIFT_TITLE": "Configuratie verschil gedetecteerd",
     "OTA_DRIFT_DESC": "Uw beeldscherminstellingen wijken af van de opgeslagen instellingen. Dit gebeurt meestal na een systeemupdate.",
     "DRIFT_STATUS": "Status",
@@ -484,7 +485,6 @@
     "RESTORE_AND_REBOOT": "Herstellen en herstarten",
     "OTA_REBOOT_MESSAGE": "Beeldschermconfiguratie is hersteld. Een herstart is nodig om de wijzigingen toe te passen.",
     "CONFIG_RESTORED_REBOOTING": "Configuratie hersteld. Herstarten...",
-
     "ERR_VIDEOCONFIG_MISSING": "videoconfig.txt ontbreekt",
     "ERR_VIDEOCONFIG_MODIFIED": "videoconfig.txt is extern gewijzigd",
     "ERR_INCLUDE_MISSING": "Include regel ontbreekt in config.txt",

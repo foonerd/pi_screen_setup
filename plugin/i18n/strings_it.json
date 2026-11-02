@@ -127,6 +127,8 @@
     "DIAGNOSTICS_DOC": "Scrive /tmp/pi-screen-setup-diagnostics.txt: scheda, file di avvio come trovati e come si applicano, stato del driver e dei connettori, memoria, messaggi del kernel. Incollalo per intero in un rapporto di test; non contiene dati di account o di rete.",
     "DIAGNOSTICS_WRITTEN": "Rapporto diagnostico scritto in {path}. Via SSH: cat {path}",
     "DIAGNOSTICS_FAILED": "Impossibile scrivere il rapporto diagnostico: {error}",
+    "SETTINGS_RECOVERED": "Le impostazioni dello schermo sono state ricostruite dai file di avvio scritti il {date}. Controlla il riepilogo; nulla è stato modificato su disco.",
+    "NOT_CONFIGURED": "Nessuna configurazione dello schermo è stata ancora applicata",
     "ERR_KMS_NOT_EFFECTIVE": "I file di avvio non applicano alcun driver video (KMS) a questa scheda sebbene ne sia configurato uno",
     "ERR_KMS_UNEXPECTED": "I file di avvio applicano un driver video (KMS) sebbene non ne sia configurato alcuno",
     "STEP5_TITLE": "Passo 5 di 7: Comportamento Aggiornamento OTA",
@@ -473,7 +475,6 @@
     "PM_TOAST_SAVE_FAILED": "Salvataggio fallito: {0}",
     "PM_TOAST_ADD_FAILED": "Aggiunta fallita: {0}",
     "PM_TOAST_DELETE_FAILED": "Eliminazione fallita: {0}",
-
     "OTA_DRIFT_TITLE": "Discrepanza configurazione rilevata",
     "OTA_DRIFT_DESC": "La configurazione del display differisce dalle impostazioni salvate. Questo accade solitamente dopo un aggiornamento di sistema.",
     "DRIFT_STATUS": "Stato",
@@ -484,7 +485,6 @@
     "RESTORE_AND_REBOOT": "Ripristina e riavvia",
     "OTA_REBOOT_MESSAGE": "La configurazione del display e stata ripristinata. E necessario un riavvio per applicare le modifiche.",
     "CONFIG_RESTORED_REBOOTING": "Configurazione ripristinata. Riavvio in corso...",
-
     "ERR_VIDEOCONFIG_MISSING": "videoconfig.txt mancante",
     "ERR_VIDEOCONFIG_MODIFIED": "videoconfig.txt e stato modificato esternamente",
     "ERR_INCLUDE_MISSING": "Riga include mancante in config.txt",
