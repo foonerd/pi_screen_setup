@@ -9,6 +9,8 @@ var os = require('os');
 var express = require('express');
 var bodyParser = require('body-parser');
 var safe = require('./lib/safe');
+var board = require('./lib/board');
+var cma = require('./lib/cma');
 
 module.exports = PiScreenSetup;
 
@@ -34,20 +36,6 @@ var PRESETS_CACHE_DIR = '/data/plugins/system_hardware/pi_screen_setup/presets_c
 var PRESETS_REMOTE_CACHE = PRESETS_CACHE_DIR + '/remote.json';
 var PRESETS_DRAFT = PRESETS_CACHE_DIR + '/draft.json';
 var PRESETS_METADATA = PRESETS_CACHE_DIR + '/metadata.json';
-
-// Hardware definitions
-var PI_MODELS = {
-  'Pi 2': { socs: ['bcm2836', 'bcm2837'], hdmi_ports: 1, dsi_ports: ['dsi0'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d' },
-  'Pi 3': { socs: ['bcm2837'], hdmi_ports: 1, dsi_ports: ['dsi0'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d' },
-  'Pi 4': { socs: ['bcm2711'], hdmi_ports: 2, dsi_ports: ['dsi0', 'dsi1'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi4' },
-  'Pi 400': { socs: ['bcm2711'], hdmi_ports: 2, dsi_ports: [], has_composite: false, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi4' },
-  'Pi 5': { socs: ['bcm2712'], hdmi_ports: 2, dsi_ports: ['dsi0', 'dsi1'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi5' },
-  'Pi 500': { socs: ['bcm2712'], hdmi_ports: 2, dsi_ports: [], has_composite: false, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi5' },
-  'Pi Zero 2 W': { socs: ['bcm2710'], hdmi_ports: 1, dsi_ports: [], has_composite: true, kms_supported: false, kms_overlay: null },
-  'CM3': { socs: ['bcm2837'], hdmi_ports: 1, dsi_ports: ['dsi0'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d' },
-  'CM4': { socs: ['bcm2711'], hdmi_ports: 2, dsi_ports: ['dsi0', 'dsi1'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi4' },
-  'CM5': { socs: ['bcm2712'], hdmi_ports: 2, dsi_ports: ['dsi0', 'dsi1'], has_composite: true, kms_supported: true, kms_overlay: 'vc4-kms-v3d-pi5' }
-};
 
 // Resolution presets
 var HDMI_RESOLUTIONS = {
@@ -82,16 +70,6 @@ var COMPOSITE_MODES = {
   'ntsc': { label: 'NTSC (Americas/Japan)', mode: 0 },
   'pal-m': { label: 'PAL-M (Brazil)', mode: 64 },
   'pal-n': { label: 'PAL-N (Argentina)', mode: 66 }
-};
-
-// CMA size options
-var CMA_OPTIONS = {
-  'default': { label: 'Default (64MB)', value: 64 },
-  'low': { label: 'Low (32MB)', value: 32 },
-  'medium': { label: 'Medium (128MB)', value: 128 },
-  'high': { label: 'High (256MB)', value: 256 },
-  'max': { label: 'Maximum (512MB)', value: 512 },
-  'custom': { label: 'Custom', value: 0 }
 };
 
 // Migration detection patterns - must match install.sh patterns
@@ -296,6 +274,39 @@ PiScreenSetup.prototype.getPresetVc4KmsDefaultForPrimary = function(primaryOutpu
   return true;
 };
 
+// Installs before 1.0 stored 'default' meaning 64 MB on every board. Once, move them to
+// 'auto' (the kernel's own default for the board) and say so; explicit choices stay.
+PiScreenSetup.prototype.migrateCmaDefault = function() {
+  var self = this;
+  if (self.config.get('kms.cma_migrated', false)) return false;
+  self.config.set('kms.cma_migrated', true);
+  if (self.config.get('kms.cma_option', 'auto') !== 'default') return false;
+  self.config.set('kms.cma_option', 'auto');
+  var policy = cma.policy(self.hardwareInfo && self.hardwareInfo.board);
+  self.commandRouter.pushToastMessage('info', self.getI18n('PLUGIN_NAME'),
+    self.getI18n('CMA_MIGRATED').replace('{mb}', policy.recommended || '?'));
+  return true;
+};
+
+PiScreenSetup.prototype.readMeminfo = function() {
+  try { return fs.readFileSync('/proc/meminfo', 'utf8'); } catch (e) { return ''; }
+};
+
+// The stored CMA option as a choice for lib/cma: legacy words, a size in MB, 'auto' or 'custom'.
+PiScreenSetup.prototype.getCmaChoice = function() {
+  var self = this;
+  return cma.fromLegacyOption(self.getConfigValue('kms.cma_option', 'auto'), self.getConfigValue('kms.cma_custom_mb', 256));
+};
+
+// The CMA that the KMS line will carry, in MB, or null for the kernel default.
+PiScreenSetup.prototype.getCmaMb = function() {
+  var self = this;
+  var choice = self.getCmaChoice();
+  var param = cma.parameter(choice.choice, choice.mb, self.hardwareInfo && self.hardwareInfo.board);
+  var m = param.match(/cma-(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+};
+
 /**
  * Whether videoconfig.txt should include vc4-kms-v3d (and CMA). Respects kms.mode and preset vc4_kms.
  */
@@ -361,6 +372,8 @@ PiScreenSetup.prototype.onStart = function() {
       self.config.set('hardware.soc', hwInfo.soc);
       self.config.set('hardware.ram_mb', hwInfo.ram_mb);
       self.config.set('hardware.detected', true);
+
+      self.migrateCmaDefault();
 
       // Keep legacy kms.enabled aligned with kms.mode + preset (for older readers)
       self.config.set('kms.enabled', self.getEffectiveKmsEnabled());
@@ -671,13 +684,15 @@ PiScreenSetup.prototype.startManagementServer = function() {
           return res.status(404).json({ error: 'Preset not found' });
         }
         
-        // Update preset
-        self.draftPresets.presets[id] = {
-          name: data.name || self.draftPresets.presets[id].name,
-          type: data.type || self.draftPresets.presets[id].type,
-          description: data.description !== undefined ? data.description : self.draftPresets.presets[id].description,
-          config: data.config || self.draftPresets.presets[id].config
-        };
+        // Update the fields the request carries; every other field of the preset stays.
+        var existing = self.draftPresets.presets[id];
+        var patch = {};
+        for (var key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key) && key !== 'version' && key !== 'id') {
+            patch[key] = data[key];
+          }
+        }
+        self.draftPresets.presets[id] = Object.assign({}, existing, patch);
         
         // Update version if provided
         if (data.version) {
@@ -1205,6 +1220,8 @@ PiScreenSetup.prototype.detectHardware = function() {
   var self = this;
   var defer = libQ.defer();
 
+  // Shape kept for the rest of the plugin; the truth comes from the revision code
+  // (lib/board.js), not from matching the SoC string against a table.
   var hwInfo = {
     model: 'Unknown',
     model_raw: '',
@@ -1215,91 +1232,39 @@ PiScreenSetup.prototype.detectHardware = function() {
     has_composite: false,
     kms_supported: false,
     kms_overlay: null,
+    kms_policy: 'no',
+    board: null,
+    serial: null,
     is_pi: false
   };
 
   try {
-    // Read model from device-tree
-    if (fs.existsSync('/proc/device-tree/model')) {
-      hwInfo.model_raw = fs.readFileSync('/proc/device-tree/model', 'utf8').replace(/\0/g, '').trim();
-      self.logger.info('pi_screen_setup: Detected model: ' + hwInfo.model_raw);
+    var sys = board.readSystem();
+    hwInfo.model_raw = sys.model || '';
+    hwInfo.serial = sys.serial;
+    hwInfo.is_pi = hwInfo.model_raw.toLowerCase().indexOf('raspberry pi') !== -1 || Boolean(sys.board);
+    if (sys.compatible.length) {
+      var socMatch = sys.compatible.join(',').match(/bcm2[0-9]+/);
+      if (socMatch) hwInfo.soc = socMatch[0];
     }
+    if (sys.memoryMb) hwInfo.ram_mb = sys.memoryMb;
 
-    // Read SoC from device-tree compatible
-    if (fs.existsSync('/proc/device-tree/compatible')) {
-      var compatible = fs.readFileSync('/proc/device-tree/compatible', 'utf8').replace(/\0/g, ',');
-      var socMatch = compatible.match(/bcm2[0-9]+/);
-      if (socMatch) {
-        hwInfo.soc = socMatch[0];
-        self.logger.info('pi_screen_setup: Detected SoC: ' + hwInfo.soc);
+    if (sys.board) {
+      var b = sys.board;
+      hwInfo.board = b;
+      hwInfo.model = b.name;
+      if (b.processor) hwInfo.soc = b.processor;
+      hwInfo.hdmi_ports = b.hdmi;
+      hwInfo.dsi_ports = b.dsi.slice();
+      hwInfo.has_composite = b.composite;
+      hwInfo.kms_policy = b.kms;
+      hwInfo.kms_supported = b.kms === 'yes';
+      hwInfo.kms_overlay = b.kmsOverlay;
+      if (hwInfo.soc !== 'unknown' && b.processor && hwInfo.soc !== b.processor) {
+        self.logger.warn('pi_screen_setup: revision code says ' + b.processor + ' but device-tree says ' + hwInfo.soc);
       }
-    }
-
-    // Read RAM from meminfo
-    if (fs.existsSync('/proc/meminfo')) {
-      var meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
-      var memMatch = meminfo.match(/MemTotal:\s+(\d+)\s+kB/);
-      if (memMatch) {
-        hwInfo.ram_mb = Math.round(parseInt(memMatch[1], 10) / 1024);
-        self.logger.info('pi_screen_setup: Detected RAM: ' + hwInfo.ram_mb + ' MB');
-      }
-    }
-
-    // Match to known Pi model
-    hwInfo.is_pi = hwInfo.model_raw.toLowerCase().indexOf('raspberry pi') !== -1;
-
-    if (hwInfo.is_pi) {
-      // Determine specific model
-      for (var modelName in PI_MODELS) {
-        var modelDef = PI_MODELS[modelName];
-        if (modelDef.socs.indexOf(hwInfo.soc) !== -1) {
-          // Check model name match for disambiguation
-          var modelLower = hwInfo.model_raw.toLowerCase();
-          var matchName = modelName.toLowerCase();
-
-          if (modelLower.indexOf('zero 2') !== -1 && matchName === 'pi zero 2 w') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('400') !== -1 && matchName === 'pi 400') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('500') !== -1 && matchName === 'pi 500') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('compute module 3') !== -1 && matchName === 'cm3') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('compute module 4') !== -1 && matchName === 'cm4') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('compute module 5') !== -1 && matchName === 'cm5') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('pi 5') !== -1 && matchName === 'pi 5') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('pi 4') !== -1 && matchName === 'pi 4') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('pi 3') !== -1 && matchName === 'pi 3') {
-            hwInfo.model = modelName;
-            break;
-          } else if (modelLower.indexOf('pi 2') !== -1 && matchName === 'pi 2') {
-            hwInfo.model = modelName;
-            break;
-          }
-        }
-      }
-
-      // Apply model capabilities
-      if (PI_MODELS[hwInfo.model]) {
-        var caps = PI_MODELS[hwInfo.model];
-        hwInfo.hdmi_ports = caps.hdmi_ports;
-        hwInfo.dsi_ports = caps.dsi_ports;
-        hwInfo.has_composite = caps.has_composite;
-        hwInfo.kms_supported = caps.kms_supported;
-        hwInfo.kms_overlay = caps.kms_overlay;
-      }
+    } else {
+      self.logger.warn('pi_screen_setup: no Raspberry Pi revision code found; model ' + (hwInfo.model_raw || 'unknown'));
     }
 
     self.logger.info('pi_screen_setup: Hardware detection complete - ' + JSON.stringify(hwInfo));
@@ -2112,13 +2077,13 @@ PiScreenSetup.prototype.adminUpdatePreset = function(data) {
     return libQ.resolve({});
   }
   
-  // Build preset object
-  var preset = {
+  // The form carries name, type, description and config; every other field stays.
+  var preset = Object.assign({}, self.draftPresets.presets[presetId], {
     name: data.admin_preset_name || presetId,
     type: data.admin_preset_type || 'hdmi',
     description: data.admin_preset_desc || '',
     config: configObj
-  };
+  });
   
   // Validate preset data
   var validation = self.validatePresetData(preset);
@@ -3216,15 +3181,12 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
     var kmsEnabled = self.getEffectiveKmsEnabled();
     if (kmsEnabled) {
       var kmsOverlay = self.hardwareInfo.kms_overlay || 'vc4-kms-v3d';
-      var cmaOption = self.getConfigValue('kms.cma_option', 'default');
-      var cmaValue = CMA_OPTIONS[cmaOption] ? CMA_OPTIONS[cmaOption].value : 64;
+      var choice = self.getCmaChoice();
+      var cmaParam = cma.parameter(choice.choice, choice.mb, self.hardwareInfo.board);
+      var policy = cma.policy(self.hardwareInfo.board);
 
-      if (cmaOption === 'custom') {
-        cmaValue = self.getConfigValue('kms.cma_custom_mb', 256);
-      }
-
-      lines.push('# KMS Display Driver');
-      lines.push('dtoverlay=' + kmsOverlay + ',cma-' + cmaValue);
+      lines.push('# KMS Display Driver' + (cmaParam === '' && policy.kernelDefault ? ' (CMA: kernel default, ' + policy.kernelDefault + ' MB on this board)' : ''));
+      lines.push('dtoverlay=' + kmsOverlay + cmaParam);
       lines.push('');
     }
   }
@@ -3577,13 +3539,11 @@ PiScreenSetup.prototype.generateConfigSummary = function() {
     if (!self.getEffectiveKmsEnabled()) {
       parts.push(self.getI18n('KMS_SUMMARY_OFF'));
     } else {
-      var cmaOption = self.getConfigValue('kms.cma_option', 'default');
-      self.logger.info('pi_screen_setup: generateConfigSummary - cmaOption=' + cmaOption);
-      var cmaValue = CMA_OPTIONS[cmaOption] ? CMA_OPTIONS[cmaOption].value : 64;
-      if (cmaOption === 'custom') {
-        cmaValue = self.getConfigValue('kms.cma_custom_mb', 256);
-      }
-      parts.push(self.getI18n('KMS_SUMMARY_ON') + ' ' + cmaValue + 'MB');
+      var cmaMb = self.getCmaMb();
+      var policy = cma.policy(self.hardwareInfo.board);
+      parts.push(self.getI18n('KMS_SUMMARY_ON') + ' ' + (cmaMb === null
+        ? self.getI18n('CMA_AUTO').replace('{mb}', policy.kernelDefault || '?')
+        : cmaMb + ' MB'));
     }
   }
   
@@ -3902,9 +3862,8 @@ PiScreenSetup.prototype.updateCmdline = function() {
     } else if (primaryOutput === 'dsi0') {
       connectorName = 'DSI-1';  // DSI0 always maps to DSI-1
     } else if (primaryOutput === 'dsi1') {
-      // Check if Pi 5 (has dual DSI exposed)
-      var isPi5 = self.hardwareInfo && self.hardwareInfo.soc === 'BCM2712';
-      connectorName = isPi5 ? 'DSI-2' : 'DSI-1';
+      // Pi 5 family exposes both ports: dsi1 is DSI-2 there, DSI-1 everywhere else
+      connectorName = board.dsiConnector(self.hardwareInfo && self.hardwareInfo.board, 'dsi1');
     } else if (primaryOutput === 'dpi') {
       connectorName = 'DPI-1';
     }
@@ -4506,8 +4465,7 @@ PiScreenSetup.prototype.applyParsedConfigToSettings = function(parseResult) {
     self.config.set('kms.enabled', true);
     if (parsed.kms_cma) {
       // Map CMA value to option
-      var cmaMap = { 32: 'low', 64: 'default', 128: 'medium', 256: 'high', 512: 'max' };
-      var cmaOption = cmaMap[parsed.kms_cma] || 'custom';
+      var cmaOption = cma.SIZES.indexOf(parsed.kms_cma) !== -1 ? String(parsed.kms_cma) : 'custom';
       self.config.set('kms.cma_option', cmaOption);
       if (cmaOption === 'custom') {
         self.config.set('kms.cma_custom_mb', parsed.kms_cma);
@@ -6150,18 +6108,23 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         var cmaSelect = self.findContentItem(step8Section, 'cma_option');
         if (cmaSelect) {
           cmaSelect.hidden = !showCma;
-          var cmaOptions = [];
-          for (var cmaKey in CMA_OPTIONS) {
-            // Filter based on RAM
-            var cmaVal = CMA_OPTIONS[cmaKey].value;
-            if (self.hardwareInfo.ram_mb < 1024 && cmaVal > 128) {
-              continue; // Skip large CMA for low RAM
-            }
-            cmaOptions.push({ value: cmaKey, label: CMA_OPTIONS[cmaKey].label });
-          }
+          var policy = cma.policy(self.hardwareInfo.board);
+          var cmaOptions = [{ value: 'auto', label: self.getI18n('CMA_AUTO').replace('{mb}', policy.recommended || '?') }];
+          policy.sizes.forEach(function(size) {
+            var note = size <= 64 ? self.getI18n('CMA_NOTE_SMALL') : (size >= 256 ? self.getI18n('CMA_NOTE_LARGE') : '');
+            cmaOptions.push({ value: String(size), label: size + ' MB' + (note ? ' - ' + note : '') });
+          });
+          cmaOptions.push({ value: 'custom', label: self.getI18n('CMA_CUSTOM') });
           cmaSelect.options = cmaOptions;
-          var currentCma = self.config.get('kms.cma_option', 'default');
-          cmaSelect.value = cmaOptions.find(function(o) { return o.value === currentCma; }) || cmaOptions[0];
+          var current = self.getCmaChoice();
+          var currentValue = current.choice === 'custom' ? 'custom' : (current.choice === 'auto' ? 'auto' : String(current.choice));
+          cmaSelect.value = cmaOptions.find(function(o) { return o.value === currentValue; }) || cmaOptions[0];
+          var applied = cma.appliedMb(self.readMeminfo());
+          var configured = self.getCmaMb();
+          cmaSelect.doc = self.getI18n('CMA_OPTION_DOC') + ' ' + self.getI18n('CMA_STATUS')
+            .replace('{board}', self.hardwareInfo.model + ', ' + self.hardwareInfo.ram_mb + ' MB')
+            .replace('{applied}', applied === null ? '?' : applied)
+            .replace('{configured}', configured === null ? (policy.kernelDefault || '?') : configured);
         }
 
         // Custom CMA value
@@ -6769,7 +6732,7 @@ PiScreenSetup.prototype.saveStep4 = function(data) {
 
   var modeVal = data.kms_mode && data.kms_mode.value ? data.kms_mode.value : 'preset';
   self.setConfigValue('kms.mode', modeVal);
-  self.setConfigValue('kms.cma_option', data.cma_option ? data.cma_option.value : 'default');
+  self.setConfigValue('kms.cma_option', data.cma_option ? data.cma_option.value : 'auto');
   self.setConfigValue('kms.cma_custom_mb', parseInt(data.cma_custom_mb, 10) || 256);
   self.config.set('kms.enabled', self.getEffectiveKmsEnabled());
 

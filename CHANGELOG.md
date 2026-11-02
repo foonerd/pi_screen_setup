@@ -4,8 +4,20 @@ All notable changes to Pi Screen Setup are recorded here. The format follows [Ke
 
 ## [Unreleased]
 
+### Added
+
+- `lib/board.js`: the board is read from the revision code the firmware publishes (`/proc/device-tree/system/linux,revision`, else `/proc/cpuinfo`), decoded against the documented type, processor and memory fields. Pi Zero 2 W, Pi 400, Pi 500, CM4S, CM5 and CM5 Lite are now recognised as themselves; installed memory is exact instead of rounded from `MemTotal`.
+- `lib/configtxt.js`: a reader for `config.txt` and its includes that applies the firmware's conditional-filter rules (`[all]`, `[none]`, model filters, `[board-type=]`, serial `[0x…]`, `[EDID=]`, `[gpioN=]`, `[HDMI:n]`, `[tryboot]`, expression filters; same type replaces, different types combine, state carries across `include`) and reports what actually applies to this board. Tests cover Volumio's 4.119 and 4.231 `volumioconfig.txt`: the 4.231 file leaves KMS unapplied on every Pi 3, 4 and 5 because its `[0x9020e0]`/`[0x9020e1]` serial filters precede the model filters.
+- `lib/cma.js`: graphics memory (CMA) per board. "Kernel default" is a choice (no `cma-` parameter: 256 MB on Pi 2/3, 508 MB on Pi 4, 64 MB on Pi 5), 512 MB boards are held to 128 MB as Volumio intends for the 3A+, sizes above a board's limit are not offered, custom values are 4 MB aligned. The KMS step shows the board, the CMA in use now (from `/proc/meminfo`) and the one that applies after the next reboot.
+
 ### Changed
 
+- The KMS driver line is written with the board's own overlay and the chosen CMA; on a Pi 5 the second DSI port is named `DSI-2` as the kernel does.
+- Installs that still carried the old "Default (64 MB)" CMA setting are moved once to "Kernel default", with a notice; explicit choices are left alone.
+
+### Fixed
+
+- Editing a preset (preset editor or the Volumio UI) no longer discards the fields the form does not show (`native_resolution`, `recommended_rotation`, `overlay_rotation_param`, `vc4_kms`, `emit_dsi_overlay`, `notes`, …); a saved preset keeps everything it had.
 - The repository is laid out as `plugin/` (what ships), `test/` (the static check and the module tests), `scripts/` (packaging, release notes) and `.github/` (CI on every push, a release on every `vX.Y.Z` tag, the test-report issue form). `display_presets.json` stays at the repository root as well, because players fetch it from there.
 
 ## [0.8.2] - 2026-11-02
