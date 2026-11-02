@@ -1,0 +1,69 @@
+name: Test report
+description: What you tried with your screen and what happened, good or bad. One report per board and screen.
+title: "[board / screen]: "
+labels: ["test report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for trying Pi Screen Setup. Everything below is read; the diagnostics report at the end is what makes a report actionable.
+  - type: input
+    id: board
+    attributes:
+      label: Raspberry Pi
+      description: As `cat /proc/device-tree/model` prints it, and the RAM.
+      placeholder: Raspberry Pi 5 Model B Rev 1.0, 4 GB
+    validations:
+      required: true
+  - type: input
+    id: screen
+    attributes:
+      label: Screen
+      description: Make and exact model, how it is connected (HDMI, DSI, DPI, SPI), and the preset you chose.
+      placeholder: Waveshare 7inch DSI LCD (C), DSI, preset "Waveshare 7.0 DSI (C)"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version and Volumio version
+      placeholder: 1.0.0 on Volumio 4.231
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How it was installed
+      options:
+        - Fresh install
+        - Upgrade from 0.8.x (settings carried over)
+        - Other (say below)
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you set
+      description: The output, the preset, the rotation, the KMS/CMA choice; whatever you changed.
+    validations:
+      required: true
+  - type: textarea
+    id: saw
+    attributes:
+      label: What happened
+      description: What the screen and the touch did at boot and in the UI, step by step. A photo helps when the picture is wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: Leave empty if everything worked and this is a success report.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics report
+      description: "Plugin settings → Write a diagnostics report, then over SSH: `cat /tmp/pi-screen-setup-diagnostics.txt`. Paste it whole. It holds the board, the boot files as found and as written, the overlays the firmware applied, the DRM connectors, the CMA in use and the relevant kernel lines; no account or network data."
+      render: text
+    validations:
+      required: true

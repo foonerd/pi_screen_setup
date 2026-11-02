@@ -8,6 +8,7 @@ var execSync = require('child_process').execSync;
 var os = require('os');
 var express = require('express');
 var bodyParser = require('body-parser');
+var safe = require('./lib/safe');
 
 module.exports = PiScreenSetup;
 
@@ -151,24 +152,6 @@ function naturalSortCompare(a, b) {
     }
   }
   return 0;
-}
-
-// Management server: a file name parameter is a bare JSON file name, never a path.
-function safeJsonName(name) {
-  if (typeof name !== 'string' || path.basename(name) !== name) return null;
-  return /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/.test(name) ? name : null;
-}
-
-var PRESET_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
-
-// Import from a local path is limited to user data and mounted media.
-var IMPORT_ROOTS = ['/data', '/mnt', '/media', '/home/volumio'];
-function resolveImportPath(p) {
-  if (typeof p !== 'string' || !p.endsWith('.json')) return null;
-  var real;
-  try { real = fs.realpathSync(p); } catch (e) { return null; }
-  var allowed = IMPORT_ROOTS.some(function(root) { return real.indexOf(root + '/') === 0; });
-  return allowed ? real : null;
 }
 
 
@@ -631,7 +614,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
         if (!data.id || !data.name) {
           return res.status(400).json({ error: 'ID and name are required' });
         }
-        if (!PRESET_ID_RE.test(data.id)) {
+        if (!safe.isPresetId(data.id)) {
           return res.status(400).json({ error: 'ID may contain letters, digits, dot, dash and underscore only' });
         }
         
@@ -790,7 +773,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.post('/api/database/import-path', function(req, res) {
       try {
-        var filePath = resolveImportPath(req.body.path);
+        var filePath = safe.resolveImportPath(req.body.path);
         if (!filePath) {
           return res.status(400).json({ error: 'Path must be a .json file under /data, /mnt, /media or /home/volumio' });
         }
@@ -1029,7 +1012,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.get('/api/backups/:name', function(req, res) {
       try {
-        var name = safeJsonName(req.params.name);
+        var name = safe.safeJsonName(req.params.name);
         var backupPath = name && path.join(self.presetsBackupDir, name);
         
         if (!backupPath || !fs.existsSync(backupPath)) {
@@ -1048,7 +1031,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.delete('/api/backups/:name', function(req, res) {
       try {
-        var name = safeJsonName(req.params.name);
+        var name = safe.safeJsonName(req.params.name);
         var backupPath = name && path.join(self.presetsBackupDir, name);
         
         if (!backupPath || !fs.existsSync(backupPath)) {
@@ -1070,7 +1053,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     self.expressApp.post('/api/backups/upload', function(req, res) {
       try {
         var data = req.body.data;
-        var name = safeJsonName(req.body.name || ('uploaded_' + Date.now() + '.json'));
+        var name = safe.safeJsonName(req.body.name || ('uploaded_' + Date.now() + '.json'));
         
         if (!name) {
           return res.status(400).json({ error: 'Name must be a bare .json file name' });
@@ -1096,7 +1079,7 @@ PiScreenSetup.prototype.startManagementServer = function() {
     // ========================================
     self.expressApp.post('/api/backups/restore', function(req, res) {
       try {
-        var name = safeJsonName(req.body.name);
+        var name = safe.safeJsonName(req.body.name);
         var backupPath = name && path.join(self.presetsBackupDir, name);
         
         if (!backupPath || !fs.existsSync(backupPath)) {
@@ -2048,7 +2031,7 @@ PiScreenSetup.prototype.adminAddPreset = function(data) {
   }
   
   presetId = presetId.trim().toLowerCase().replace(/\s+/g, '-');
-  if (!PRESET_ID_RE.test(presetId)) {
+  if (!safe.isPresetId(presetId)) {
     self.commandRouter.pushToastMessage('error', 'Pi Screen Setup', 
       self.getI18n('ADMIN_ERROR_INVALID_ID') || 'Invalid preset ID');
     return libQ.resolve({});

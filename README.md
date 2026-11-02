@@ -372,6 +372,10 @@ Display preset contributions welcome. There are two ways to contribute:
 
 MIT
 
+## Support
+
+Pi Screen Setup is free and open source, designed, built and maintained by one developer in his own time. If it has earned a place on your player, you can support its development through [GitHub Sponsors](https://github.com/sponsors/foonerd) or [Ko-fi](https://ko-fi.com/justanerd). Sponsorship is a thank-you, not a purchase: it buys no priority, no features and no support agreement.
+
 ## Credits
 
 Developed by Just a Nerd for the Volumio community.
