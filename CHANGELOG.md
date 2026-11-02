@@ -8,11 +8,15 @@ All notable changes to Pi Screen Setup are recorded here. The format follows [Ke
 
 - `lib/board.js`: the board is read from the revision code the firmware publishes (`/proc/device-tree/system/linux,revision`, else `/proc/cpuinfo`), decoded against the documented type, processor and memory fields. Pi Zero 2 W, Pi 400, Pi 500, CM4S, CM5 and CM5 Lite are now recognised as themselves; installed memory is exact instead of rounded from `MemTotal`.
 - `lib/configtxt.js`: a reader for `config.txt` and its includes that applies the firmware's conditional-filter rules (`[all]`, `[none]`, model filters, `[board-type=]`, serial `[0x…]`, `[EDID=]`, `[gpioN=]`, `[HDMI:n]`, `[tryboot]`, expression filters; same type replaces, different types combine, state carries across `include`) and reports what actually applies to this board. Tests cover Volumio's 4.119 and 4.231 `volumioconfig.txt`: the 4.231 file leaves KMS unapplied on every Pi 3, 4 and 5 because its `[0x9020e0]`/`[0x9020e1]` serial filters precede the model filters.
+- `lib/verify.js`: what the running system shows — whether the vc4 driver is bound, the DRM connectors and their state, the CMA in use, the kernel command line — and a diagnostics report built from that, the boot files as found and as they apply to the board, the plugin's settings and the display-related kernel messages. The hardware section gets a "Write a diagnostics report" button (`/tmp/pi-screen-setup-diagnostics.txt`) and a line stating what the boot files apply to this board right now.
+- When the plugin is enabled but not yet configured and the boot files apply no display driver (KMS) on a board that has one, the plugin writes the one driver line itself under its own banner and says so (reversible, replaced by the wizard's file).
 - `lib/cma.js`: graphics memory (CMA) per board. "Kernel default" is a choice (no `cma-` parameter: 256 MB on Pi 2/3, 508 MB on Pi 4, 64 MB on Pi 5), 512 MB boards are held to 128 MB as Volumio intends for the 3A+, sizes above a board's limit are not offered, custom values are 4 MB aligned. The KMS step shows the board, the CMA in use now (from `/proc/meminfo`) and the one that applies after the next reboot.
 
 ### Changed
 
-- The KMS driver line is written with the board's own overlay and the chosen CMA; on a Pi 5 the second DSI port is named `DSI-2` as the kernel does.
+- The KMS driver line is written with the board's own overlay and the chosen CMA; on a Pi 5 the second DSI port is named `DSI-2` as the kernel does. `videoconfig.txt` now opens with `[all]`, so a conditional filter left open by the file before it cannot capture its lines.
+- Boot validation evaluates what the boot files apply to this board (not whether a line is present somewhere): a configured display driver that the files do not actually apply, or one applied when none is configured, is drift. After drift the files are regenerated from the current settings; the previous behaviour copied back the copies taken at install, which after a system update were stale.
+- New installs start with the CMA at "Kernel default".
 - Installs that still carried the old "Default (64 MB)" CMA setting are moved once to "Kernel default", with a notice; explicit choices are left alone.
 
 ### Fixed

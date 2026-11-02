@@ -73,7 +73,7 @@
   "kms": {
     "enabled": true,
     "mode": "preset",
-    "cma_option": "default",
+    "cma_option": "auto",
     "cma_custom_mb": 256
   },
   "cmdline_rotation": {

@@ -11,6 +11,8 @@ var bodyParser = require('body-parser');
 var safe = require('./lib/safe');
 var board = require('./lib/board');
 var cma = require('./lib/cma');
+var configtxt = require('./lib/configtxt');
+var verify = require('./lib/verify');
 
 module.exports = PiScreenSetup;
 
@@ -286,6 +288,59 @@ PiScreenSetup.prototype.migrateCmaDefault = function() {
   self.commandRouter.pushToastMessage('info', self.getI18n('PLUGIN_NAME'),
     self.getI18n('CMA_MIGRATED').replace('{mb}', policy.recommended || '?'));
   return true;
+};
+
+// Everything a test report needs, in one file; no account or network data.
+PiScreenSetup.prototype.writeDiagnosticsReport = function() {
+  var self = this;
+  var target = '/tmp/pi-screen-setup-diagnostics.txt';
+  try {
+    var sys = board.readSystem();
+    var boot = self.readEffectiveBoot();
+    var run = function(cmd) { try { return execSync(cmd + ' 2>/dev/null', { encoding: 'utf8', timeout: 5000 }); } catch (e) { return ''; } };
+    var pkg = {};
+    try { pkg = fs.readJsonSync(path.join(__dirname, 'package.json')); } catch (e) { /* version unknown */ }
+    var outputs = ['hdmi0', 'hdmi1', 'dsi0', 'dsi1', 'dpi'];
+    var state = {
+      wizard_complete: self.config.get('wizard_complete', false),
+      applied_date: self.config.get('applied_date', ''),
+      primary_output: self.getConfigValue('primary_output', ''),
+      kms_mode: self.getConfigValue('kms.mode', ''),
+      cma_option: self.getConfigValue('kms.cma_option', ''),
+      cma_custom_mb: self.getConfigValue('kms.cma_custom_mb', ''),
+      kms_baseline_applied: self.config.get('kms.baseline_applied', ''),
+      drift_errors: self.driftErrors || [],
+      database: { source: self.config.get('database.active_source', ''), version: self.displayPresetsVersion }
+    };
+    outputs.forEach(function(o) {
+      state[o] = {
+        enabled: self.getConfigValue(o + '.enabled', false),
+        preset: self.getConfigValue(o + '.display_preset', self.getConfigValue(o + '.overlay', '')),
+        rotation: self.getConfigValue(o + '.rotation', 0)
+      };
+    });
+    var text = verify.report({
+      pluginVersion: pkg.version,
+      dbVersion: self.displayPresetsVersion,
+      uname: run('uname -r').trim(),
+      board: sys.board,
+      system: sys,
+      bootFiles: boot.files,
+      effective: boot.effective,
+      trailingFilters: boot.trailingFilters,
+      expected: { kmsOverlay: self.getEffectiveKmsEnabled() ? self.hardwareInfo.kms_overlay : null, cmaMb: self.getCmaMb() },
+      actual: verify.snapshot(),
+      pluginState: state,
+      dmesg: run('dmesg | grep -iE "vc4|drm|dsi|dpi|cma|hdmi|panel" | tail -n 80'),
+      pluginLog: run('journalctl -u volumio --no-pager -n 400 | grep -F pi_screen_setup | tail -n 60')
+    });
+    fs.writeFileSync(target, text, 'utf8');
+    self.commandRouter.pushToastMessage('success', self.getI18n('PLUGIN_NAME'), self.getI18n('DIAGNOSTICS_WRITTEN').replace('{path}', target));
+  } catch (e) {
+    self.logger.error('pi_screen_setup: diagnostics report failed - ' + e);
+    self.commandRouter.pushToastMessage('error', self.getI18n('PLUGIN_NAME'), self.getI18n('DIAGNOSTICS_FAILED').replace('{error}', e.message || e));
+  }
+  return libQ.resolve({});
 };
 
 PiScreenSetup.prototype.readMeminfo = function() {
@@ -3172,6 +3227,7 @@ PiScreenSetup.prototype.generateVideoConfig = function() {
     model = self.getConfigValue('hardware.model', 'Unknown');
   }
   lines.push('# Model: ' + model);
+  lines.push('[all]');
   lines.push('');
 
   var primaryOutput = self.primaryOutputCache || self.getConfigValue('primary_output', 'hdmi0');
@@ -4816,6 +4872,55 @@ PiScreenSetup.prototype.migrateReconfigure = function() {
 // BOOT VALIDATION
 // ============================================================================
 
+// The boot files as found and what the firmware applies from them to this board.
+PiScreenSetup.prototype.readEffectiveBoot = function() {
+  var self = this;
+  var read = function(p) { try { return fs.readFileSync(p, 'utf8'); } catch (e) { return null; } };
+  var files = {
+    'config.txt': read(CONFIG_TXT),
+    'volumioconfig.txt': read(VOLUMIOCONFIG_TXT),
+    'videoconfig.txt': read(VIDEOCONFIG_TXT),
+    'userconfig.txt': read(USERCONFIG_TXT)
+  };
+  var includes = {};
+  Object.keys(files).forEach(function(k) { if (k !== 'config.txt' && files[k] !== null) includes[k] = files[k]; });
+  var b = self.hardwareInfo && self.hardwareInfo.board;
+  var subject = b ? Object.assign({}, b, { serial: self.hardwareInfo.serial }) : null;
+  var entries = files['config.txt'] === null ? [] : configtxt.parse(files['config.txt'], 'config.txt', includes);
+  var eff = subject ? configtxt.effective(entries, subject) : null;
+  return {
+    files: files,
+    entries: entries,
+    effective: eff ? configtxt.displayState(eff) : null,
+    trailingFilters: files['volumioconfig.txt'] === null ? [] : configtxt.trailingFilters(configtxt.parse(files['volumioconfig.txt'], 'volumioconfig.txt'))
+  };
+};
+
+// Plugin enabled, nothing configured yet, and the OS files leave the KMS driver off on a
+// board that has it: write the one line the OS meant to write, under our banner, and
+// say so. Reversible by uninstall; replaced by the full file once the wizard runs.
+PiScreenSetup.prototype.ensureKmsBaseline = function(boot) {
+  var self = this;
+  var b = self.hardwareInfo && self.hardwareInfo.board;
+  if (!b || b.kms !== 'yes' || !boot.effective || boot.effective.kmsOverlay) return false;
+  if (self.getConfigValue('kms.mode', 'preset') === 'off') return false;
+  if (boot.files['videoconfig.txt'] !== null && boot.files['videoconfig.txt'].indexOf(VIDEOCONFIG_BANNER) !== -1) return false;
+  var content = [
+    VIDEOCONFIG_BANNER,
+    '# Generated: ' + new Date().toISOString(),
+    '# Baseline: the OS boot files apply no KMS driver on this board (' + b.name + ')',
+    '[all]',
+    'dtoverlay=' + self.hardwareInfo.kms_overlay + cma.parameter('auto', null, b),
+    ''
+  ].join(os.EOL);
+  if (!self.writeBootFile(VIDEOCONFIG_TXT, content)) return false;
+  self.ensureConfigInclude();
+  self.config.set('kms.baseline_applied', new Date().toISOString());
+  self.logger.warn('pi_screen_setup: KMS baseline written - the OS files applied no KMS overlay on ' + b.name);
+  self.commandRouter.pushToastMessage('warning', self.getI18n('PLUGIN_NAME'), self.getI18n('KMS_BASELINE_APPLIED'));
+  return true;
+};
+
 PiScreenSetup.prototype.validateBootConfig = function() {
   var self = this;
   var defer = libQ.defer();
@@ -4870,8 +4975,15 @@ PiScreenSetup.prototype.validateBootConfig = function() {
       }
     }
     
-    // If still not configured, nothing to validate
+    // Not configured yet: nothing of ours to validate, but the display driver must not
+    // be left off by the OS file (conditional ownership, journal R1).
     if (!wizardComplete) {
+      try {
+        self.lastBoot = self.readEffectiveBoot();
+        self.ensureKmsBaseline(self.lastBoot);
+      } catch (e) {
+        self.logger.error('pi_screen_setup: baseline check failed - ' + e);
+      }
       result.valid = true;
       defer.resolve(result);
       return defer.promise;
@@ -4924,6 +5036,33 @@ PiScreenSetup.prototype.validateBootConfig = function() {
           result.errors.push('ERR_VOLUMIOCONFIG_MISMATCH');
         }
       }
+    }
+
+    // Effective state: does the firmware actually apply what we intend on this board?
+    try {
+      var boot = self.readEffectiveBoot();
+      self.lastBoot = boot;
+      if (boot.effective) {
+        var wantKms = self.getEffectiveKmsEnabled();
+        if (wantKms && !boot.effective.kmsOverlay) {
+          result.drift_detected = true;
+          result.errors.push('ERR_KMS_NOT_EFFECTIVE');
+        } else if (!wantKms && boot.effective.kmsOverlay) {
+          result.drift_detected = true;
+          result.errors.push('ERR_KMS_UNEXPECTED');
+        }
+        if (boot.trailingFilters.length) {
+          result.warnings = (result.warnings || []).concat('WARN_OS_FILTER_OPEN');
+        }
+      }
+      // What the running kernel shows; informative until the next reboot applies a change.
+      var expected = {
+        kmsOverlay: self.getEffectiveKmsEnabled() ? self.hardwareInfo.kms_overlay : null,
+        cmaMb: self.getCmaMb()
+      };
+      self.bootFindings = verify.findings(expected, verify.snapshot());
+    } catch (e) {
+      self.logger.error('pi_screen_setup: effective-state check failed - ' + e);
     }
 
     if (result.errors.length > 0) {
@@ -5121,64 +5260,21 @@ PiScreenSetup.prototype.cleanVolumioConfig = function() {
   return defer.promise;
 };
 
-// Restore boot files from current/ backup (for OTA restore)
-PiScreenSetup.prototype.restoreFromCurrentBackup = function() {
-  var self = this;
-  var defer = libQ.defer();
-
-  try {
-    var restored = [];
-    
-    // Copy videoconfig.txt from backup
-    var savedVideoconfig = path.join(CURRENT_CONFIG_DIR, 'videoconfig.txt');
-    if (fs.existsSync(savedVideoconfig)) {
-      var content = fs.readFileSync(savedVideoconfig, 'utf8');
-      if (self.writeBootFile(VIDEOCONFIG_TXT, content)) {
-        restored.push('videoconfig.txt');
-      } else {
-        defer.reject(new Error('Failed to restore videoconfig.txt'));
-        return defer.promise;
-      }
-    } else {
-      defer.reject(new Error('No videoconfig.txt backup found'));
-      return defer.promise;
-    }
-    
-    // Copy cmdline.txt from backup
-    var savedCmdline = path.join(CURRENT_CONFIG_DIR, 'cmdline.txt');
-    if (fs.existsSync(savedCmdline)) {
-      var cmdlineContent = fs.readFileSync(savedCmdline, 'utf8');
-      if (self.writeBootFile(CMDLINE_TXT, cmdlineContent)) {
-        restored.push('cmdline.txt');
-      } else {
-        self.logger.warn('pi_screen_setup: Failed to restore cmdline.txt');
-      }
-    }
-    
-    self.logger.info('pi_screen_setup: Restored from backup: ' + restored.join(', '));
-    defer.resolve(restored);
-    
-  } catch (err) {
-    self.logger.error('pi_screen_setup: Error restoring from backup - ' + err);
-    defer.reject(err);
-  }
-
-  return defer.promise;
-};
-
 PiScreenSetup.prototype.restoreConfiguration = function() {
   var self = this;
   var defer = libQ.defer();
 
-  self.logger.info('pi_screen_setup: Restoring configuration from backup');
+  self.logger.info('pi_screen_setup: Regenerating configuration after drift');
 
-  // Copy files from current/ backup (not regenerate)
-  self.restoreFromCurrentBackup()
-    .then(function() {
-      return self.ensureConfigInclude();
-    })
+  self.ensureConfigInclude()
     .then(function() {
       return self.cleanVolumioConfig();
+    })
+    .then(function() {
+      return self.writeVideoConfig();
+    })
+    .then(function() {
+      return self.updateCmdline();
     })
     .then(function() {
       // Save cleaned state for future OTA comparison
@@ -5321,6 +5417,27 @@ PiScreenSetup.prototype.getUIConfig = function() {
           self.getI18n('KMS_NOT_SUPPORTED');
       }
       
+      // What the boot files apply to this board right now, and what the kernel shows
+      var hwEffectiveItem = self.findContentItem(hwSection, 'hw_effective');
+      if (hwEffectiveItem) {
+        var eff = self.lastBoot && self.lastBoot.effective;
+        var inUse = cma.appliedMb(self.readMeminfo());
+        var text;
+        if (!eff) {
+          text = self.getI18n('HW_EFFECTIVE_UNKNOWN');
+        } else if (eff.kmsOverlay) {
+          text = self.getI18n('HW_EFFECTIVE_KMS').replace('{overlay}', eff.kmsOverlay)
+            .replace('{cma}', eff.cmaMb === null ? self.getI18n('CMA_KERNEL_DEFAULT') : eff.cmaMb + ' MB');
+        } else {
+          text = self.getI18n('HW_EFFECTIVE_NO_KMS');
+        }
+        if (inUse !== null) text += ' ' + self.getI18n('HW_EFFECTIVE_IN_USE').replace('{mb}', inUse);
+        if (self.bootFindings && self.bootFindings.length) {
+          text += ' ' + self.getI18n('HW_EFFECTIVE_FINDINGS').replace('{list}', self.bootFindings.map(function(f) { return f.code; }).join(', '));
+        }
+        hwEffectiveItem.value = text;
+      }
+
       // Warnings (only show if there are warnings)
       var hwWarningsItem = self.findContentItem(hwSection, 'hw_warnings');
       if (hwWarningsItem) {
