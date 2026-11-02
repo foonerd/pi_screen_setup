@@ -126,6 +126,23 @@ for (const [id, p] of Object.entries(db.presets || {})) {
     }
 }
 
+// No preset is ever lost. Users' settings name these keys (hdmi0.display_preset,
+// dsi0.overlay, dpi.overlay) and deployed players fetch this file: a key that
+// disappears or changes type breaks a display that was working. The snapshot in
+// test/db-keys.json grows through scripts/db-snapshot.js, in a diff somebody reads.
+const snapshotFile = path.join(repo, 'test', 'db-keys.json');
+if (!fs.existsSync(snapshotFile)) fail('test/db-keys.json missing (scripts/db-snapshot.js)');
+else {
+    const snapshot = JSON.parse(fs.readFileSync(snapshotFile, 'utf8')).keys || {};
+    for (const [id, type] of Object.entries(snapshot)) {
+        if (!(id in (db.presets || {}))) fail(`presets.${id}: removed — presets are never removed; keep the row and mark it deprecated`);
+        else if (db.presets[id].type !== type) fail(`presets.${id}: type changed from ${type} to ${db.presets[id].type}`);
+    }
+    for (const id of Object.keys(db.presets || {})) {
+        if (!id.startsWith('_comment') && !(id in snapshot)) fail(`presets.${id}: new key not in test/db-keys.json — run scripts/db-snapshot.js and review the diff`);
+    }
+}
+
 // The store's installer waits for these words.
 if (!/^echo "plugininstallend"\s*$/m.test(read('install.sh'))) fail('install.sh does not end with echo "plugininstallend"');
 if (!/^echo "pluginuninstallend"\s*$/m.test(read('uninstall.sh'))) fail('uninstall.sh does not end with echo "pluginuninstallend"');

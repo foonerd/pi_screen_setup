@@ -744,6 +744,27 @@ test('the presets database: bundled, checked, downloaded, cached across restarts
     await stop(env);
 });
 
+test('the presets a user authored on a release before 1.0 are carried to the Internal Storage directory', async () => {
+    const draft = { version: '1.5.9', presets: { 'my-own-panel': { name: 'My Own Panel', type: 'hdmi', description: '', config: { hdmi_group: 2, hdmi_mode: 87, hdmi_cvt: '1000 600 60 6 0 0 0' } } } };
+    const cached = { version: '1.5.9', presets: Object.assign({}, fs.readJsonSync(path.join(H.PLUGIN_DIR, 'display_presets.json')).presets, draft.presets) };
+    H.seed({ board: 'pi4', config: 'raw', legacyCache: { 'draft.json': draft, 'remote.json': cached, 'backups/presets_backup_2026-01-01T00-00-00-000Z.json': draft } });
+    let env = H.plugin();
+    await env.start();
+    assert.equal(env.p.presetsCacheDir, path.join(H.INTERNAL, 'presets_cache'));
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'presets_cache', 'draft.json')), 'the draft moved');
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'presets_cache', 'backups', 'presets_backup_2026-01-01T00-00-00-000Z.json')), 'the preset backups moved');
+    assert.equal(fs.existsSync(path.join(H.PLUGIN_DATA, 'presets_cache')), false, 'nothing left in the plugin folder');
+    assert.equal(env.p.config.get('database.active_source'), 'cached', 'the fetched database is still the active one');
+    assert.ok(env.p.getDisplayPreset('my-own-panel'), 'the user\'s own preset is there');
+    env.p.initDraftPresets();
+    assert.ok(env.p.draftPresets.presets['my-own-panel']);
+    assert.ok(env.logs.some((l) => /presets cache carried over/.test(l[1])));
+    env = await restart(env);
+    assert.equal(env.logs.some((l) => /presets cache carried over/.test(l[1])), false, 'once');
+    assert.ok(env.p.getDisplayPreset('my-own-panel'));
+    await stop(env);
+});
+
 test('the admin draft: list, load, add, update, delete, version, export, import, publish, discard, the toggles', async () => {
     H.seed({ board: 'pi4' });
     const env = H.plugin();

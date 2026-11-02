@@ -42,8 +42,9 @@ var INTERNAL_DIR = ROOT + '/data/INTERNAL/pi_screen_setup';
 var CURRENT_CONFIG_DIR = INTERNAL_DIR + '/backups/current';
 var STRIP_DIR = INTERNAL_DIR + '/strip';
 
-// Presets cache paths
-var PRESETS_CACHE_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
+// The presets the user authored or fetched: beside the backups, outside the plugin folder
+var PRESETS_CACHE_DIR = INTERNAL_DIR + '/presets_cache';
+var LEGACY_PRESETS_CACHE_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
 var PRESETS_REMOTE_CACHE = PRESETS_CACHE_DIR + '/remote.json';
 var PRESETS_DRAFT = PRESETS_CACHE_DIR + '/draft.json';
 var PRESETS_METADATA = PRESETS_CACHE_DIR + '/metadata.json';
@@ -188,7 +189,7 @@ function PiScreenSetup(context) {
   
   // Database update state
   self.presetsMetadata = null;
-  self.presetsCacheDir = path.join(ROOT + '/data/plugins', self.pluginType, self.pluginName, 'presets_cache');
+  self.presetsCacheDir = PRESETS_CACHE_DIR;
   
   // Admin working copy
   self.draftPresets = null;
@@ -308,6 +309,31 @@ PiScreenSetup.prototype.migrateCmaDefault = function() {
   self.commandRouter.pushToastMessage('info', self.getI18n('PLUGIN_NAME'),
     self.getI18n('CMA_MIGRATED').replace('{mb}', policy.recommended || '?'));
   return true;
+};
+
+// Moves the presets cache of a release before 1.0 (the draft, the fetched database,
+// the preset backups and exports) from the plugin folder to the Internal Storage
+// directory, once, when the new place is still empty. Nothing is deleted on failure.
+PiScreenSetup.prototype.carryOverPresetsCache = function() {
+  var self = this;
+  try {
+    if (!fs.existsSync(LEGACY_PRESETS_CACHE_DIR) || LEGACY_PRESETS_CACHE_DIR === PRESETS_CACHE_DIR) return false;
+    var moved = 0;
+    fs.ensureDirSync(PRESETS_CACHE_DIR);
+    fs.readdirSync(LEGACY_PRESETS_CACHE_DIR).forEach(function(name) {
+      var from = path.join(LEGACY_PRESETS_CACHE_DIR, name);
+      var to = path.join(PRESETS_CACHE_DIR, name);
+      if (fs.existsSync(to)) return;
+      fs.copySync(from, to);
+      moved++;
+    });
+    fs.removeSync(LEGACY_PRESETS_CACHE_DIR);
+    self.logger.info('pi_screen_setup: presets cache carried over to ' + PRESETS_CACHE_DIR + ' (' + moved + ' entries)');
+    return true;
+  } catch (e) {
+    self.logger.error('pi_screen_setup: could not carry over the presets cache - ' + e);
+    return false;
+  }
 };
 
 // Everything a test report needs, in one file; no account or network data.
@@ -440,6 +466,9 @@ PiScreenSetup.prototype.onStart = function() {
 
   // Load i18n strings
   self.loadI18n();
+
+  // Presets authored or fetched by a release before 1.0 lived in the plugin folder
+  self.carryOverPresetsCache();
 
   // Load display presets
   self.loadDisplayPresets();

@@ -259,7 +259,13 @@ Original files are backed up before modification.
 ### Backup and Restore
 
 **Where things are kept**
-Backups, restore points, the reference copies of the boot files taken at each apply, and the record of what the plugin removed from Volumio's own files live in `/data/INTERNAL/pi_screen_setup/` (the Internal Storage share). That directory survives a plugin update and an uninstall; the plugin's own folder does not.
+Backups, restore points, the reference copies of the boot files taken at each apply, the record of what the plugin removed from Volumio's own files, and the presets you authored or fetched (the draft, the downloaded database, the preset backups and exports) live in `/data/INTERNAL/pi_screen_setup/`, the Internal Storage share. That directory survives a plugin update and an uninstall; the plugin's own folder does not — Volumio removes it on every update.
+
+**Updating from a release before 1.0**
+Releases before 1.0 kept the presets cache inside the plugin folder, which Volumio deletes when it updates a plugin, before the new release can run. If you authored presets in the Preset Manager on such a release, export them first (Preset Manager → Export, or `GET http://<player>:4567/api/database/export`) and import them after the update. A cache that is still in the old place when 1.0 first starts (a manual install over the same folder) is carried over.
+
+**No preset is ever removed from the database**
+Your settings name presets by their key. The repository's check refuses a database in which a key of any earlier release is missing or has changed type (`test/db-keys.json`); a preset that is superseded stays in place and is marked as such.
 
 **Restore Points**
 Each time you apply a configuration, a restore point is created containing `videoconfig.txt`, `config.txt` and `cmdline.txt`. The last 10 are kept and can be selected from the plugin UI.

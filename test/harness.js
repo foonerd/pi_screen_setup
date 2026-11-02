@@ -50,6 +50,7 @@ const osFile = (name) => fs.readFileSync(path.join(FIXTURES, 'os', name), 'utf8'
 //   factory: false                              (install.sh's factory copies; default on)
 //   kms: false                                  (no vc4 in /sys: driver not up)
 //   overlays: ['name.dtbo']                     (files present in /boot/overlays)
+//   legacyCache: { 'draft.json': {...} }        (a presets cache left by a release before 1.0)
 function seed(opts) {
     opts = opts || {};
     const board = BOARDS[opts.board || 'pi5'];
@@ -101,7 +102,11 @@ function seed(opts) {
     fs.ensureDirSync(path.join(INTERNAL, 'backups', 'restore_points'));
     fs.ensureDirSync(path.join(INTERNAL, 'backups', 'factory'));
     fs.ensureDirSync(path.join(INTERNAL, 'strip'));
-    fs.ensureDirSync(path.join(PLUGIN_DATA, 'presets_cache'));
+    fs.ensureDirSync(path.join(INTERNAL, 'presets_cache'));
+    if (opts.legacyCache) {
+        fs.ensureDirSync(path.join(PLUGIN_DATA, 'presets_cache', 'backups'));
+        Object.keys(opts.legacyCache).forEach((n) => fs.writeJsonSync(path.join(PLUGIN_DATA, 'presets_cache', n), opts.legacyCache[n]));
+    }
     if (opts.factory !== false) {
         ['config.txt', 'cmdline.txt', 'volumioconfig.txt', 'userconfig.txt'].forEach((n) => {
             if (fs.existsSync(path.join(BOOT, n))) fs.copySync(path.join(BOOT, n), path.join(INTERNAL, 'backups', 'factory', n));

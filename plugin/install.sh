@@ -44,11 +44,11 @@ if ! visudo -c -f "$SUDOERS" >/dev/null 2>&1; then
 fi
 
 # =============================================================================
-# Backups, restore points and the record of what was stripped from Volumio's files
-# live on the Internal Storage share, outside the plugin folder (which an update
+# Backups, restore points, the presets the user authored or fetched, and the record of
+# what was stripped from Volumio's files live on the Internal Storage share, outside the plugin folder (which an update
 # replaces and an uninstall removes), so they survive both.
 # =============================================================================
-mkdir -p "$DATA_DIR/backups/factory" "$DATA_DIR/backups/restore_points" "$DATA_DIR/strip"
+mkdir -p "$DATA_DIR/backups/factory" "$DATA_DIR/backups/restore_points" "$DATA_DIR/strip" "$DATA_DIR/presets_cache"
 OLD_BACKUPS="$PLUGIN_DIR/backups"
 if [ -d "$OLD_BACKUPS" ] && [ ! -f "$DATA_DIR/backups/factory/config.txt" ]; then
   cp -a "$OLD_BACKUPS/." "$DATA_DIR/backups/" 2>/dev/null || true
