@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "version": "1.7.0",
+  "version": "1.8.0",
   "last_updated": "2026-11-02",
   "presets": {
     "auto": {
@@ -1736,6 +1736,62 @@
       },
       "recommended_rotation": 0,
       "notes": "Pi4 requires 1360 (not 1366) due to even-pixel requirement",
+      "provenance": "community"
+    },
+    "generic-1520x720": {
+      "name": "Generic 1520x720 HDMI",
+      "type": "hdmi",
+      "description": "Wide 10.1\" bars (Elecrow DLH61101B and similar)",
+      "native_resolution": "1520x720",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1520 720 60 7 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "CVT 1520x720@60; 21:9 class panel",
+      "provenance": "community"
+    },
+    "generic-1920x1200": {
+      "name": "Generic 1920x1200 HDMI",
+      "type": "hdmi",
+      "description": "WUXGA 10.1\"-16\" panels (UPERFECT UPi B7 class) when the panel's EDID is not read",
+      "native_resolution": "1920x1200",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1920 1200 60 5 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "CVT 1920x1200@60; prefer Auto Detect when the panel has a working EDID",
+      "provenance": "community"
+    },
+    "generic-720x1280": {
+      "name": "Generic 720x1280 HDMI",
+      "type": "hdmi",
+      "description": "Portrait 5\"-7\" panels without vendor lines",
+      "native_resolution": "720x1280",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "720 1280 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "CVT 720x1280@60; rotate in the plugin for landscape use",
+      "provenance": "community"
+    },
+    "generic-1080x1920": {
+      "name": "Generic 1080x1920 HDMI",
+      "type": "hdmi",
+      "description": "Portrait FHD panels without vendor lines",
+      "native_resolution": "1080x1920",
+      "config": {
+        "hdmi_group": 2,
+        "hdmi_mode": 87,
+        "hdmi_cvt": "1080 1920 60 3 0 0 0"
+      },
+      "recommended_rotation": 0,
+      "notes": "CVT 1080x1920@60; rotate in the plugin for landscape use",
       "provenance": "community"
     },
     "generic-720p": {

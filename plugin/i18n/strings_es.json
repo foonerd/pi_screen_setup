@@ -68,6 +68,7 @@
     "PRESET_NOTE_BOARD": "Pensado para estas placas: {boards}.",
     "PRESET_NOTE_NEEDS_OVERLAY": "Necesita el archivo de overlay del fabricante {name}.dtbo en /boot/overlays, que esta versión no instala.",
     "PRESET_NOTE_SHIPPED_OVERLAY": "El plugin instala los archivos de overlay del fabricante en /boot/overlays al aplicar: {files}.",
+    "PRESET_NOTE_EDID": "El plugin entrega al kernel los tiempos de este panel como archivo EDID ({file}).",
     "PRESET_NOTE_DEPRECATED": "Sustituido por {name}.",
     "PRESET_NOTE_EXPERIMENTAL": "Funciona para algunos usuarios; no verificado por el fabricante.",
     "DSI_SUMMARY_NO_PANEL_OVERLAY": "sin linea overlay de panel vc4-kms-dsi en videoconfig",

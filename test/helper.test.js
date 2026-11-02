@@ -84,6 +84,10 @@ test('the root helper: clean-exit takes the plugin out and puts the stripped lin
     fs.writeFileSync(path.join(root, 'boot', 'overlays', 'pss-waveshare-5dpi.dtbo'), Buffer.from([0xd0, 0x0d, 0xfe, 0xed]));
     fs.writeFileSync(path.join(root, 'boot', 'overlays', 'pss-vc4-kms-dpi-5inch.dtbo'), Buffer.from([0xd0, 0x0d, 0xfe, 0xed]));
     fs.writeFileSync(path.join(root, 'boot', 'overlays', 'vc4-kms-v3d.dtbo'), Buffer.from([0xd0, 0x0d, 0xfe, 0xed]));
+    fs.mkdirSync(path.join(root, 'lib', 'firmware', 'edid'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'lib', 'firmware', 'edid', 'pss-hosyond.bin'), 'x');
+    fs.writeFileSync(path.join(root, 'lib', 'firmware', 'edid', 'vendor.bin'), 'x');
+    fs.writeFileSync(path.join(root, 'boot', 'cmdline.txt'), 'quiet splash plymouth.ignore-serial-consoles video=HDMI-A-1:1024x600M,rotate=90 plymouth=90 fbcon=rotate:1 drm.edid_firmware=HDMI-A-1:edid/pss-hosyond.bin');
     const out = h.cleanExit();
     assert.equal(read(root, 'config.txt'), 'gpu_mem=128\ninclude volumioconfig.txt\ninclude userconfig.txt\n');
     assert.equal(fs.existsSync(path.join(root, 'boot', 'videoconfig.txt')), false);
@@ -91,12 +95,14 @@ test('the root helper: clean-exit takes the plugin out and puts the stripped lin
     assert.equal(read(root, 'userconfig.txt'), '# user\n# edited after\n', 'changed since: left alone');
     assert.equal(read(root, 'cmdline.txt'), 'quiet splash plymouth.ignore-serial-consoles\n');
     assert.deepEqual(fs.readdirSync(path.join(root, 'boot', 'overlays')), ['vc4-kms-v3d.dtbo'], 'the plugin\'s overlay files go, the OS\'s stay');
+    assert.deepEqual(fs.readdirSync(path.join(root, 'lib', 'firmware', 'edid')), ['vendor.bin'], 'the plugin\'s EDID files go, others stay');
     assert.ok(/config\.txt: include line removed/.test(out));
     assert.ok(/videoconfig\.txt: removed/.test(out));
     assert.ok(/volumioconfig\.txt: the lines the plugin removed are back/.test(out));
     assert.ok(/WARNING: userconfig\.txt changed since/.test(out));
-    assert.ok(/cmdline\.txt: rotation parameters removed/.test(out));
+    assert.ok(/cmdline\.txt: plugin parameters removed/.test(out));
     assert.ok(/overlays: 2 plugin-installed file\(s\) removed/.test(out));
+    assert.ok(/edid: 1 plugin-generated file\(s\) removed/.test(out));
     assert.equal(fs.existsSync(path.join(dir, 'volumioconfig.txt.original')), false, 'consumed');
     assert.equal(fs.existsSync(path.join(dir, 'userconfig.txt.original')), true, 'kept for the user');
     const again = h.cleanExit();
@@ -128,6 +134,9 @@ test('the root helper: overlays and EDID files under their own prefix only, and 
     assert.ok(fs.readFileSync(path.join(root, 'lib', 'firmware', 'edid', 'pss-panel.bin')).equals(edid));
     fails(() => h.installEdid('pss-panel', 'edid-bytes'), /not an EDID block/);
     fails(() => h.installEdid('panel', edid), /must start with pss-/);
+    h.removeEdid('pss-panel');
+    assert.equal(fs.existsSync(path.join(root, 'lib', 'firmware', 'edid', 'pss-panel.bin')), false);
+    fails(() => h.removeEdid('panel'), /must start with pss-/);
     assert.equal(privileged.bootName('/boot/config.txt', '/boot'), 'config');
     assert.equal(privileged.bootName('/boot/overlays/config.txt', '/boot'), null);
     assert.equal(privileged.bootName('/boot/README', '/boot'), null);

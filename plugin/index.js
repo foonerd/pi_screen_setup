@@ -20,6 +20,7 @@ var strip = require('./lib/strip');
 var drift = require('./lib/drift');
 var presets = require('./lib/presets');
 var overlays = require('./lib/overlays');
+var hdmi = require('./lib/hdmi');
 
 module.exports = PiScreenSetup;
 
@@ -36,6 +37,7 @@ var VOLUMIOCONFIG_TXT = BOOT_PATH + '/volumioconfig.txt';
 var USERCONFIG_TXT = BOOT_PATH + '/userconfig.txt';
 var CMDLINE_TXT = BOOT_PATH + '/cmdline.txt';
 var OVERLAYS_PATH = BOOT_PATH + '/overlays';
+var EDID_DIR = ROOT + '/lib/firmware/edid';
 var OVERLAYS_README = OVERLAYS_PATH + '/README';
 
 // Backups, restore points, the reference copies and the strip record live on the Internal
@@ -244,6 +246,9 @@ PiScreenSetup.prototype.presetNotes = function(presetId) {
   var parts = [];
   if (preset.emit_dsi_overlay === false) parts.push(self.getI18n('DSI_PRESET_EMIT_HINT'));
   var applicability = self.presetApplicability(preset);
+  if (preset.type === 'hdmi' && preset.config && preset.config.hdmi_timings && hdmi.fits(preset.config.hdmi_timings)) {
+    parts.push(self.getI18n('PRESET_NOTE_EDID').replace('{file}', hdmi.edidName(presetId) + '.bin'));
+  }
   if ((preset.requires_overlay || []).length && !applicability.notes.some(function(n) { return n.code === 'NEEDS_OVERLAY'; })) {
     parts.push(self.getI18n('PRESET_NOTE_SHIPPED_OVERLAY').replace('{files}', preset.requires_overlay.map(function(n) { return self.shipped.fileFor(n) + '.dtbo'; }).join(', ')));
   }
@@ -409,6 +414,7 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
       userconfig_conflicts: boot.conflicts,
       shipped_overlays: self.shipped.count,
       installed_overlays: overlays.installed(OVERLAYS_PATH),
+      edid: self.edidState(),
       strip_record: { volumioconfig: strip.readRecord(self.stripDir, 'volumioconfig.txt') !== null, userconfig: strip.readRecord(self.stripDir, 'userconfig.txt') !== null },
       database: { source: self.config.get('database.active_source', ''), version: self.displayPresetsVersion }
     };
@@ -549,6 +555,8 @@ PiScreenSetup.prototype.onStart = function() {
     .then(function(validationResult) {
       if (validationResult.drift_detected) {
         self.handleConfigDrift(validationResult);
+      } else {
+        self.ensureEdid();
       }
       
       // Start management server
@@ -3981,6 +3989,86 @@ PiScreenSetup.prototype.removeConfigInclude = function() {
 // FILE MANAGEMENT - CMDLINE.TXT
 // ============================================================================
 
+// What the kernel is told about one HDMI port (hdmi0/hdmi1): the firmware lines the
+// port's preset (or the user's custom timings) carries, the video= mode derived from
+// them, and — for a panel whose timings are not CVT's — the EDID file to hand the kernel.
+// { config, videoMode, edid: { name, bytes, label } | null }, or null for a port that
+// shows no picture (disabled, audio only, Auto Detect).
+PiScreenSetup.prototype.hdmiPlan = function(prefix) {
+  var self = this;
+  var mode = self.getConfigValue(prefix + '.mode', 'screen_audio');
+  if (!self.getConfigValue(prefix + '.enabled', prefix === 'hdmi0') || mode === 'none' || mode === 'audio') return null;
+  var presetId = self.getConfigValue(prefix + '.display_preset', 'auto');
+  if (!presetId || presetId === 'auto') return null;
+  var isCustom = presetId === 'custom' || presetId === 'custom-hdmi';
+  var preset = isCustom ? null : self.getDisplayPreset(presetId);
+  var config = isCustom ? hdmi.customConfig(self.getConfigValue(prefix + '.custom_timings', '')) : (preset && preset.config) || null;
+  if (!config) return null;
+  var videoMode = hdmi.videoMode(config, { forceEnable: Boolean(self.getConfigValue(prefix + '.force_hotplug', false)) }) || (preset && preset.video_mode) || null;
+  var edid = null;
+  if (config.hdmi_timings && hdmi.fits(config.hdmi_timings)) {
+    var label = isCustom ? 'Custom HDMI' : (preset.name || presetId);
+    var name = hdmi.edidName(isCustom ? prefix + '-custom' : presetId);
+    edid = { name: name, label: label, bytes: hdmi.edid(config.hdmi_timings, { name: label, audio: mode === 'screen_audio' }) };
+  }
+  return { config: config, videoMode: videoMode, edid: edid };
+};
+
+// The EDID file into /lib/firmware/edid, unless the same bytes are already there.
+PiScreenSetup.prototype.installEdid = function(edid) {
+  var self = this;
+  var file = path.join(EDID_DIR, edid.name + '.bin');
+  try {
+    if (fs.existsSync(file) && fs.readFileSync(file).equals(edid.bytes)) return false;
+  } catch (e) { /* unreadable: write it */ }
+  self.priv.installEdid(edid.name, edid.bytes);
+  self.logger.info('pi_screen_setup: installed ' + edid.name + '.bin (' + edid.label + ', ' + edid.bytes.length + ' bytes) into ' + EDID_DIR);
+  return true;
+};
+
+// The plugin's EDID files that the kernel line no longer names.
+PiScreenSetup.prototype.removeStaleEdid = function(keepName) {
+  var self = this;
+  var present;
+  try { present = fs.readdirSync(EDID_DIR); } catch (e) { return; }
+  present.forEach(function(f) {
+    var m = f.match(/^(pss-[a-z0-9-]+)\.bin$/);
+    if (!m || m[1] === keepName) return;
+    try {
+      self.priv.removeEdid(m[1]);
+      self.logger.info('pi_screen_setup: removed ' + f + ', no longer used');
+    } catch (e) {
+      self.logger.warn('pi_screen_setup: could not remove ' + f + ' - ' + e.message);
+    }
+  });
+};
+
+// At start: the kernel line may name an EDID file the OS update took away with the rest
+// of /lib/firmware's writable layer. Put it back; never fail the start over it.
+PiScreenSetup.prototype.ensureEdid = function() {
+  var self = this;
+  try {
+    var cmd = fs.existsSync(CMDLINE_TXT) ? fs.readFileSync(CMDLINE_TXT, 'utf8') : '';
+    var m = cmd.match(/drm\.edid_firmware=([A-Za-z0-9-]+):edid\/(pss-[a-z0-9-]+)\.bin/);
+    if (!m) return false;
+    var primary = self.primaryOutputCache || self.getConfigValue('primary_output', 'hdmi0');
+    var plan = (primary === 'hdmi0' || primary === 'hdmi1') ? self.hdmiPlan(primary) : null;
+    if (!plan || !plan.edid || plan.edid.name !== m[2]) return false;
+    return self.installEdid(plan.edid);
+  } catch (e) {
+    self.logger.warn('pi_screen_setup: could not check the EDID file - ' + e.message);
+    return false;
+  }
+};
+
+// For the diagnostics: the EDID the kernel line names and whether the file is there.
+PiScreenSetup.prototype.edidState = function() {
+  var cmd = fs.existsSync(CMDLINE_TXT) ? fs.readFileSync(CMDLINE_TXT, 'utf8') : '';
+  var m = cmd.match(/drm\.edid_firmware=([A-Za-z0-9-]+):edid\/([^\s]+)/);
+  if (!m) return { named: null, present: false };
+  return { named: m[1] + ':' + m[2], present: fs.existsSync(path.join(EDID_DIR, m[2])) };
+};
+
 PiScreenSetup.prototype.updateCmdline = function() {
   var self = this;
   var defer = libQ.defer();
@@ -4033,20 +4121,16 @@ PiScreenSetup.prototype.updateCmdline = function() {
       }
     }
 
-    // Get video_mode from display preset if available
-    var videoMode = null;
-    if (displayPreset && displayPreset !== 'auto') {
-      var preset = self.getDisplayPreset(displayPreset);
-      if (preset && preset.video_mode) {
-        videoMode = preset.video_mode;
-      }
-    }
+    // The kernel's mode for the HDMI port, from the preset's firmware lines (lib/hdmi)
+    var plan = (primaryOutput === 'hdmi0' || primaryOutput === 'hdmi1') ? self.hdmiPlan(primaryOutput) : null;
+    var videoMode = plan ? plan.videoMode : null;
 
-    // Remove existing video, plymouth rotation, and fbcon parameters
+    // Remove existing video, plymouth rotation, fbcon and EDID parameters
     // NOTE: Do NOT remove plymouth.ignore-serial-consoles - it's needed for graphical boot splash
     content = content.replace(/\s*video=[^\s]*/g, '');
     content = content.replace(/\s*plymouth=[0-9]+/g, '');
     content = content.replace(/\s*fbcon=rotate:[0-3]/g, '');
+    content = content.replace(/\s*drm\.edid_firmware=[^\s]*/g, '');
 
     // Ensure plymouth.ignore-serial-consoles is present (needed for boot splash on screen)
     if (content.indexOf('plymouth.ignore-serial-consoles') === -1) {
@@ -4074,6 +4158,13 @@ PiScreenSetup.prototype.updateCmdline = function() {
 
     // DRM-style video=/plymouth= assume vc4-kms-v3d; skip when KMS driver is disabled for this config
     var kmsActive = self.getEffectiveKmsEnabled();
+
+    // A panel with its own timings: the EDID file first, then the kernel line that names it
+    var edidWanted = kmsActive && plan && plan.edid ? plan.edid : null;
+    if (edidWanted) {
+      self.installEdid(edidWanted);
+      content += ' ' + hdmi.edidToken(connectorName, edidWanted.name);
+    }
 
     // Only add cmdline rotation params if overlay doesn't handle it
     if (!overlayHandlesRotation) {
@@ -4120,6 +4211,7 @@ PiScreenSetup.prototype.updateCmdline = function() {
         .then(function() {
           if (self.writeBootFile(CMDLINE_TXT, content)) {
             self.logger.info('pi_screen_setup: Updated cmdline.txt');
+            self.removeStaleEdid(edidWanted ? edidWanted.name : null);
             defer.resolve();
           } else {
             defer.reject(new Error('Failed to write cmdline.txt'));

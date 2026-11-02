@@ -412,6 +412,8 @@ test('ota_behavior ask shows the choice and restoreAndReboot regenerates; silent
 // file, regenerated: the second file equals the first and cmdline.txt stays as it was.
 const ROUND_TRIPS = [
     { name: 'Pi 4, HDMI0 preset with hdmi_cvt, rotation 90, hotplug, boost, HDMI1 audio', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen', 'hdmi0.display_preset': 'waveshare-9.3-hdmi', 'hdmi0.rotation': 90, 'hdmi0.force_hotplug': true, 'hdmi0.boost': 5, 'hdmi1.enabled': true, 'hdmi1.mode': 'audio' }, expect: { 'hdmi1.mode': 'audio', 'hdmi0.display_preset': 'waveshare-9.3-hdmi', 'hdmi0.rotation': 90 } },
+    { name: 'Pi 4, HDMI0 panel with its own timings (EDID), audio, rotation 270', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'hdmi0.rotation': 270 }, expect: { 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'hdmi0.rotation': 270, 'hdmi0.mode': 'screen_audio' } },
+    { name: 'Pi 4, HDMI0 custom hdmi_timings (EDID for the user\'s own panel)', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen', 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '800 0 40 48 88 480 0 13 3 32 0 0 0 60 0 32000000 6' }, expect: { 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '800 0 40 48 88 480 0 13 3 32 0 0 0 60 0 32000000 6' } },
     { name: 'Pi 4, HDMI1 primary with hdmi_timings and video_mode', board: 'pi4', settings: { primary_output: 'hdmi1', 'hdmi0.enabled': false, 'hdmi0.mode': 'none', 'hdmi1.enabled': true, 'hdmi1.mode': 'screen_audio', 'hdmi1.display_preset': 'waveshare-11.9-hdmi', 'hdmi1.rotation': 0 }, expect: { primary_output: 'hdmi1', 'hdmi1.display_preset': 'waveshare-11.9-hdmi' } },
     { name: 'Pi 4, HDMI0 custom timings and parameters', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '1000 500 60 6 0 0 0', 'hdmi0.custom_params': 'hdmi_pixel_freq_limit=400000000\n# a note\n', 'hdmi0.rotation': 180 }, expect: { 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '1000 500 60 6 0 0 0', 'hdmi0.rotation': 180 } },
     { name: 'Pi 4, HDMI0 group/mode preset, EDID ignored, KMS off', board: 'pi4', settings: { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'waveshare-11.6-hdmi-h', 'hdmi0.ignore_edid': true, 'kms.mode': 'off' }, expect: { 'kms.mode': 'off', 'hdmi0.ignore_edid': true, 'hdmi0.display_preset': 'waveshare-11.6-hdmi-h' } },
@@ -1057,7 +1059,13 @@ test('wizard branches: detection choice, two HDMI ports, DPI, composite, custom,
     assert.ok(/^hdmi_force_hotplug:1=1$/m.test(vc) && /^hdmi_drive:1=2$/m.test(vc), 'HDMI1 audio');
     assert.ok(/^config_hdmi_boost=3$/m.test(vc));
     const cmd = H.readBoot('cmdline.txt');
-    assert.ok(/ video=HDMI-A-1:320x1480M@60,rotate=90/.test(cmd), cmd);
+    // A panel with its own timings: the size on the kernel line (e: treated as connected, from
+    // force hotplug), the exact timing in an EDID the plugin generated and installed; DVI, so 128 bytes
+    assert.ok(/ video=HDMI-A-1:320x1480Me,rotate=90/.test(cmd), cmd);
+    assert.ok(/ drm\.edid_firmware=HDMI-A-1:edid\/pss-waveshare-11-9-hdmi\.bin/.test(cmd), cmd);
+    const edidFile = path.join(H.ROOT, 'lib', 'firmware', 'edid', 'pss-waveshare-11-9-hdmi.bin');
+    assert.equal(fs.readFileSync(edidFile).length, 128, 'screen only: no CTA extension');
+    assert.deepEqual([...fs.readFileSync(edidFile).subarray(0, 8)], [0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0]);
     assert.ok(/ plymouth=90/.test(cmd));
     assert.equal(/fbcon=rotate/.test(cmd), false, 'fbcon switched off in step 3');
     ui = await env.p.getUIConfig();
@@ -1068,6 +1076,7 @@ test('wizard branches: detection choice, two HDMI ports, DPI, composite, custom,
     assert.ok(/Pi 4B/.test(report), report.slice(0, 400));
     assert.ok(/waveshare-11.9-hdmi/.test(report));
     assert.ok(/vc4-kms-v3d-pi4/.test(report));
+    assert.ok(/edid: \{"named":"HDMI-A-1:pss-waveshare-11-9-hdmi\.bin","present":true\}/.test(report), report.slice(report.indexOf('edid:') - 50, report.indexOf('edid:') + 120));
     assert.ok(env.lastToast().message.includes('/tmp/pi-screen-setup-diagnostics.txt'));
     await stop(env);
 
@@ -1248,6 +1257,108 @@ test('schema 2: aliases in the pickers, notes for kernel, board and vendor overl
     assert.ok(/^dtoverlay=pss-waveshare-touch-28dpi$/m.test(vc));
     assert.ok(/^# Vendor overlay files installed by the plugin: pss-vc4-kms-dpi-2inch8\.dtbo pss-waveshare-28dpi-3b-4b\.dtbo pss-waveshare-touch-28dpi\.dtbo$/m.test(vc), vc);
     assert.ok(/ video=DPI-1:rotate=90/.test(H.readBoot('cmdline.txt')));
+    await stop(env);
+});
+
+test('HDMI under KMS: every row yields a kernel mode; a panel with its own timings gets an EDID file that follows the configuration, the OS update and the factory reset', async () => {
+    const edidDir = path.join(H.ROOT, 'lib', 'firmware', 'edid');
+    const edidFiles = () => (fs.existsSync(edidDir) ? fs.readdirSync(edidDir).sort() : []);
+    H.seed({ board: 'pi4' });
+    let env = H.plugin();
+    await env.start();
+
+    // A CVT row: the size and rate on the kernel line, no EDID
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'waveshare-7-hdmi-c', 'hdmi0.rotation': 0 });
+    let cmd = H.readBoot('cmdline.txt');
+    assert.ok(/ video=HDMI-A-1:1024x600M@60(\s|$)/.test(cmd), cmd);
+    assert.equal(/drm\.edid_firmware/.test(cmd), false);
+    assert.deepEqual(edidFiles(), []);
+    assert.equal(env.p.hdmiPlan('hdmi0').edid, null);
+
+    // A timings row with audio: the EDID with its CTA block, installed before the kernel line names it
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'hdmi0.rotation': 0 });
+    cmd = H.readBoot('cmdline.txt');
+    assert.ok(/ video=HDMI-A-1:1024x600M(\s|$)/.test(cmd), 'the size alone: the EDID carries the timing, whatever refresh the vendor\'s numbers give (' + cmd + ')');
+    assert.ok(/ drm\.edid_firmware=HDMI-A-1:edid\/pss-hosyond-10-1-hdmi-h\.bin/.test(cmd));
+    assert.deepEqual(edidFiles(), ['pss-hosyond-10-1-hdmi-h.bin']);
+    const withAudio = fs.readFileSync(path.join(edidDir, 'pss-hosyond-10-1-hdmi-h.bin'));
+    assert.equal(withAudio.length, 256, 'HDMI with audio: base block and CTA extension');
+    assert.equal(withAudio[126], 1);
+    assert.equal(withAudio[128], 0x02, 'CTA-861 tag');
+    assert.equal(withAudio[131] & 0x40, 0x40, 'basic audio');
+    assert.match(env.p.presetNotes('hosyond-10.1-hdmi-h'), /pss-hosyond-10-1-hdmi-h\.bin/, 'the picker says so');
+
+    // Screen only: the same panel as a DVI sink, the file rewritten
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'hdmi0.rotation': 0 });
+    const dvi = fs.readFileSync(path.join(edidDir, 'pss-hosyond-10-1-hdmi-h.bin'));
+    assert.equal(dvi.length, 128);
+    assert.equal(dvi[126], 0);
+    assert.ok(dvi.subarray(54, 72).equals(withAudio.subarray(54, 72)), 'the same detailed timing');
+    // An unchanged configuration leaves the file alone
+    const mtime = fs.statSync(path.join(edidDir, 'pss-hosyond-10-1-hdmi-h.bin')).mtimeMs;
+    await H.sleep(20);
+    await env.p.applyConfiguration();
+    assert.equal(fs.statSync(path.join(edidDir, 'pss-hosyond-10-1-hdmi-h.bin')).mtimeMs, mtime);
+
+    // A timings row the descriptor cannot hold: the kernel computes the mode, no EDID
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen', 'hdmi0.display_preset': 'waveshare-4.3-hdmi', 'hdmi0.rotation': 0 });
+    cmd = H.readBoot('cmdline.txt');
+    assert.ok(/ video=HDMI-A-1:480x272M(\s|$)/.test(cmd), cmd);
+    assert.equal(/drm\.edid_firmware/.test(cmd), false);
+    assert.deepEqual(edidFiles(), [], 'the stale file is gone');
+    assert.equal(env.p.presetNotes('waveshare-4.3-hdmi'), '');
+
+    // A CEA row: the table's size and rate
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'generic-1080p', 'hdmi0.rotation': 0, 'hdmi0.force_hotplug': true });
+    cmd = H.readBoot('cmdline.txt');
+    assert.ok(/ video=HDMI-A-1:1920x1080M@60e(\s|$)/.test(cmd), 'force hotplug becomes e (' + cmd + ')');
+
+    // The user's own timings: an EDID under the port's name
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '800 0 40 48 88 480 0 13 3 32 0 0 0 60 0 32000000 6', 'hdmi0.force_hotplug': false });
+    cmd = H.readBoot('cmdline.txt');
+    assert.ok(/ video=HDMI-A-1:800x480M(\s|$)/.test(cmd), cmd);
+    assert.ok(/ drm\.edid_firmware=HDMI-A-1:edid\/pss-hdmi0-custom\.bin/.test(cmd));
+    assert.deepEqual(edidFiles(), ['pss-hdmi0-custom.bin']);
+    // and custom CVT numbers: a mode, no file
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'custom-hdmi', 'hdmi0.custom_timings': '1000 500 60 6 0 0 0' });
+    assert.ok(/ video=HDMI-A-1:1000x500M@60(\s|$)/.test(H.readBoot('cmdline.txt')));
+    assert.deepEqual(edidFiles(), []);
+
+    // Back to the panel; then the OS update takes /lib/firmware's writable layer with it
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'hdmi0.rotation': 0, ota_behavior: 'silent' });
+    assert.deepEqual(edidFiles(), ['pss-hosyond-10-1-hdmi-h.bin']);
+    await stop(env);
+    fs.rmSync(edidDir, { recursive: true });
+    // (a) the boot files intact: the start puts the file back without any drift
+    env = H.plugin();
+    await env.start();
+    assert.deepEqual(edidFiles(), ['pss-hosyond-10-1-hdmi-h.bin'], 'restored at start');
+    assert.equal(env.p.driftDetected, false);
+    await stop(env);
+    // (b) the boot files rewritten too: the regeneration brings the file back
+    fs.rmSync(edidDir, { recursive: true });
+    fs.writeFileSync(path.join(H.BOOT, 'config.txt'), H.osFile('config-4.231.txt'));
+    fs.writeFileSync(path.join(H.BOOT, 'cmdline.txt'), H.CMDLINE);
+    env = H.plugin();
+    await env.start();
+    await waitFor(() => /drm\.edid_firmware=HDMI-A-1:edid\/pss-hosyond-10-1-hdmi-h\.bin/.test(H.readBoot('cmdline.txt')), 'the kernel line regenerated');
+    assert.deepEqual(edidFiles(), ['pss-hosyond-10-1-hdmi-h.bin']);
+    await waitFor(() => env.modal(), 'reboot modal');
+
+    // KMS off: the firmware drives the panel from hdmi_timings; nothing for the kernel
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'kms.mode': 'off' });
+    cmd = H.readBoot('cmdline.txt');
+    assert.equal(/drm\.edid_firmware|video=/.test(cmd), false, cmd);
+    assert.deepEqual(edidFiles(), []);
+    assert.ok(/^hdmi_timings=1024 1 50 18 50 600/m.test(H.readBoot('videoconfig.txt')));
+
+    // The factory reset: the helper takes the file and the token out
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'hosyond-10.1-hdmi-h', 'kms.mode': 'on' });
+    assert.deepEqual(edidFiles(), ['pss-hosyond-10-1-hdmi-h.bin']);
+    await env.p.restoreFactoryDefaults();
+    assert.deepEqual(edidFiles(), []);
+    assert.equal(/drm\.edid_firmware|video=/.test(H.readBoot('cmdline.txt')), false);
+    assert.deepEqual(env.p.edidState(), { named: null, present: false });
     await stop(env);
 });
 

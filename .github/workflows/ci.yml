@@ -18,7 +18,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 20
+      - name: edid-decode, for the conformance check of every EDID the database can produce
+        run: sudo apt-get install -y --no-install-recommends edid-decode
       - run: npm test
+      - run: test "$(node --test test/hdmi.test.js 2>&1 | grep -c 'edid-decode not on the PATH')" = 0
       - run: shellcheck -S warning plugin/install.sh plugin/uninstall.sh plugin/scripts/*.sh scripts/*.sh
       - run: scripts/package.sh
       - name: The zip names the commit it was built from and carries the modules, the database and the root helper

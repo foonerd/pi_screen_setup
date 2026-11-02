@@ -33,6 +33,7 @@ function make(invoke) {
         installOverlay(name, bytes) { return invoke(['install-overlay', name], bytes); },
         removeOverlay(name) { return invoke(['remove-overlay', name]); },
         installEdid(name, bytes) { return invoke(['install-edid', name], bytes); },
+        removeEdid(name) { return invoke(['remove-edid', name]); },
     };
 }
 

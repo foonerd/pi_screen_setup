@@ -9,12 +9,14 @@
 #   remove-boot videoconfig  the plugin's own file removed (no other name)
 #   clean-exit               the plugin's lines taken out of the boot files, the
 #                            lines it stripped from Volumio's files put back (below),
-#                            its pss-*.dtbo files removed from /boot/overlays
+#                            its pss-*.dtbo files removed from /boot/overlays and its
+#                            pss-*.bin files from /lib/firmware/edid
 #   install-overlay <name>   stdin -> /boot/overlays/<name>.dtbo, name ^pss-[a-z0-9-]+$,
 #                            content a flattened device tree (magic d00dfeed)
 #   remove-overlay <name>    that file removed
 #   install-edid <name>      stdin -> /lib/firmware/edid/<name>.bin, name ^pss-[a-z0-9-]+$,
 #                            content an EDID block (header 00ffffffffffff00)
+#   remove-edid <name>       that file removed
 #
 # PSS_ROOT prefixes every path, for the test suite, which runs this script directly;
 # sudo does not pass environment variables, so it has no effect through the sudoers entry.
@@ -113,12 +115,12 @@ case "${1:-}" in
         echo "WARNING: $f.txt changed since the plugin stripped it; left as it is. The original is kept at $STRIP/$f.txt.original"
       fi
     done
-    # 4. the rotation tokens the plugin adds to cmdline.txt
+    # 4. the rotation and EDID tokens the plugin adds to cmdline.txt
     if [ -f "$BOOT/cmdline.txt" ]; then
-      cleaned=$(sed -E 's/ video=[^ ]*//g; s/ plymouth=[0-9]+//g; s/ fbcon=rotate:[0-3]//g' "$BOOT/cmdline.txt")
+      cleaned=$(sed -E 's/ video=[^ ]*//g; s/ plymouth=[0-9]+//g; s/ fbcon=rotate:[0-3]//g; s/ drm\.edid_firmware=[^ ]*//g' "$BOOT/cmdline.txt")
       if [ "$cleaned" != "$(cat "$BOOT/cmdline.txt")" ]; then
         printf '%s\n' "$cleaned" | write_from_stdin "$BOOT/cmdline.txt"
-        echo "cmdline.txt: rotation parameters removed"
+        echo "cmdline.txt: plugin parameters removed"
       fi
     fi
     # 5. the vendor overlay files the plugin installed, ours by prefix
@@ -128,6 +130,13 @@ case "${1:-}" in
       rm -f "$f"; n=$((n + 1))
     done
     [ "$n" -eq 0 ] || echo "overlays: $n plugin-installed file(s) removed"
+    # 6. the EDID files the plugin generated
+    n=0
+    for f in "$EDID"/pss-*.bin; do
+      [ -f "$f" ] || continue
+      rm -f "$f"; n=$((n + 1))
+    done
+    [ "$n" -eq 0 ] || echo "edid: $n plugin-generated file(s) removed"
     ;;
 
   install-overlay)
@@ -147,7 +156,12 @@ case "${1:-}" in
     write_from_stdin "$EDID/$name.bin" no edid
     ;;
 
+  remove-edid)
+    name="${2:-}"; check_name "$name" remove-edid
+    rm -f "$EDID/$name.bin"
+    ;;
+
   *)
-    die "verbs: write-boot <name>, remove-boot videoconfig, clean-exit, install-overlay <name>, remove-overlay <name>, install-edid <name>"
+    die "verbs: write-boot <name>, remove-boot videoconfig, clean-exit, install-overlay <name>, remove-overlay <name>, install-edid <name>, remove-edid <name>"
     ;;
 esac
