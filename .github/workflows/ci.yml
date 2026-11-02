@@ -19,15 +19,16 @@ jobs:
         with:
           node-version: 20
       - run: npm test
-      - run: shellcheck -S warning plugin/install.sh plugin/uninstall.sh scripts/*.sh
+      - run: shellcheck -S warning plugin/install.sh plugin/uninstall.sh plugin/scripts/*.sh scripts/*.sh
       - run: scripts/package.sh
-      - name: The zip names the commit it was built from and carries the modules and the database
+      - name: The zip names the commit it was built from and carries the modules, the database and the root helper
         run: |
           unzip -p dist/pi_screen_setup-*.zip build.json | grep -F "\"commit\": \"$(git rev-parse --short HEAD)\""
           for module in body-parser express fs-extra kew v-conf; do
             unzip -l dist/pi_screen_setup-*.zip | grep -q " node_modules/$module/package.json\$" || { echo "no module $module in the zip" >&2; exit 1; }
           done
           unzip -p dist/pi_screen_setup-*.zip display_presets.json | grep -q '"presets"'
+          unzip -l dist/pi_screen_setup-*.zip | grep -q ' scripts/pi-screen-setup-root.sh$' || { echo 'no root helper in the zip' >&2; exit 1; }
       - uses: actions/upload-artifact@v7
         with:
           name: plugin

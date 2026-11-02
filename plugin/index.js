@@ -16,6 +16,8 @@ var verify = require('./lib/verify');
 var conf = require('./lib/conf');
 var recover = require('./lib/recover');
 var privileged = require('./lib/privileged');
+var strip = require('./lib/strip');
+var drift = require('./lib/drift');
 
 module.exports = PiScreenSetup;
 
@@ -34,8 +36,11 @@ var CMDLINE_TXT = BOOT_PATH + '/cmdline.txt';
 var OVERLAYS_PATH = BOOT_PATH + '/overlays';
 var OVERLAYS_README = OVERLAYS_PATH + '/README';
 
-// Current config directory for OTA comparison
-var CURRENT_CONFIG_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/backups/current';
+// Backups, restore points, the reference copies and the strip record live on the Internal
+// Storage share: the plugin folder is replaced by an update and removed by an uninstall.
+var INTERNAL_DIR = ROOT + '/data/INTERNAL/pi_screen_setup';
+var CURRENT_CONFIG_DIR = INTERNAL_DIR + '/backups/current';
+var STRIP_DIR = INTERNAL_DIR + '/strip';
 
 // Presets cache paths
 var PRESETS_CACHE_DIR = ROOT + '/data/plugins/system_hardware/pi_screen_setup/presets_cache';
@@ -78,24 +83,9 @@ var COMPOSITE_MODES = {
   'pal-n': { label: 'PAL-N (Argentina)', mode: 66 }
 };
 
-// Migration detection patterns - must match install.sh patterns
-var MIGRATION_PATTERNS = [
-  /^dtoverlay=vc4-kms-v3d/m,
-  /^dtoverlay=vc4-fkms-v3d/m,
-  /^dtoverlay=.*dsi/im,
-  /^dtoverlay=.*dpi/im,
-  /^dtoverlay=.*hyperpixel/im,
-  /^dtoverlay=.*vga666/im,
-  /^hdmi_/m,                       // Match ANY hdmi_ setting
-  /^config_hdmi_boost/m,           // HDMI signal boost (ours)
-  /^max_framebuffer_/m,            // Framebuffer limits that presets set (ours)
-  /^display_auto_detect/m,         // Auto-detect setting (ours)
-  /^display_default_lcd/m,         // LCD default setting (ours)
-  // NOTE: display_rotate, display_lcd_rotate, display_hdmi_rotate belong to Touch Display plugin - DO NOT MIGRATE
-  /^sdtv_/m,                       // Match ANY sdtv_ setting
-  /^framebuffer_/m,                // Match ANY framebuffer_ setting
-  /^enable_tvout/m                 // Composite enable
-];
+// The display lines (lib/strip.js): the migration offer, the strip after an OS update,
+// install.sh's detection grep.
+var MIGRATION_PATTERNS = strip.PATTERNS;
 
 /**
  * Natural sort comparator for display preset names
@@ -152,7 +142,8 @@ function PiScreenSetup(context) {
   self.pluginName = 'pi_screen_setup';
   self.pluginType = 'system_hardware';
   self.pluginDir = __dirname;
-  self.backupDir = path.join(ROOT + '/data/plugins', self.pluginType, self.pluginName, 'backups');
+  self.backupDir = path.join(INTERNAL_DIR, 'backups');
+  self.stripDir = STRIP_DIR;
   self.factoryDir = path.join(self.backupDir, 'factory');
   self.restorePointsDir = path.join(self.backupDir, 'restore_points');
 
@@ -220,7 +211,7 @@ function PiScreenSetup(context) {
   self.selectedRestorePoint = null;
 
   // Boot partition writer: sudo in production, direct when relocated to another root
-  self.priv = ROOT ? privileged.direct : privileged.sudo;
+  self.priv = ROOT ? privileged.direct(ROOT) : privileged.sudo;
 }
 
 // Helper to get config value - checks cache first, then v-conf, then default
@@ -334,6 +325,10 @@ PiScreenSetup.prototype.writeDiagnosticsReport = function() {
       cma_custom_mb: self.getConfigValue('kms.cma_custom_mb', ''),
       kms_baseline_applied: self.config.get('kms.baseline_applied', ''),
       drift_errors: self.driftErrors || [],
+      drift_kind: self.driftKind || null,
+      os_version: drift.osVersion(ROOT),
+      userconfig_conflicts: boot.conflicts,
+      strip_record: { volumioconfig: strip.readRecord(self.stripDir, 'volumioconfig.txt') !== null, userconfig: strip.readRecord(self.stripDir, 'userconfig.txt') !== null },
       database: { source: self.config.get('database.active_source', ''), version: self.displayPresetsVersion }
     };
     outputs.forEach(function(o) {
@@ -2914,19 +2909,13 @@ PiScreenSetup.prototype.writeBootFile = function(filePath, content) {
   var self = this;
   
   try {
-    // Write to temp file first
-    var tempFile = '/tmp/pi_screen_setup_' + path.basename(filePath);
-    fs.writeFileSync(tempFile, content, 'utf8');
-    
-    self.priv.copy(tempFile, filePath);
-    
-    // Clean up temp file
-    fs.unlinkSync(tempFile);
-    
+    var name = privileged.bootName(filePath, BOOT_PATH);
+    if (!name) throw new Error('not a boot file the root helper serves');
+    self.priv.writeBoot(name, content);
     self.logger.info('pi_screen_setup: Written ' + filePath);
     return true;
   } catch (err) {
-    self.logger.error('pi_screen_setup: Failed to write ' + filePath + ' - ' + err);
+    self.logger.error('pi_screen_setup: Failed to write ' + filePath + ' - ' + (err.stderr ? String(err.stderr).trim() : err));
     return false;
   }
 };
@@ -2936,7 +2925,8 @@ PiScreenSetup.prototype.copyToBootFile = function(sourcePath, destPath) {
   var self = this;
   
   try {
-    self.priv.copy(sourcePath, destPath);
+    var content = fs.readFileSync(sourcePath, 'utf8');
+    if (!self.writeBootFile(destPath, content)) return false;
     self.logger.info('pi_screen_setup: Copied ' + sourcePath + ' to ' + destPath);
     return true;
   } catch (err) {
@@ -2951,12 +2941,13 @@ PiScreenSetup.prototype.removeBootFile = function(filePath) {
   
   try {
     if (fs.existsSync(filePath)) {
-      self.priv.remove(filePath);
+      if (privileged.bootName(filePath, BOOT_PATH) !== 'videoconfig') throw new Error('only videoconfig.txt is the plugin\'s to remove');
+      self.priv.removeBoot('videoconfig');
       self.logger.info('pi_screen_setup: Removed ' + filePath);
     }
     return true;
   } catch (err) {
-    self.logger.error('pi_screen_setup: Failed to remove ' + filePath + ' - ' + err);
+    self.logger.error('pi_screen_setup: Failed to remove ' + filePath + ' - ' + (err.stderr ? String(err.stderr).trim() : err));
     return false;
   }
 };
@@ -3048,7 +3039,8 @@ PiScreenSetup.prototype.saveCurrentConfig = function() {
     var metadata = {
       saved: new Date().toISOString(),
       primary_output: self.primaryOutputCache || self.getConfigValue('primary_output', 'hdmi0'),
-      description: self.generateConfigSummary()
+      description: self.generateConfigSummary(),
+      os_version: drift.osVersion(ROOT)
     };
     fs.writeJsonSync(path.join(CURRENT_CONFIG_DIR, 'metadata.json'), metadata);
     
@@ -3189,41 +3181,22 @@ PiScreenSetup.prototype.restoreFromPoint = function(pointId) {
   return defer.promise;
 };
 
-// Restore factory defaults (from install-time backup)
+// Removes the plugin's display configuration from the boot files: the include line, its
+// own file, the rotation parameters it added to cmdline.txt, and puts back the lines it
+// stripped from Volumio's files when those files are as it left them (the helper's
+// clean-exit; uninstall.sh runs the same). Copies taken at install are not written back:
+// after a system update they describe an older system.
 PiScreenSetup.prototype.restoreFactoryDefaults = function() {
   var self = this;
   var defer = libQ.defer();
 
   try {
-    if (!self.hasFactoryBackup()) {
-      defer.reject(new Error('Factory backups not found'));
-      return defer.promise;
-    }
-    
-    self.logger.info('pi_screen_setup: Restoring factory defaults');
-    
-    var restored = 0;
-    
-    // Restore config.txt (this also removes include line)
-    var configBackup = path.join(self.factoryDir, 'config.txt');
-    if (fs.existsSync(configBackup)) {
-      if (self.copyToBootFile(configBackup, CONFIG_TXT)) {
-        restored++;
-      }
-    }
-    
-    // Restore cmdline.txt
-    var cmdlineBackup = path.join(self.factoryDir, 'cmdline.txt');
-    if (fs.existsSync(cmdlineBackup)) {
-      if (self.copyToBootFile(cmdlineBackup, CMDLINE_TXT)) {
-        restored++;
-      }
-    }
-    
-    // Remove videoconfig.txt (plugin-created file)
-    if (fs.existsSync(VIDEOCONFIG_TXT)) {
-      self.removeBootFile(VIDEOCONFIG_TXT);
-    }
+    self.logger.info('pi_screen_setup: Removing the plugin\'s display configuration from the boot files');
+    var report = String(self.priv.cleanExit() || '');
+    report.split('\n').filter(Boolean).forEach(function(line) {
+      if (/^WARNING/.test(line)) self.logger.warn('pi_screen_setup: clean-exit: ' + line);
+      else self.logger.info('pi_screen_setup: clean-exit: ' + line);
+    });
     
     // Reset wizard state
     self.config.set('wizard_complete', false);
@@ -3232,26 +3205,36 @@ PiScreenSetup.prototype.restoreFactoryDefaults = function() {
     self.wizardCompleteCache = false;
     self.wizardStepCache = 0;
     self.wizardDataCache = {};
-    
-    self.logger.info('pi_screen_setup: Factory defaults restored - ' + restored + ' files');
+    self.driftDetected = false;
+    self.driftErrors = [];
     
     self.commandRouter.pushToastMessage('success',
       self.getI18n('PLUGIN_NAME'),
       self.getI18n('FACTORY_RESTORE_SUCCESS'));
+    var warned = report.split('\n').filter(function(l) { return /^WARNING/.test(l); });
+    if (warned.length) {
+      self.commandRouter.pushToastMessage('warning', self.getI18n('PLUGIN_NAME'), warned.join(' '));
+    }
     
-    defer.resolve(restored);
+    defer.resolve(report);
   } catch (err) {
-    self.logger.error('pi_screen_setup: Factory restore failed - ' + err);
-    defer.reject(err);
+    self.logger.error('pi_screen_setup: Clean exit failed - ' + (err.stderr ? String(err.stderr).trim() : err));
+    defer.reject(new Error(err.stderr ? String(err.stderr).trim() : (err.message || err)));
   }
 
   return defer.promise;
 };
 
-// Check if factory backups exist
-PiScreenSetup.prototype.hasFactoryBackup = function() {
+// Whether the boot files hold anything of the plugin's to remove.
+PiScreenSetup.prototype.hasPluginBootChanges = function() {
   var self = this;
-  return fs.existsSync(path.join(self.factoryDir, 'config.txt'));
+  try {
+    if (fs.existsSync(VIDEOCONFIG_TXT)) return true;
+    if (fs.existsSync(CONFIG_TXT) && fs.readFileSync(CONFIG_TXT, 'utf8').indexOf(INCLUDE_LINE) !== -1) return true;
+    return strip.readRecord(self.stripDir, 'volumioconfig.txt') !== null || strip.readRecord(self.stripDir, 'userconfig.txt') !== null;
+  } catch (e) {
+    return false;
+  }
 };
 
 
@@ -4138,12 +4121,12 @@ PiScreenSetup.prototype.executeMigration = function() {
 
       // Backup and clean volumioconfig.txt
       if (migrationInfo.sources.indexOf('volumioconfig.txt') !== -1) {
-        promises.push(self.removeLinesFromFile(VOLUMIOCONFIG_TXT, MIGRATION_PATTERNS));
+        promises.push(self.removeLinesFromFile(VOLUMIOCONFIG_TXT));
       }
 
       // Backup and clean userconfig.txt
       if (migrationInfo.sources.indexOf('userconfig.txt') !== -1) {
-        promises.push(self.removeLinesFromFile(USERCONFIG_TXT, MIGRATION_PATTERNS));
+        promises.push(self.removeLinesFromFile(USERCONFIG_TXT));
       }
 
       libQ.all(promises)
@@ -4164,62 +4147,19 @@ PiScreenSetup.prototype.executeMigration = function() {
   return defer.promise;
 };
 
-PiScreenSetup.prototype.removeLinesFromFile = function(filePath, patterns) {
+PiScreenSetup.prototype.removeLinesFromFile = function(filePath) {
   var self = this;
+  if (privileged.bootName(filePath, BOOT_PATH)) return self.stripBootFile(filePath);
   var defer = libQ.defer();
-
   try {
-    if (!fs.existsSync(filePath)) {
-      defer.resolve();
-      return defer.promise;
+    if (fs.existsSync(filePath)) {
+      var result = strip.apply(fs.readFileSync(filePath, 'utf8'));
+      if (result.changed) fs.writeFileSync(filePath, result.text, 'utf8');
     }
-
-    var content = fs.readFileSync(filePath, 'utf8');
-    var lines = content.split(/\r?\n/);
-    var newLines = [];
-
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
-      var shouldRemove = false;
-
-      for (var j = 0; j < patterns.length; j++) {
-        if (patterns[j].test(line.trim())) {
-          shouldRemove = true;
-          break;
-        }
-      }
-
-      if (!shouldRemove) {
-        newLines.push(line);
-      }
-    }
-
-    self.createBackup(filePath)
-      .then(function() {
-        var newContent = newLines.join(os.EOL);
-        // Use sudo helper for /boot partition
-        if (filePath.startsWith(BOOT_PATH)) {
-          if (self.writeBootFile(filePath, newContent)) {
-            self.logger.info('pi_screen_setup: Cleaned migration lines from ' + filePath);
-            defer.resolve();
-          } else {
-            defer.reject(new Error('Failed to write ' + filePath));
-          }
-        } else {
-          fs.writeFileSync(filePath, newContent, 'utf8');
-          self.logger.info('pi_screen_setup: Cleaned migration lines from ' + filePath);
-          defer.resolve();
-        }
-      })
-      .fail(function(err) {
-        defer.reject(err);
-      });
-
+    defer.resolve();
   } catch (err) {
-    self.logger.error('pi_screen_setup: Error cleaning file - ' + err);
     defer.reject(err);
   }
-
   return defer.promise;
 };
 
@@ -4944,7 +4884,8 @@ PiScreenSetup.prototype.readEffectiveBoot = function() {
     files: files,
     entries: entries,
     effective: eff ? configtxt.displayState(eff) : null,
-    trailingFilters: files['volumioconfig.txt'] === null ? [] : configtxt.trailingFilters(configtxt.parse(files['volumioconfig.txt'], 'volumioconfig.txt'))
+    trailingFilters: files['volumioconfig.txt'] === null ? [] : configtxt.trailingFilters(configtxt.parse(files['volumioconfig.txt'], 'volumioconfig.txt')),
+    conflicts: drift.conflicts(files['userconfig.txt'])
   };
 };
 
@@ -5256,6 +5197,9 @@ PiScreenSetup.prototype.validateBootConfig = function() {
           result.warnings = (result.warnings || []).concat('WARN_OS_FILTER_OPEN');
         }
       }
+      if (boot.conflicts.length) {
+        result.warnings = (result.warnings || []).concat('WARN_USERCONFIG_CONFLICT');
+      }
       // What the running kernel shows; informative until the next reboot applies a change.
       var expected = {
         kmsOverlay: self.getEffectiveKmsEnabled() ? self.hardwareInfo.kms_overlay : null,
@@ -5270,9 +5214,19 @@ PiScreenSetup.prototype.validateBootConfig = function() {
       result.valid = false;
     }
     
+    // An OS update (Volumio's version moved since the apply) or something else
+    if (result.drift_detected) {
+      var savedOs = null;
+      try { savedOs = fs.readJsonSync(path.join(CURRENT_CONFIG_DIR, 'metadata.json')).os_version || null; } catch (e) { /* no reference */ }
+      result.os_version = { from: savedOs, to: drift.osVersion(ROOT) };
+      result.kind = drift.classify(result.errors, savedOs, result.os_version.to);
+    }
+    
     // Store drift state for UI
     self.driftDetected = result.drift_detected;
     self.driftErrors = result.errors;
+    self.driftKind = result.kind || null;
+    self.driftOs = result.os_version || null;
 
     self.logger.info('pi_screen_setup: Boot validation - ' + JSON.stringify(result));
     defer.resolve(result);
@@ -5302,7 +5256,9 @@ PiScreenSetup.prototype.handleConfigDrift = function(validationResult) {
     // Notify and restore
     self.commandRouter.pushToastMessage('warning',
       self.getI18n('PLUGIN_NAME'),
-      self.getI18n('CONFIG_DRIFT_DETECTED'));
+      validationResult.kind === 'os-update'
+        ? self.getI18n('CONFIG_DRIFT_OS_UPDATE').replace('{version}', validationResult.os_version.to)
+        : self.getI18n('CONFIG_DRIFT_DETECTED'));
     self.restoreConfiguration()
       .then(function() {
         self.showRebootRequiredModal();
@@ -5311,7 +5267,9 @@ PiScreenSetup.prototype.handleConfigDrift = function(validationResult) {
     // Show modal asking user - reboot handled after user confirms
     var modalData = {
       title: self.getI18n('CONFIG_DRIFT_TITLE'),
-      message: self.getI18n('CONFIG_DRIFT_MESSAGE'),
+      message: validationResult.kind === 'os-update'
+        ? self.getI18n('CONFIG_DRIFT_OS_UPDATE').replace('{version}', validationResult.os_version.to) + ' ' + self.getI18n('CONFIG_DRIFT_MESSAGE')
+        : self.getI18n('CONFIG_DRIFT_MESSAGE'),
       size: 'lg',
       buttons: [
         {
@@ -5391,70 +5349,43 @@ PiScreenSetup.prototype.restoreAndReboot = function() {
 // Uses same MIGRATION_PATTERNS as import/wizard for consistency
 PiScreenSetup.prototype.cleanVolumioConfig = function() {
   var self = this;
+  return self.stripBootFile(VOLUMIOCONFIG_TXT);
+};
+
+// Takes the display lines out of one of Volumio's boot files and records the original
+// and the digest of the result, so a clean exit can put the file back when it is still
+// as the plugin left it. Nothing to remove: nothing written, record untouched.
+PiScreenSetup.prototype.stripBootFile = function(filePath) {
+  var self = this;
   var defer = libQ.defer();
 
   try {
-    if (!fs.existsSync(VOLUMIOCONFIG_TXT)) {
+    if (!fs.existsSync(filePath)) {
       defer.resolve();
       return defer.promise;
     }
-
-    var content = fs.readFileSync(VOLUMIOCONFIG_TXT, 'utf8');
-    var lines = content.split('\n');
-    var newLines = [];
-    var removed = [];
-    var currentSection = '[all]';
-
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
-      var trimmed = line.trim();
-
-      // Track section headers
-      if (trimmed.match(/^\[pi[0-9]*\]$/) || trimmed.match(/^\[cm[0-9]*\]$/) || trimmed === '[all]') {
-        currentSection = trimmed;
-        newLines.push(line);
-        continue;
-      }
-
-      // Check against all migration patterns (same as import/wizard)
-      var shouldRemove = false;
-      for (var p = 0; p < MIGRATION_PATTERNS.length; p++) {
-        if (MIGRATION_PATTERNS[p].test(trimmed)) {
-          shouldRemove = true;
-          break;
-        }
-      }
-      
-      if (shouldRemove) {
-        removed.push(currentSection + ': ' + trimmed);
-        continue;
-      }
-
-      newLines.push(line);
-    }
-
-    if (removed.length > 0) {
-      // Create backup before modifying
-      self.createBackup(VOLUMIOCONFIG_TXT)
-        .then(function() {
-          var newContent = newLines.join('\n');
-          if (self.writeBootFile(VOLUMIOCONFIG_TXT, newContent)) {
-            self.logger.info('pi_screen_setup: Cleaned display lines from volumioconfig.txt: ' + removed.join(', '));
-            defer.resolve();
-          } else {
-            defer.reject(new Error('Failed to write volumioconfig.txt'));
-          }
-        })
-        .fail(function(err) {
-          defer.reject(err);
-        });
-    } else {
-      self.logger.info('pi_screen_setup: No display lines to clean from volumioconfig.txt');
+    var content = fs.readFileSync(filePath, 'utf8');
+    var result = strip.apply(content);
+    if (!result.changed) {
+      self.logger.info('pi_screen_setup: No display lines to remove from ' + filePath);
       defer.resolve();
+      return defer.promise;
     }
-
+    self.createBackup(filePath)
+      .then(function() {
+        if (!self.writeBootFile(filePath, result.text)) {
+          defer.reject(new Error('Failed to write ' + filePath));
+          return;
+        }
+        strip.record(self.stripDir, path.basename(filePath), content, result.text);
+        self.logger.info('pi_screen_setup: Removed display lines from ' + filePath + ': ' + result.removed.map(function(r) { return r.section + ': ' + r.line; }).join(', '));
+        defer.resolve();
+      })
+      .fail(function(err) {
+        defer.reject(err);
+      });
   } catch (err) {
-    self.logger.error('pi_screen_setup: Error cleaning volumioconfig.txt - ' + err);
+    self.logger.error('pi_screen_setup: Error cleaning ' + filePath + ' - ' + err);
     defer.reject(err);
   }
 
@@ -5651,6 +5582,9 @@ PiScreenSetup.prototype.getUIConfig = function() {
         if (inUse !== null) text += ' ' + self.getI18n('HW_EFFECTIVE_IN_USE').replace('{mb}', inUse);
         if (self.bootFindings && self.bootFindings.length) {
           text += ' ' + self.getI18n('HW_EFFECTIVE_FINDINGS').replace('{list}', self.bootFindings.map(function(f) { return f.code; }).join(', '));
+        }
+        if (self.lastBoot && self.lastBoot.conflicts && self.lastBoot.conflicts.length) {
+          text += ' ' + self.getI18n('USERCONFIG_CONFLICT').replace('{lines}', self.lastBoot.conflicts.map(function(c) { return c.line; }).join(', '));
         }
         hwEffectiveItem.value = text;
       }
@@ -6604,7 +6538,7 @@ PiScreenSetup.prototype.populateWizardSections = function(uiconf, wizardStep, wi
         // Hide factory restore if no factory backup exists
         var restoreFactoryBtn = self.findContentItem(configSection, 'restore_factory_btn');
         if (restoreFactoryBtn) {
-          restoreFactoryBtn.hidden = !self.hasFactoryBackup();
+          restoreFactoryBtn.hidden = !self.hasPluginBootChanges();
         }
       }
     }

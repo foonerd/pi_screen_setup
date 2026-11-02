@@ -24,6 +24,7 @@ const libQ = require(path.join(PLUGIN_DIR, 'node_modules', 'kew'));
 const PiScreenSetup = require(path.join(PLUGIN_DIR, 'index.js'));
 
 const PLUGIN_DATA = path.join(ROOT, 'data', 'plugins', 'system_hardware', 'pi_screen_setup');
+const INTERNAL = path.join(ROOT, 'data', 'INTERNAL', 'pi_screen_setup');
 const CONFIG_DIR = path.join(ROOT, 'data', 'configuration', 'system_hardware', 'pi_screen_setup');
 const BOOT = path.join(ROOT, 'boot');
 
@@ -42,6 +43,7 @@ const osFile = (name) => fs.readFileSync(path.join(FIXTURES, 'os', name), 'utf8'
 
 // Builds the tree for one scenario. Everything has a default; `opts` overrides:
 //   board: key of BOARDS            os: Volumio release of the boot files ('4.231')
+//   osVersion: VOLUMIO_VERSION in /etc/os-release (defaults to `os`)
 //   config: 'shipped' | 'raw' | object | null   (the plugin's configuration file)
 //   boot: { 'videoconfig.txt': text, ... }      (replaces or, with null, removes a file)
 //   current: { files: {name: text}, metadata }  (backups/current, as after an apply)
@@ -53,6 +55,10 @@ function seed(opts) {
     const board = BOARDS[opts.board || 'pi5'];
     const release = opts.os || '4.231';
     fs.emptyDirSync(ROOT);
+
+    // /etc/os-release, as far as the plugin reads it
+    fs.ensureDirSync(path.join(ROOT, 'etc'));
+    fs.writeFileSync(path.join(ROOT, 'etc', 'os-release'), 'PRETTY_NAME="Raspbian GNU/Linux 12 (bookworm)"\nVERSION_ID="12"\nVOLUMIO_VERSION="' + (opts.osVersion || release) + '"\nVOLUMIO_HARDWARE="pi"\n');
 
     // /boot
     fs.ensureDirSync(path.join(BOOT, 'overlays'));
@@ -92,16 +98,17 @@ function seed(opts) {
     }
 
     // /data: what install.sh and the plugin manager leave behind
-    fs.ensureDirSync(path.join(PLUGIN_DATA, 'backups', 'restore_points'));
-    fs.ensureDirSync(path.join(PLUGIN_DATA, 'backups', 'factory'));
+    fs.ensureDirSync(path.join(INTERNAL, 'backups', 'restore_points'));
+    fs.ensureDirSync(path.join(INTERNAL, 'backups', 'factory'));
+    fs.ensureDirSync(path.join(INTERNAL, 'strip'));
     fs.ensureDirSync(path.join(PLUGIN_DATA, 'presets_cache'));
     if (opts.factory !== false) {
         ['config.txt', 'cmdline.txt', 'volumioconfig.txt', 'userconfig.txt'].forEach((n) => {
-            if (fs.existsSync(path.join(BOOT, n))) fs.copySync(path.join(BOOT, n), path.join(PLUGIN_DATA, 'backups', 'factory', n));
+            if (fs.existsSync(path.join(BOOT, n))) fs.copySync(path.join(BOOT, n), path.join(INTERNAL, 'backups', 'factory', n));
         });
     }
     if (opts.current) {
-        const cur = path.join(PLUGIN_DATA, 'backups', 'current');
+        const cur = path.join(INTERNAL, 'backups', 'current');
         fs.ensureDirSync(cur);
         Object.keys(opts.current.files || {}).forEach((n) => fs.writeFileSync(path.join(cur, n), opts.current.files[n]));
         if (opts.current.metadata) fs.writeJsonSync(path.join(cur, 'metadata.json'), opts.current.metadata);
@@ -122,7 +129,7 @@ function seed(opts) {
         }
         fs.writeJsonSync(configFile, doc);
     }
-    return { root: ROOT, boot: BOOT, data: PLUGIN_DATA, configFile };
+    return { root: ROOT, boot: BOOT, data: PLUGIN_DATA, internal: INTERNAL, configFile };
 }
 
 // Volumio's command router, reduced to what the plugin calls.
@@ -197,4 +204,4 @@ const settle = () => sleep(320);
 const readBoot = (name) => fs.readFileSync(path.join(BOOT, name), 'utf8');
 const readConfigFile = () => fs.readJsonSync(path.join(CONFIG_DIR, 'config.json'));
 
-module.exports = { ROOT, BOOT, PLUGIN_DATA, CONFIG_DIR, PLUGIN_DIR, BOARDS, CMDLINE, USERCONFIG, osFile, seed, plugin, makeContext, called, methods, sleep, settle, readBoot, readConfigFile, PiScreenSetup, fs };
+module.exports = { ROOT, BOOT, PLUGIN_DATA, INTERNAL, CONFIG_DIR, PLUGIN_DIR, BOARDS, CMDLINE, USERCONFIG, osFile, seed, plugin, makeContext, called, methods, sleep, settle, readBoot, readConfigFile, PiScreenSetup, fs };

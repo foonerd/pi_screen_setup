@@ -130,6 +130,19 @@ for (const [id, p] of Object.entries(db.presets || {})) {
 if (!/^echo "plugininstallend"\s*$/m.test(read('install.sh'))) fail('install.sh does not end with echo "plugininstallend"');
 if (!/^echo "pluginuninstallend"\s*$/m.test(read('uninstall.sh'))) fail('uninstall.sh does not end with echo "pluginuninstallend"');
 
+// The one root helper: ships, is POSIX sh (Volumio runs the scripts with sh), and is
+// what install.sh installs and names in sudoers; nothing else gets a grant.
+const helper = 'scripts/pi-screen-setup-root.sh';
+if (!fs.existsSync(path.join(root, helper))) fail(helper + ' missing');
+else {
+    if (!read(helper).startsWith('#!/bin/sh\n')) fail(helper + ': must start with #!/bin/sh');
+    const inst = read('install.sh');
+    if (!inst.includes('/usr/local/bin/pi-screen-setup-root')) fail('install.sh does not install the root helper');
+    const grants = (inst.match(/^volumio ALL=.*$/gm) || []);
+    if (grants.length !== 1 || !/NOPASSWD: \/usr\/local\/bin\/pi-screen-setup-root \*$/.test(grants[0])) fail('install.sh: sudoers must grant the root helper alone, got ' + JSON.stringify(grants));
+    if (/\bsudo\b/.test(read('uninstall.sh'))) fail('uninstall.sh runs as root; it must not call sudo');
+}
+
 // Volumio copies the shipped config.json to /data/configuration as it is; v-conf reads
 // only { type, value } leaves. A raw value there is a setting the plugin can never store.
 const conf = require(path.join(root, 'lib', 'conf.js'));

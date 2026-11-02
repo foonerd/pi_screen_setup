@@ -232,8 +232,8 @@ test('the wizard on a Pi 5 with a Touch Display 2 on DSI-2, applied, read back a
     assert.equal(lines(H.readBoot('config.txt')).filter((l) => l === 'include videoconfig.txt').length, 1);
     assert.ok(lines(H.readBoot('config.txt')).indexOf('include videoconfig.txt') > lines(H.readBoot('config.txt')).indexOf('include volumioconfig.txt'));
     assert.equal(MIGRATION.test(without(H.readBoot('volumioconfig.txt'), /^#/)), false, 'the OS display lines were stripped');
-    assert.ok(fs.existsSync(path.join(H.PLUGIN_DATA, 'backups', 'current', 'metadata.json')));
-    assert.equal(fs.readJsonSync(path.join(H.PLUGIN_DATA, 'backups', 'current', 'metadata.json')).primary_output, 'dsi1');
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'backups', 'current', 'metadata.json')));
+    assert.equal(fs.readJsonSync(path.join(H.INTERNAL, 'backups', 'current', 'metadata.json')).primary_output, 'dsi1');
     assert.equal(env.p.listRestorePoints().length, 1);
     assert.equal(env.modal().data.title, env.p.getI18n('REBOOT_REQUIRED'));
     flush(env);
@@ -575,18 +575,29 @@ test('restore points, file backups, the factory copies and the boot file helpers
     await waitFor(() => env.lastToast().message === env.p.getI18n('BACKUP_RESTORED'), 'the legacy restore');
     assert.equal(H.readBoot('videoconfig.txt'), beforeApply, 'it brings back the newest .bak, taken before the apply');
 
-    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'probe.txt'), 'x\n'), true);
-    assert.equal(H.readBoot('probe.txt'), 'x\n');
-    assert.equal(env.p.copyToBootFile(path.join(H.BOOT, 'probe.txt'), path.join(H.BOOT, 'probe2.txt')), true);
-    assert.equal(env.p.removeBootFile(path.join(H.BOOT, 'probe2.txt')), true);
-    assert.equal(fs.existsSync(path.join(H.BOOT, 'probe2.txt')), false);
+    const userBefore = H.readBoot('userconfig.txt');
+    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'userconfig.txt'), userBefore + '# probe\n'), true);
+    assert.equal(H.readBoot('userconfig.txt'), userBefore + '# probe\n');
+    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'probe.txt'), 'x\n'), false, 'the helper serves five names');
+    assert.equal(fs.existsSync(path.join(H.BOOT, 'probe.txt')), false);
+    assert.equal(env.p.writeBootFile(path.join(H.ROOT, 'config.txt'), 'x\n'), false, 'and only under /boot');
+    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'config.txt'), ''), false, 'an empty config.txt is refused');
+    assert.ok(H.readBoot('config.txt').length > 0);
+    assert.equal(env.p.copyToBootFile(path.join(H.BOOT, 'userconfig.txt'), path.join(H.BOOT, 'probe2.txt')), false);
+    assert.equal(env.p.copyToBootFile(path.join(H.ROOT, 'absent'), path.join(H.BOOT, 'userconfig.txt')), false);
+    assert.equal(env.p.removeBootFile(path.join(H.BOOT, 'cmdline.txt')), false, 'only videoconfig.txt is removable');
+    assert.ok(fs.existsSync(path.join(H.BOOT, 'cmdline.txt')));
     assert.equal(env.p.removeBootFile(path.join(H.BOOT, 'never-there.txt')), true);
+    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'userconfig.txt'), userBefore), true);
     const priv = env.p.priv;
-    env.p.priv = { copy() { throw new Error('denied'); }, remove() { throw new Error('denied'); } };
-    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'probe.txt'), 'y\n'), false);
-    assert.equal(env.p.copyToBootFile(path.join(H.BOOT, 'probe.txt'), path.join(H.BOOT, 'probe3.txt')), false);
-    assert.equal(env.p.removeBootFile(path.join(H.BOOT, 'probe.txt')), false);
+    env.p.priv = { writeBoot() { throw new Error('denied'); }, removeBoot() { throw new Error('denied'); }, cleanExit() { throw new Error('denied'); } };
+    assert.equal(env.p.writeBootFile(path.join(H.BOOT, 'videoconfig.txt'), 'y\n'), false);
+    assert.equal(env.p.copyToBootFile(path.join(H.BOOT, 'userconfig.txt'), path.join(H.BOOT, 'config.txt')), false);
+    assert.equal(env.p.removeBootFile(path.join(H.BOOT, 'videoconfig.txt')), false);
     await rejects(() => env.p.writeVideoConfig(), /Failed to write/);
+    await rejects(() => env.p.restoreFactoryDefaults(), /denied/);
+    env.p.executeFactoryRestore();
+    await waitFor(() => env.lastToast() && env.lastToast().type === 'error', 'error toast');
     env.p.priv = priv;
 
     await env.p.removeConfigInclude();
@@ -597,27 +608,46 @@ test('restore points, file backups, the factory copies and the boot file helpers
     await env.p.ensureConfigInclude();
     assert.equal((H.readBoot('config.txt').match(/^include videoconfig\.txt$/gm) || []).length, 1, 'idempotent');
 
-    assert.equal(env.p.hasFactoryBackup(), true);
+    // The clean exit: the plugin's lines leave, the stripped lines come back
+    assert.equal(env.p.hasPluginBootChanges(), true);
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'strip', 'volumioconfig.txt.original')), 'the strip was recorded');
+    assert.notEqual(H.readBoot('volumioconfig.txt'), H.osFile('volumioconfig-4.231.txt'), 'stripped while configured');
+    assert.ok(/fbcon=rotate:0/.test(H.readBoot('cmdline.txt')));
     env.p.restoreFactory();
     assert.equal(env.modal().data.buttons[0].payload.method, 'executeFactoryRestore');
     env.p.executeFactoryRestore();
-    await waitFor(() => env.modal().data.message === env.p.getI18n('FACTORY_REBOOT_MESSAGE'), 'the reboot modal after the factory restore');
+    await waitFor(() => env.modal().data.message === env.p.getI18n('FACTORY_REBOOT_MESSAGE'), 'the reboot modal after the removal');
     assert.equal(fs.existsSync(path.join(H.BOOT, 'videoconfig.txt')), false, 'videoconfig.txt removed');
-    assert.equal(H.readBoot('config.txt'), H.osFile('config-4.231.txt'), 'config.txt as at install');
+    assert.equal(H.readBoot('config.txt'), H.osFile('config-4.231.txt'), 'the include line is gone');
+    assert.equal(H.readBoot('volumioconfig.txt'), H.osFile('volumioconfig-4.231.txt'), 'Volumio\'s file is back as the OS wrote it');
+    assert.equal(H.readBoot('cmdline.txt').trim(), H.CMDLINE, 'the rotation parameters are gone');
+    assert.equal(fs.existsSync(path.join(H.INTERNAL, 'strip', 'volumioconfig.txt.original')), false, 'record consumed');
+    assert.equal(env.p.hasPluginBootChanges(), false);
     assert.equal(env.p.config.get('wizard_complete'), false);
+    assert.ok(env.p.config.get('applied_date'), 'an explicit removal is not undone by the recovery');
     await H.settle();
     ui = await env.p.getUIConfig();
-    assert.equal(uiSection(ui, 'section_step1_output').hidden, false, 'back at the start of the wizard');
+    assert.equal(uiSection(ui, 'section_migration_detected').hidden, false, 'the OS lines are back, so the take-over is offered again');
     assert.equal(uiSection(ui, 'section_current_config').hidden, true);
+    env = await restart(env);
+    assert.equal(env.p.config.get('wizard_complete'), false, 'nothing of ours on /boot: nothing recovered');
     await stop(env);
 
-    H.seed({ board: 'pi4', factory: false });
+    // A file edited after the strip is left alone, and said so
+    H.seed({ board: 'pi4', boot: { 'userconfig.txt': H.USERCONFIG + 'hdmi_group=1\nhdmi_mode=16\n' } });
     env = H.plugin();
     await env.start();
-    assert.equal(env.p.hasFactoryBackup(), false);
-    await rejects(() => env.p.restoreFactoryDefaults(), /Factory backups not found/);
-    env.p.executeFactoryRestore();
-    await waitFor(() => env.lastToast() && env.lastToast().type === 'error', 'error toast');
+    await configure(env, { primary_output: 'hdmi0', 'hdmi0.enabled': true, 'hdmi0.mode': 'screen_audio', 'hdmi0.display_preset': 'auto' });
+    assert.equal(/^hdmi_group/m.test(H.readBoot('userconfig.txt')), false, 'userconfig.txt stripped at the apply');
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'strip', 'userconfig.txt.original')));
+    fs.appendFileSync(path.join(H.BOOT, 'volumioconfig.txt'), '# edited by hand\n');
+    const report = await env.p.restoreFactoryDefaults();
+    assert.ok(/WARNING: volumioconfig\.txt changed since/.test(report), report);
+    assert.ok(/userconfig\.txt: the lines the plugin removed are back/.test(report), report);
+    assert.ok(/^hdmi_group=1$/m.test(H.readBoot('userconfig.txt')));
+    assert.ok(/# edited by hand/.test(H.readBoot('volumioconfig.txt')), 'the edited file stays');
+    assert.ok(fs.existsSync(path.join(H.INTERNAL, 'strip', 'volumioconfig.txt.original')), 'the original is kept for the user');
+    assert.equal(env.toasts.filter((t) => t.type === 'warning').pop().message.includes('volumioconfig.txt changed'), true);
     await stop(env);
 });
 
@@ -1075,6 +1105,46 @@ test('wizard branches: detection choice, two HDMI ports, DPI, composite, custom,
     assert.deepEqual(env.p.getHardwareCapabilities().outputs, []);
     ui = await env.p.getUIConfig();
     assert.ok(ui.sections.length > 10, 'the UI builds from stored hardware facts when detection has not run');
+    await stop(env);
+});
+
+test('an OS update is named as such; lines in userconfig.txt that act on the display are pointed out', async () => {
+    H.seed({ board: 'pi5', os: '4.231', boot: { 'userconfig.txt': H.USERCONFIG + '\n#### Touch Display rotation setting below: do not alter ####\ndisplay_lcd_rotate=3\ndisplay_hdmi_rotate=3\n' } });
+    let env = H.plugin();
+    await env.start();
+    await configure(env, { primary_output: 'dsi1', 'dsi1.enabled': true, 'dsi1.overlay': 'rpi-touch2-7inch', 'dsi1.rotation': 270, 'kms.cma_option': '128' });
+    const meta = fs.readJsonSync(path.join(H.INTERNAL, 'backups', 'current', 'metadata.json'));
+    assert.equal(meta.os_version, '4.231', 'the reference copies name the OS they were taken on');
+    assert.deepEqual(env.p.lastBoot.conflicts.map((c) => c.code), ['LEGACY_ROTATE', 'LEGACY_ROTATE']);
+    let ui = await env.p.getUIConfig();
+    assert.ok(uiItem(ui, 'section_hardware_info', 'hw_effective').value.includes('display_lcd_rotate=3'), 'the hardware line says what else is there');
+    env.p.writeDiagnosticsReport();
+    assert.ok(/userconfig_conflicts.*display_lcd_rotate/.test(fs.readFileSync('/tmp/pi-screen-setup-diagnostics.txt', 'utf8')));
+    await stop(env);
+
+    // Volumio moves to 4.300 and rewrites its boot files
+    fs.writeFileSync(path.join(H.ROOT, 'etc', 'os-release'), 'VOLUMIO_VERSION="4.300"\n');
+    fs.writeFileSync(path.join(H.BOOT, 'config.txt'), H.osFile('config-4.231.txt'));
+    fs.writeFileSync(path.join(H.BOOT, 'volumioconfig.txt'), H.osFile('volumioconfig-4.231.txt'));
+    env = H.plugin();
+    await env.start();
+    assert.equal(env.p.driftKind, 'os-update');
+    assert.deepEqual(env.p.driftOs, { from: '4.231', to: '4.300' });
+    await waitFor(() => env.modal(), 'reboot modal');
+    const toast = env.toasts.find((t) => t.type === 'warning');
+    assert.ok(toast.message.includes('4.300'), toast.message);
+    assert.equal(fs.readJsonSync(path.join(H.INTERNAL, 'backups', 'current', 'metadata.json')).os_version, '4.300', 'the new reference names the new OS');
+    const rec = fs.readFileSync(path.join(H.INTERNAL, 'strip', 'volumioconfig.txt.original'), 'utf8');
+    assert.equal(rec, H.osFile('volumioconfig-4.231.txt'), 'the strip record holds the file the update wrote');
+    await stop(env);
+
+    // the same files touched without an OS change: not an update
+    fs.writeFileSync(path.join(H.BOOT, 'config.txt'), H.readBoot('config.txt') + '# a line\n');
+    env = H.plugin();
+    await env.start();
+    assert.equal(env.p.driftKind, 'changed');
+    await waitFor(() => env.modal(), 'reboot modal');
+    assert.equal(env.toasts.find((t) => t.type === 'warning').message, env.p.getI18n('CONFIG_DRIFT_DETECTED'));
     await stop(env);
 });
 

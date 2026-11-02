@@ -258,35 +258,23 @@ Original files are backed up before modification.
 
 ### Backup and Restore
 
-The plugin includes comprehensive backup and restore functionality:
-
-**Factory Backups**
-On first installation, the plugin creates factory backups of:
-- config.txt
-- cmdline.txt
-- volumioconfig.txt
-- userconfig.txt
-
-These are stored in `/data/plugins/system_hardware/pi_screen_setup/backups/factory/` and are used to restore the original system state.
+**Where things are kept**
+Backups, restore points, the reference copies of the boot files taken at each apply, and the record of what the plugin removed from Volumio's own files live in `/data/INTERNAL/pi_screen_setup/` (the Internal Storage share). That directory survives a plugin update and an uninstall; the plugin's own folder does not.
 
 **Restore Points**
-Each time you apply a configuration, a restore point is created containing:
-- videoconfig.txt
-- config.txt
-- cmdline.txt
+Each time you apply a configuration, a restore point is created containing `videoconfig.txt`, `config.txt` and `cmdline.txt`. The last 10 are kept and can be selected from the plugin UI.
 
-The last 10 restore points are kept and can be selected from the plugin UI.
+**The boot files as found**
+On the first install the plugin saves `config.txt`, `cmdline.txt`, `volumioconfig.txt` and `userconfig.txt` as they were, under `backups/factory/`, for reference. They are not written back by the plugin: after a Volumio update they describe an older system.
 
-**Restore Options**
-After completing the wizard, the Edit Configuration section provides:
-- **Restore Point dropdown**: Select and restore a previous configuration
-- **Restore Factory Defaults**: Reset to the original boot configuration from before plugin installation
+**Volumio's own files**
+Display lines in `volumioconfig.txt` (and lines the wizard takes over from `userconfig.txt`) are removed while the plugin manages the display, so that they cannot fight with `videoconfig.txt`. Before each removal the plugin keeps the original and a digest of what it left; the removal is repeated after a Volumio update rewrites the file. Lines in `userconfig.txt` that the plugin leaves alone but that act on the display (the Touch Display plugin's `display_lcd_rotate`, for example) are listed in the hardware section and in the diagnostics report.
 
-**Uninstall Behavior**
-When the plugin is uninstalled, it automatically restores the factory defaults, removing all display configuration changes made by the plugin.
+**Remove the plugin's display configuration**
+The Edit Configuration section offers this button. It takes the plugin's lines out of `config.txt`, `videoconfig.txt` and `cmdline.txt`, and puts back the lines it removed from `volumioconfig.txt` and `userconfig.txt` — when those files are still as the plugin left them; a file edited since is left alone and said so. The plugin's settings are reset; the display then boots as Volumio ships it. Uninstalling the plugin does the same.
 
-**Settings rebuilt from the boot files**
-The boot files the plugin writes are also its record. If the plugin starts with a settings file that has never been applied — after a settings reset, a "restore settings" from an older backup, or an update from a release before 1.0 — while `/boot/videoconfig.txt` (or the copy saved at the last apply) carries its configuration, it reads the output, preset, rotation, HDMI mode, KMS and CMA back from those files, stores them and says so, with the date the files were written. Nothing on disk is changed by this; the summary in the plugin's settings shows what was found. A wizard you reset yourself stays reset.
+**How the plugin writes to /boot**
+Through one root helper, `/usr/local/bin/pi-screen-setup-root`, installed by the plugin and the only command its sudoers entry names. It writes the five boot files by name (atomically, never empty), removes `videoconfig.txt`, performs the removal above, and installs the plugin's own overlay and EDID files under a `pss-` prefix. Nothing else.
 
 ## Waveshare Portrait Display Notes
 
@@ -312,8 +300,8 @@ Note: Proper boot splash rotation requires the volumio-adaptive plymouth theme.
 - Connect via SSH
 - Check `/boot/videoconfig.txt` for configuration
 - Use plugin UI to restore a previous restore point, or
-- Restore factory defaults from plugin UI, or
-- Manual restore: `sudo cp /data/plugins/system_hardware/pi_screen_setup/backups/factory/config.txt /boot/config.txt`
+- Remove the plugin's display configuration from the plugin UI, or
+- From SSH: `sudo pi-screen-setup-root clean-exit` does the same removal
 
 ### Rotation not working
 - Ensure KMS is enabled (required for rotation)
@@ -327,13 +315,12 @@ Note: Proper boot splash rotation requires the volumio-adaptive plymouth theme.
 ### Restoring after failed configuration
 If you cannot access the Volumio UI:
 1. Connect via SSH
-2. Restore factory defaults manually:
+2. Remove the plugin's display configuration and reboot:
 ```
-sudo cp /data/plugins/system_hardware/pi_screen_setup/backups/factory/config.txt /boot/config.txt
-sudo cp /data/plugins/system_hardware/pi_screen_setup/backups/factory/cmdline.txt /boot/cmdline.txt
-sudo rm /boot/videoconfig.txt
+sudo pi-screen-setup-root clean-exit
 sudo reboot
 ```
+This takes the plugin's lines out of the boot files and puts back what it removed from Volumio's files. The restore points under `/data/INTERNAL/pi_screen_setup/backups/restore_points/` hold every `videoconfig.txt` that was applied, should you want one back by hand.
 
 ## Technical Details
 
